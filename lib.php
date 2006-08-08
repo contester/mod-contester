@@ -17,7 +17,12 @@ function contester_add_instance($contester) {
 
     # May have to add extra stuff in here #
     
-    return insert_record("contester", $contester);
+    if ($returnid = insert_record("contester", $contester))
+    {
+    	// Set defaults or add something else...
+    }
+
+    return $returnid;
 }
 
 
@@ -51,6 +56,18 @@ function contester_delete_instance($id) {
     if (! delete_records("contester", "id", "$contester->id")) {
         $result = false;
     }
+    if (! delete_records("contester_problemmap", "contesterid", "$contester->id"))
+    {
+    	$result = false;
+    }
+    // Deleting submits !!!
+    "DELETE FROM mdl_contester_results WHERE testingid IN (SELECT DISTINCT id FROM mdl_contester_testings WHERE submitid IN (SELECT DISTINCT id FROM mdl_contester_submits WHERE contester = {$contester->id}))";
+    "DELETE FROM mdl_contester_testings WHERE submitid IN (SELECT DISTINCT id FROM mdl_contester_submits WHERE contester = {$contester->id})";
+    if (! delete_records("contester_submits", "contester", "$contester->id"))
+    {
+    	$result = false;
+    }
+    
 
     return $result;
 }
@@ -62,14 +79,32 @@ function contester_user_outline($course, $user, $mod, $contester) {
 /// $return->time = the time they did it
 /// $return->info = a short text description
 
-    return $return;
+	$submits = contester_get_last_submits($contester->id);
+	if (count($submits) > 0)
+	{
+		$submit = $submits[0];
+		$return->time = $submits->submitted;
+		$return->info = "Latest: Problem: " . $submit->problem . " Gained: " . $submit->points . " After: " . $submit->attempt . "\nTotal: " . contester_get_user_points($contester->id, $user->id);
+	}
+
+	return $return;
 }
 
 function contester_user_complete($course, $user, $mod, $contester) {
 /// Print a detailed representation of what a  user has done with 
 /// a given particular instance of this module, for user activity reports.
+	
+	$submits = contester_get_last_submits($contester->id, 65536, $user->id);
+	$result = contester_get_user_points($contester->id, $user->id);
 
-    return true;
+	print_string("Total gained: " . $result, "contester");
+	foreach($submits as $line)
+	{
+		$submit = contester_get_submit($line["id"]);
+		print_string("Problem: " . $submit->problem . " Gained: " . $submit->points . " After: " . $submit->attempt, "contester");
+	}
+
+    	return true;
 }
 
 function contester_print_recent_activity($course, $isteacher, $timestart) {
@@ -110,7 +145,9 @@ function contester_get_participants($contesterid) {
 //in the instance, independient of his role (student, teacher, admin...)
 //See other modules as example.
 
-    return false;
+	$students = get_records_sql("SELECT DISTINCT student FROM mdl_contester_submits WHERE contester = $contesterid");
+
+	return $students;
 }
 
 function contester_scale_used ($contesterid,$scaleid) {
@@ -133,6 +170,65 @@ function contester_scale_used ($contesterid,$scaleid) {
 //////////////////////////////////////////////////////////////////////////////////////
 /// Any other contester functions go here.  Each of them must have a name that 
 /// starts with contester_
+
+function contester_get_submit($submitid)
+{
+	$submit = get_record("contester_submits", "id", $submitid);
+	$tmp = get_record_sql("SELECT COUNT(1) as cnt FROM mdl_contester_submits WHERE (contester = {$submit->contester}) AND (student = {$submit->student}) AND (problem = {$submit->problem}) AND (submitted < {$submit->submitted})");
+	$attempts = $tmp["cnt"];
+	
+	$result = get_record_sql("SELECT * FROM mdl_contester_testings WHERE (submitid = $submitid) ORDER BY id DESC LIMIT 0, 1");
+	$fields = array("compiled", "taken", "pass");
+	foreach($fields as $field)
+		$submit[$field] = $result[$field];
+
+	$submit["attempt"] = $attempts + 1;
+	$submit["points"] = (30 - $attempts) * $submit["passed"] / $submit["taken"];
+
+	return $submit;
+}
+                                                                                                          
+function contester_get_last_submits($contesterid, $cnt = 1, $user = NULL, $problem = NULL)
+{
+	$query = "SELECT id FROM mdl_contester_submits WHERE (contester = $contesterid) ";
+	if ($user != NULL)
+		$query .= " AND (student = $user) ";
+	if ($problem != NULL)
+		$query .= " AND (problem = $problem) ";
+	$query .= " LIMIT 0, $cnt ORDER BY submitted DESC ";
+
+	$submits = get_recordset_sql($query);
+
+	$result = array();
+	foreach($submits as $line)
+		$result []= contester_get_submit($line["id"]);
+
+	return $result;
+}
+
+function contester_get_best_submit($contesterid, $user, $problem)
+{
+	$submits = contester_get_last_submits($contesterid, 65536, $user, $problem);
+	$result = 0;
+	foreach($submits as $line)
+	{
+		$submit = contester_get_submit($line["id"]);
+		$result = max($result, $submit["points"]);
+	}
+	return $result;
+}
+
+
+function contester_get_user_points($contesterid, $user)
+{
+	$problems = get_records_select("contester_problemmap", "contesterid = $contesterid", "problemid");
+	$result = 0;
+	foreach($problems as $line)
+	{
+		$result += contester_get_best_submit($contesterid, $user, $line["problemid"]);
+	}
+	return $result;
+}
 
 
 ?>

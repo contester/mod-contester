@@ -54,9 +54,10 @@
 
 /// Print the main part of the page
 
-    echo "<form method=\"post\" action=\"submit.php\">";
+    echo "<form enctype=\"multipart/form-data\" method=\"post\" action=\"submit.php?a={$contester->id}\">";
 
-    if ($r = get_recordset_select("contester_problems")) {
+    //if ($r = get_recordset_select("contester_problems")) {
+    if ($r = get_recordset_sql("SELECT * FROM mdl_contester_problems cp JOIN mdl_contester_problemmap cpm ON cpm.problemid = cp.id WHERE cpm.contesterid = ".$contester->id)) {
       echo "Problem: <select name=\"problem\">";
       while (!$r->EOF) {
         echo "<option value=\"" . $r->fields["id"] . "\">" . $r->fields["name"] . "</option>";

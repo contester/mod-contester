@@ -19,12 +19,12 @@
         }
     
         if (! $contester = get_record("contester", "id", $cm->instance)) {
-            error("Course module is incorrect");
+            error("Course module is incorrect 1");
         }
 
     } else {
         if (! $contester = get_record("contester", "id", $a)) {
-            error("Course module is incorrect");
+            error("Course module is incorrect 2");
         }
         if (! $course = get_record("course", "id", $contester->course)) {
             error("Course is misconfigured");
@@ -54,7 +54,28 @@
 
 /// Print the main part of the page
 
-    echo "<form method=\"post\" action=\"submit.php\">Problem source: <input type=\"file\" name=\"solution\"><br><input type=\"submit\"></form>";
+///    echo "<form method=\"post\" action=\"submit.php\">Problem source: <input type=\"file\" name=\"solution\"><br><input type=\"submit\"></form>";
+
+	$temp_name = $_FILES["solution"]["tmp_name"];
+	if (!is_uploaded_file($temp_name))
+	{
+		// Handle submit error
+		print_string("File submit error. Try again.", "contester");
+	}
+	else
+	{
+
+		$submit = NULL;
+		$submit->contester = $contester->id;
+		$submit->student = $USER->id;
+		$submit->problem = $_POST["problem"];
+		$submit->lang = $_POST["lang"];
+		$submit->solution = mysql_escape_string(file_get_contents($temp_name));	
+
+		insert_record("contester_submits", $submit);
+
+		print_string("Submitted successfully.", "contester");
+	}
 
 /// Finish the page
     print_footer($course);
