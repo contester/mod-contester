@@ -36,7 +36,7 @@
 
     require_login($course->id);
 
-    add_to_log($course->id, "contester", "view", "view.php?id=$cm->id", "$contester->id");
+    add_to_log($course->id, "contester", "submit", "submit.php?id=$cm->id", "$contester->id");
 
 /// Print the page header
 

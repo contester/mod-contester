@@ -135,7 +135,7 @@ function contester_grades($contesterid) {
 ///    $return->maxgrade = maximum allowed grade;
 ///
 ///    return $return;
-
+ 
    return NULL;
 }
 
@@ -174,18 +174,31 @@ function contester_scale_used ($contesterid,$scaleid) {
 function contester_get_submit($submitid)
 {
 	$submit = get_record("contester_submits", "id", $submitid);
-	$tmp = get_record_sql("SELECT COUNT(1) as cnt FROM mdl_contester_submits WHERE (contester = {$submit->contester}) AND (student = {$submit->student}) AND (problem = {$submit->problem}) AND (submitted < {$submit->submitted})");
-	$attempts = $tmp["cnt"];
+	$tmp = get_record_sql("SELECT COUNT(1) as cnt FROM mdl_contester_submits WHERE (contester = {$submit->contester}) AND (student = {$submit->student}) AND (problem = {$submit->problem}) AND (submitted < '{$submit->submitted}')");
+
+	$attempts = 0 + $tmp->cnt;
 	
 	$result = get_record_sql("SELECT * FROM mdl_contester_testings WHERE (submitid = $submitid) ORDER BY id DESC LIMIT 0, 1");
+
 	$fields = array("compiled", "taken", "pass");
 	foreach($fields as $field)
-		$submit[$field] = $result[$field];
+	{
+		$submit->$field = $result[$field];
+	}
+	//var_dump($submit);
 
-	$submit["attempt"] = $attempts + 1;
-	$submit["points"] = (30 - $attempts) * $submit["passed"] / $submit["taken"];
+	if ($submit->taken)
+		$submit->points = (30 - $attempts) * $submit->passed / $submit->taken;
+	$submit->attempt = $attempts + 1;	
 
 	return $submit;
+}
+
+function contester_obj2assoc($obj)
+{
+	foreach($obj as $key => $val)
+		$result[$key] = $val;
+	return result;
 }
                                                                                                           
 function contester_get_last_submits($contesterid, $cnt = 1, $user = NULL, $problem = NULL)
@@ -195,13 +208,20 @@ function contester_get_last_submits($contesterid, $cnt = 1, $user = NULL, $probl
 		$query .= " AND (student = $user) ";
 	if ($problem != NULL)
 		$query .= " AND (problem = $problem) ";
-	$query .= " LIMIT 0, $cnt ORDER BY submitted DESC ";
-
+	$query .= " ORDER BY submitted DESC LIMIT 0, $cnt ";
+	
 	$submits = get_recordset_sql($query);
+	
+	//var_dump($submits);
 
 	$result = array();
-	foreach($submits as $line)
-		$result []= contester_get_submit($line["id"]);
+	/*foreach($submits as $line)
+		$result []= contester_get_submit($line["id"]);*/
+	while (!$submits->EOF)
+	{
+	    $result []= contester_get_submit($submits->fields["id"]);
+	    $submits->MoveNext();
+	}		    
 
 	return $result;
 }
@@ -212,8 +232,8 @@ function contester_get_best_submit($contesterid, $user, $problem)
 	$result = 0;
 	foreach($submits as $line)
 	{
-		$submit = contester_get_submit($line["id"]);
-		$result = max($result, $submit["points"]);
+		$submit = contester_get_submit($line->id);
+		$result = max($result, $submit->points);
 	}
 	return $result;
 }
@@ -223,11 +243,56 @@ function contester_get_user_points($contesterid, $user)
 {
 	$problems = get_records_select("contester_problemmap", "contesterid = $contesterid", "problemid");
 	$result = 0;
-	foreach($problems as $line)
+	/*foreach($problems as $line)
 	{
 		$result += contester_get_best_submit($contesterid, $user, $line["problemid"]);
+	}*/
+	while (!$problems->EOF)
+	{
+		$result += contester_get_best_submit($contesterid, $user, $problems->fields["problemid"]);
+		$problems->MoveNext();
 	}
 	return $result;
+}
+
+function contester_draw_assoc_table($res)
+{
+    echo "<table width=90% align=center border=1>";    
+    foreach($res as $line)
+    {
+        echo "<tr>";
+        foreach($line as $key => $val)
+        {
+            echo "<td>&nbsp;";
+            echo $key;
+            echo "</td>";
+        }
+        echo "</tr>";
+        break;
+    }
+    foreach($res as $line)
+    {
+        echo "<tr>";
+        foreach($line as $key => $val)
+        {
+            echo "<td>&nbsp;";
+            echo substr($val, 0, min(strlen($val), 50));
+            if (strlen($val) > 50) echo '...';
+            echo "</td>";
+        }
+        echo "</tr>";
+    }
+    echo "</table>";
+
+}
+
+function contester_draw_table_from_sql($query)
+{
+	$res = array();
+        $result = mysql_query($query);
+        while($line = mysql_fetch_assoc($result))
+ 	       $res[] = $line;
+	contester_draw_assoc_table($res);
 }
 
 
