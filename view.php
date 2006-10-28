@@ -77,6 +77,8 @@
     
     echo "Problem source: <input type=\"file\" name=\"solution\"><br><input type=\"submit\" value=\"Submit solution\"></form>";
 
+	echo "<a href=\"status.php?id=$id&a=$a\">Статус</a>";
+
 /// Finish the page
     print_footer($course);
 

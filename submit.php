@@ -75,6 +75,8 @@
 		insert_record("contester_submits", $submit);
 
 		print_string("Submitted successfully.", "contester");
+
+		print_string("<a href=\"status.php?id=$id&a=$a\">Статус</a>");
 	}
 
 /// Finish the page

@@ -178,17 +178,18 @@ function contester_get_submit($submitid)
 
 	$attempts = 0 + $tmp->cnt;
 	
-	$result = get_record_sql("SELECT * FROM mdl_contester_testings WHERE (submitid = $submitid) ORDER BY id DESC LIMIT 0, 1");
+	$result = get_record_sql("SELECT * FROM mdl_contester_testings WHERE (submitid = {$submitid}) ORDER BY id DESC");
 
-	$fields = array("compiled", "taken", "pass");
+	$fields = array("compiled", "taken", "passed");
 	foreach($fields as $field)
 	{
-		$submit->$field = $result[$field];
+		$submit->$field = $result->$field;
 	}
-	//var_dump($submit);
 
 	if ($submit->taken)
 		$submit->points = (30 - $attempts) * $submit->passed / $submit->taken;
+	else
+		$submit->points = 0;
 	$submit->attempt = $attempts + 1;	
 
 	return $submit;
@@ -243,15 +244,11 @@ function contester_get_user_points($contesterid, $user)
 {
 	$problems = get_records_select("contester_problemmap", "contesterid = $contesterid", "problemid");
 	$result = 0;
-	/*foreach($problems as $line)
+	
+	foreach($problems as $line)
 	{
-		$result += contester_get_best_submit($contesterid, $user, $line["problemid"]);
-	}*/
-	while (!$problems->EOF)
-	{
-		$result += contester_get_best_submit($contesterid, $user, $problems->fields["problemid"]);
-		$problems->MoveNext();
-	}
+		$result += contester_get_best_submit($contesterid, $user, $line->problemid);		
+	}	
 	return $result;
 }
 
