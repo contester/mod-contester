@@ -36,7 +36,7 @@
 
     require_login($course->id);
 
-    add_to_log($course->id, "contester", "status", "status.php?id=$cm->id", "$contester->id");
+    add_to_log($course->id, "contester", "view", "view.php?id=$cm->id", "$contester->id");
 
 /// Print the page header
 
@@ -53,28 +53,34 @@
                   navmenu($course, $cm));
 
 /// Print the main part of the page
+
 	contester_print_begin($contester->id);
 
-	$query = "SELECT id FROM mdl_contester_submits WHERE (contester = $contester->id) 
-	AND (student = $USER->id) ORDER BY submitted DESC LIMIT 0, 10 ";
-	
-	$submits = get_recordset_sql($query);
-	
-	//var_dump($submits);
+    echo "<form enctype=\"multipart/form-data\" method=\"post\" action=\"submit.php?a={$contester->id}\">";
 
-	$result = array();
-	/*foreach($submits as $line)
-		$result []= contester_get_submit($line["id"]);*/
-	while (!$submits->EOF)
-	{
-	    $result []= contester_get_submit_info($submits->fields["id"]);
-	    $submits->MoveNext();
-	}		    
-	
-    //$submits = contester_get_last_submits($contester->id, 10, $USER->id);
+    //if ($r = get_recordset_select("contester_problems")) {
+    if ($r = get_recordset_sql("SELECT * FROM mdl_contester_problems cp JOIN mdl_contester_problemmap cpm ON cpm.problemid = cp.id WHERE cpm.contesterid = ".$contester->id)) {
+      echo get_string('problem', 'contester').": <select name=\"problem\">";
+      while (!$r->EOF) {
+        echo "<option value=\"" . $r->fields["dbid"] . "\"";
+        if (optional_param('pid') == $r->fields['id']) echo " selected";
+        echo ">" . $r->fields["name"] . "</option>";
+        $r->MoveNext();
+      }
+      echo "</select><br/>";
+    }
+
+    if ($r = get_recordset_select("contester_languages")) {
+      echo get_string('prlanguage', 'contester').": <select name=\"lang\">";
+      while (!$r->EOF) {
+        echo "<option value=\"" . $r->fields["id"] . "\">" . $r->fields["name"] . "</option>";
+        $r->MoveNext();
+      }
+      echo "</select><br/>";
+    }
     
-    contester_draw_assoc_table($result);
-    
+    echo get_string('solution', 'contester').": <input type=\"file\" name=\"solution\"><br><input type=\"submit\" value=\"".get_string('submit', 'contester')."\"></form>";
+
 /// Finish the page
 	contester_print_end();
     print_footer($course);

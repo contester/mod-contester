@@ -55,25 +55,10 @@
 /// Print the main part of the page
 	contester_print_begin($contester->id);
 
-	$query = "SELECT id FROM mdl_contester_submits WHERE (contester = $contester->id) 
-	AND (student = $USER->id) ORDER BY submitted DESC LIMIT 0, 10 ";
-	
-	$submits = get_recordset_sql($query);
-	
-	//var_dump($submits);
-
-	$result = array();
-	/*foreach($submits as $line)
-		$result []= contester_get_submit($line["id"]);*/
-	while (!$submits->EOF)
-	{
-	    $result []= contester_get_submit_info($submits->fields["id"]);
-	    $submits->MoveNext();
-	}		    
-	
-    //$submits = contester_get_last_submits($contester->id, 10, $USER->id);
-    
-    contester_draw_assoc_table($result);
+	$submitid = required_param('sid', PARAM_INT);
+	$result = contester_get_detailed_info($submitid);
+	//print_r($result);
+	contester_draw_assoc_table($result);
     
 /// Finish the page
 	contester_print_end();

@@ -5,6 +5,10 @@
 
 
 $contester_CONSTANT = 7;     /// for example
+$contester_SAMPLES_PREFIX = '\\begin{example}';
+$contester_SAMPLES_SUFFIX = '\\end{example}';
+$contester_SAMPLE_PREFIX = '\\exmp';
+$contester_SAMPLE_SUFFIX = '%';
 
 
 function contester_add_instance($contester) {
@@ -35,6 +39,16 @@ function contester_update_instance($contester) {
     $contester->id = $contester->instance;
 
     # May have to add extra stuff in here #
+    
+    if (isset($contester->add_problem) && (trim($contester->add_problem) != '0'))
+    {
+    	$map_inst = null;
+    	$map_inst->problemid = $contester->add_problem;
+    	$map_inst->contesterid = $contester->id;
+    	insert_record("contester_problemmap", $map_inst, false);
+    	unset($map_inst);
+    }
+    if (!isset($contester->description)) $contester->description = '';
 
     return update_record("contester", $contester);
 }
@@ -195,6 +209,106 @@ function contester_get_submit($submitid)
 	return $submit;
 }
 
+/**
+* Returns info about given submit
+*
+* @return object
+* @param int $submitid ID of needed submit
+*/
+function contester_get_submit_info($submitid)
+{
+	$submit = get_record("contester_submits", "id", $submitid);
+	$tmp = get_record_sql("SELECT COUNT(1) as cnt FROM mdl_contester_submits WHERE (contester = {$submit->contester}) AND (student = {$submit->student}) AND (problem = {$submit->problem}) AND (submitted < '{$submit->submitted}')");
+
+	$attempts = 0 + $tmp->cnt;
+	
+	if (!$testing = get_record_sql("SELECT * FROM mdl_contester_testings WHERE (submitid = {$submitid}) ORDER BY id DESC"))
+		$queued = true; else 
+		{
+			$queued = false;
+			$fields = array("compiled", "taken", "passed");
+			foreach($fields as $field)
+			{
+				$submit->$field = $testing->$field;
+			}
+		}
+
+	
+
+	if ($submit->taken)
+		$submit->points = max((30 - $attempts), 15) * $submit->passed / $submit->taken;
+	else
+		$submit->points = 0;
+	$submit->attempt = $attempts + 1;
+	//$mapping = get_record("contester_problemmap", "id", $submit->problem, "contesterid", $submit->contester);
+	$problem = get_record("contester_problems", "dbid", $submit->problem);
+	$res = null;
+	$res->problem = $problem->name;
+	$lang = get_record("contester_languages", "id", $submit->lang);
+	$res->prlanguage = $lang->name;
+	if ($submit->processed == 255) {
+		$res->status = "<a href=details.php?sid=$submit->id&a=$submit->contester>".get_string('passed', 'contester')." $testing->passed ".get_string('outof', 'contester')." $testing->taken.</a>";
+	} else {
+		if (!$queued){
+			$result = get_record_sql("SELECT * FROM mdl_contester_results WHERE (testingid = {$testing->id}) ORDER BY testingid DESC");
+			$res_id = $result->result;
+		} else $res_id = 0;
+		$res_desc = get_record("contester_resultdesc", "id", $res_id, 'language', 2);
+		$res->status = $res_desc->description;
+	}
+	//$res->solution = $submit->solution;
+	$res->points = $submit->points;
+	return $res;
+}
+
+/**
+* Returns detailed info about given submit in table
+*
+* @return array
+* @param int $submitid ID of needed submit
+*/
+function contester_get_detailed_info($submitid)
+{
+	$result = array();
+	$submit = get_record("contester_submits", "id", $submitid);    
+	//print_r($submit);
+	$res = null;
+	if ($submit->processed == 0) { // если еще пока в очереди
+		$res_desc = get_record("contester_resultdesc", "id", 0, 'language', 2);
+		$res->status = $res_desc->description;
+		$result []= $res;
+		return $result;
+	}
+	if (!$testing = get_record("contester_testings", 'submitid', $submit->id)) {
+		$res_desc = get_record("contester_resultdesc", "id", 0, 'language', 2);
+		$res->status = $res_desc->description;
+		$result []= $res;
+		return $result;
+	}
+	if (!$testing->compiled) {
+		$res->status = get_string('ce', 'contester');
+		$result []= $res;
+		return $result;
+	}
+	$sql = "SELECT * FROM mdl_contester_results WHERE testingid=$testing->id and not (test = 0)";
+	//echo $sql;
+	$results = get_recordset_sql($sql);
+	while (!$results->EOF)
+	{
+		$res = null;
+		//print_r($results);
+		$res->number = $results->fields['test'];
+		$res->time = $results->fields['timex'].'ms';
+		$res->memory = ($results->fields['memory']/1024).'KB';
+		$desc = get_record('contester_resultdesc', 'id', $results->fields['result'], 'language', '2');
+		$res->result = $desc->description;
+		//print_r($res);
+		$result []= $res;
+		$results->MoveNext();
+	}
+	return $result;
+}
+
 function contester_obj2assoc($obj)
 {
 	foreach($obj as $key => $val)
@@ -254,14 +368,14 @@ function contester_get_user_points($contesterid, $user)
 
 function contester_draw_assoc_table($res)
 {
-    echo "<table width=90% align=center border=1>";    
+    echo "<table width=90% align=left border=1>";    
     foreach($res as $line)
     {
         echo "<tr>";
         foreach($line as $key => $val)
         {
             echo "<td>&nbsp;";
-            echo $key;
+            echo get_string($key, 'contester');;
             echo "</td>";
         }
         echo "</tr>";
@@ -273,8 +387,9 @@ function contester_draw_assoc_table($res)
         foreach($line as $key => $val)
         {
             echo "<td>&nbsp;";
-            echo substr($val, 0, min(strlen($val), 50));
-            if (strlen($val) > 50) echo '...';
+            /*echo substr($val, 0, min(strlen($val), 50));
+            if (strlen($val) > 50) echo '...';*/
+            echo $val;
             echo "</td>";
         }
         echo "</tr>";
@@ -291,6 +406,142 @@ function contester_draw_table_from_sql($query)
  	       $res[] = $line;
 	contester_draw_assoc_table($res);
 }
+/**
+* Shows problems mapped to given instance of contester
+*
+* @param int $instance - id of the contester's instance
+*/
+function contester_show_problemlist($instance)
+{
+	echo '<tr valign="top">';
+	echo '<td align="right"><b>'.get_string('availableproblems', 'contester').':</b></td>';
+    echo '<td align="left">';
+    unset($res);
+    //echo $instance;    
 
-
+    $sql = "SELECT mdl_contester_problems.name as name from mdl_contester_problems, mdl_contester_problemmap
+WHERE mdl_contester_problemmap.problemid=mdl_contester_problems.id and
+mdl_contester_problemmap.contesterid=$instance order by mdl_contester_problems.name";
+    //echo $sql;
+    $res = get_recordset_sql($sql);
+    
+    //print_r($res);
+    
+    foreach ($res as $line)
+    {
+    	$name = $line['name'];
+    	echo "<nobr>$name</nobr><br>";
+    }
+    echo '</td></tr>';
+}
+/**
+* Shows list of all problems in DB. Name of select:add_problem
+*
+* values: id-s of problems in DB
+*/
+function contester_show_problemadd()
+{
+    echo '<tr valign="top">';
+	echo '<td align="right"><b>'.get_string('addproblem', 'contester').':</b></td>';
+	echo '<td>';
+    unset($choices);
+    unset($res);
+    $res = get_records_sql("SELECT mdl_contester_problems.id as pr_id, mdl_contester_problems.name as name from mdl_contester_problems ORDER BY mdl_contester_problems.name");
+    foreach ($res as $line){
+    	$choices[$line->pr_id] = $line->name;
+    }
+    choose_from_menu($choices, 'add_problem');
+    echo '</td></tr>';
+}
+/**
+* Processes updates of tho mod 'contester'
+*
+* $data->path must contain the path to directory with a problem to add
+* to contester.
+* @return boolean
+* @param object $data $data->path must contain the path to directory with a problem.
+*/
+function contester_process_options($data)
+{
+	$file = $data->path;
+	assert(file_exists($file."/description"));
+	assert(is_file($file."/description"));
+	$descr = file_get_contents($file."/description");
+	assert(file_exists($file."/Text"));
+	assert(is_dir($file."/Text"));
+	assert(file_exists($file."/Text/text.tex"));
+	assert(is_file($file."/Text/text.tex"));
+	$text = file_get_contents($file."/Text/text.tex");
+	assert(substr($text, 0, 15) == "\\begin{problem}");
+	// Разбор условия
+	$text = substr_replace($text, "", 0, 16);
+	$alt_descr = substr($text, 0, strpos($text, "}"));
+	$text = substr_replace($text, "", 0, strpos($text, "}") + 2);
+	// input и output пока никуда не выводятся
+	$inp_file = substr($text, 0, strpos($text, "}"));
+	$text = substr_replace($text, "", 0, strpos($text, "}") + 2);
+	$out_file = substr($text, 0, strpos($text, "}"));
+	$text = substr_replace($text, "", 0, strpos($text, "}") + 2);
+	// то же самое с timelimit'ом
+	$timelimit = substr($text, 0, strpos($text, "}"));
+	$text = substr_replace($text, "", 0, strpos($text, "}") + 1);
+	$statement = substr($text, 0, strpos($text, "\\InputFile"));
+	$text = substr_replace($text, "", 0, strpos($text, "\\InputFile") + 10);
+	$inp_format = substr($text, 0, strpos($text, "\\OutputFile"));
+	$text = substr_replace($text, "", 0, strpos($text, "\\OutputFile") + 11);
+	$out_format = substr($text, 0, strpos($text, "\\Example"));
+	// создаем экземпляр, забиваем поля как в БД и вносим запись.
+	$problem = null;
+	$problem->name = $descr;
+	$problem->description = $statement;
+	$problem->input_format = $inp_format;
+	$problem->output_format = $out_format;
+	$problem->dbid = substr($file, strpos($file, ".") + 1) + 0;
+	// id сохраняем чтоб внести сэмплы для этой задачи
+	$pid = insert_record('contester_problems', $problem);
+	// разбор сэмплов
+	// может быть ботва если вместо example будет че-то типа examplerich...					
+	$text = substr_replace($text, "", 0, strpos($text, "\\Example") + 8);
+	$text = substr_replace($text, "", 0, strpos($text, "\\begin{example}") + 15);
+	$num = 0;
+	while (strpos($text, "\\exmp") !== false) {
+		$text = substr_replace($text, "", 0, strpos($text, "\\exmp") + 6);
+		// создаем экземпляр сэмпла, пихаем в базу.
+		$example = null;
+		$example->problem_id = $pid;
+		$example->number = $num++;
+		$example->input = substr($text, 0, strpos($text, "}"));
+		$text = substr_replace($text, "", 0, strpos($text, "}") + 2);
+		$example->output = substr($text, 0, strpos($text, "}"));
+		$text = substr_replace($text, "", 0, strpos($text, "}") + 2);
+		insert_record('contester_samples', $example);
+	}
+	return true;
+}
+/**
+* Shows navigation bar for given instance of contester
+*
+* @param int $instance object  of the contester's instance
+*/
+function contester_show_nav_bar($instance) {
+	echo "<nobr><a href=view.php?a=$instance>".get_string('problemlist', 'contester')."</a></nobr><br>";
+	echo "<nobr><a href=submit_form.php?a=$instance>".get_string('submit', 'contester')."</a></nobr><br>";
+	echo "<nobr><a href=status.php?a=$instance>".get_string('status', 'contester')."</a></nobr><br>";
+}
+/**
+* Something like header
+* @param int $instance object  of the contester's instance
+*/
+function contester_print_begin($instance) {
+	echo "<table width=95% height=95%><tr><td valign=top>";
+	contester_show_nav_bar($instance);
+	echo "</td><td align=center>";
+}
+/**
+* Something like footer
+*/
+function contester_print_end() {
+	echo "</td></tr></table>";
+}
 ?>
+

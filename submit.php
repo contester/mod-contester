@@ -56,6 +56,7 @@
 
 ///    echo "<form method=\"post\" action=\"submit.php\">Problem source: <input type=\"file\" name=\"solution\"><br><input type=\"submit\"></form>";
 
+	contester_print_begin($contester->id);
 	$temp_name = $_FILES["solution"]["tmp_name"];
 	if (!is_uploaded_file($temp_name))
 	{
@@ -74,12 +75,13 @@
 
 		insert_record("contester_submits", $submit);
 
-		print_string("Submitted successfully.", "contester");
+		print_string("successsubmit", "contester");
 
-		print_string("<a href=\"status.php?id=$id&a=$a\">Статус</a>");
+		echo "<br><a href=\"status.php?id=$id&a=$a\">".get_string("status", 'contester')."</a><br>";
 	}
 
 /// Finish the page
+	contester_print_end();
     print_footer($course);
 
 ?>

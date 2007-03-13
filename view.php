@@ -39,7 +39,7 @@
     add_to_log($course->id, "contester", "view", "view.php?id=$cm->id", "$contester->id");
 
 /// Print the page header
-
+	
     if ($course->category) {
         $navigation = "<a href=\"../../course/view.php?id=$course->id\">$course->shortname</a> ->";
     }
@@ -49,37 +49,39 @@
 
     print_header("$course->shortname: $contester->name", "$course->fullname",
                  "$navigation <a href=index.php?id=$course->id>$strcontesters</a> -> $contester->name", 
-                  "", "", true, update_module_button($cm->id, $course->id, $strcontester), 
+                  "", "", true, 
+                  update_module_button($cm->id, $course->id, $strcontester), 
                   navmenu($course, $cm));
 
+
 /// Print the main part of the page
-
-    echo "<form enctype=\"multipart/form-data\" method=\"post\" action=\"submit.php?a={$contester->id}\">";
-
-    //if ($r = get_recordset_select("contester_problems")) {
-    if ($r = get_recordset_sql("SELECT * FROM mdl_contester_problems cp JOIN mdl_contester_problemmap cpm ON cpm.problemid = cp.id WHERE cpm.contesterid = ".$contester->id)) {
-      echo "Problem: <select name=\"problem\">";
-      while (!$r->EOF) {
-        echo "<option value=\"" . $r->fields["id"] . "\">" . $r->fields["name"] . "</option>";
-        $r->MoveNext();
-      }
-      echo "</select><br/>";
-    }
-
-    if ($r = get_recordset_select("contester_languages")) {
-      echo "Language: <select name=\"lang\">";
-      while (!$r->EOF) {
-        echo "<option value=\"" . $r->fields["id"] . "\">" . $r->fields["name"] . "</option>";
-        $r->MoveNext();
-      }
-      echo "</select><br/>";
-    }
+	echo "<br><br>";	
+	echo $contester->description;
+	echo "<br><br>";
+	contester_print_begin($contester->id);
+    $sql = "SELECT mdl_contester_problemmap.id as id, mdl_contester_problems.name as name from mdl_contester_problems, mdl_contester_problemmap
+WHERE mdl_contester_problemmap.problemid=mdl_contester_problems.id and
+mdl_contester_problemmap.contesterid=$contester->id order by mdl_contester_problems.name";
+    $problem_list = get_recordset_sql($sql);
+    if (!$problem_list->EOF)
+    {
+    	echo "<table width = 90% border=1><tr><td>".get_string('number', 'contester').
+    	"</td><td>".get_string('name','contester')."</td><td>".
+    	get_string('action', 'contester')."</td></tr>";
     
-    echo "Problem source: <input type=\"file\" name=\"solution\"><br><input type=\"submit\" value=\"Submit solution\"></form>";
-
-	echo "<a href=\"status.php?id=$id&a=$a\">Статус</a>";
-
+    	$i = 1;
+    	foreach ($problem_list as $problem)
+    	{
+    		echo "<tr><td align=center>".($i++)."</td><td align=left><nobr>".
+	    	$problem['name']."</td><td>";
+    		print_single_button("problem.php", array("pid"=>$problem['id'], "a"=>$contester->id), get_string('view'), 'post');
+    		print_single_button("submit_form.php", array("pid"=>$problem['id'],"a"=>$contester->id), get_string('submit', 'contester'), 'post');
+	    	echo "</td></tr>";
+    	}
+    	echo "</table>";
+    } else print_string('noproblems', 'contester');	
 /// Finish the page
+	contester_print_end();
     print_footer($course);
 
 ?>

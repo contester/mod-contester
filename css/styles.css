@@ -1,0 +1,28 @@
+#problemname{
+	font-size:x-large;
+	text-align : center;
+	font-weight : bold;
+	display : block;
+}
+#description{
+	text-align : left;
+	display : block;
+	font-size : medium;
+}
+#symbol{
+	text-transform : uppercase;
+	display : inline;
+	font-weight : bold;
+	font-style : italic;
+}
+#textheader{
+	font-size:large;
+	text-align : left;
+	font-weight : bold;
+	display : block;
+}
+#inoutformat{
+	font-size:medium;
+	text-align : left;
+	display : block;
+}
