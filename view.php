@@ -13,11 +13,11 @@
         if (! $cm = get_record("course_modules", "id", $id)) {
             error("Course Module ID was incorrect");
         }
-    
+
         if (! $course = get_record("course", "id", $cm->course)) {
             error("Course is misconfigured");
         }
-    
+
         if (! $contester = get_record("contester", "id", $cm->instance)) {
             error("Course module is incorrect");
         }
@@ -39,7 +39,7 @@
     add_to_log($course->id, "contester", "view", "view.php?id=$cm->id", "$contester->id");
 
 /// Print the page header
-	
+
     if ($course->category) {
         $navigation = "<a href=\"../../course/view.php?id=$course->id\">$course->shortname</a> ->";
     }
@@ -48,38 +48,40 @@
     $strcontester  = get_string("modulename", "contester");
 
     print_header("$course->shortname: $contester->name", "$course->fullname",
-                 "$navigation <a href=index.php?id=$course->id>$strcontesters</a> -> $contester->name", 
-                  "", "", true, 
-                  update_module_button($cm->id, $course->id, $strcontester), 
+                 "$navigation <a href=index.php?id=$course->id>$strcontesters</a> -> $contester->name",
+                  "", "", true,
+                  update_module_button($cm->id, $course->id, $strcontester),
                   navmenu($course, $cm));
 
 
 /// Print the main part of the page
-	echo "<br><br>";	
+	echo "<br><br>";
 	echo $contester->description;
 	echo "<br><br>";
 	contester_print_begin($contester->id);
     $sql = "SELECT mdl_contester_problemmap.id as id, mdl_contester_problems.name as name from mdl_contester_problems, mdl_contester_problemmap
-WHERE mdl_contester_problemmap.problemid=mdl_contester_problems.id and
-mdl_contester_problemmap.contesterid=$contester->id order by mdl_contester_problems.name";
+			WHERE  mdl_contester_problemmap.problemid=mdl_contester_problems.id and
+				   mdl_contester_problemmap.contesterid=$contester->id order by mdl_contester_problemmap.id";
     $problem_list = get_recordset_sql($sql);
     if (!$problem_list->EOF)
     {
-    	echo "<table width = 90% border=1><tr><td>".get_string('number', 'contester').
+    	echo "<table width = 90% border=1 bordercolor=black cellpadding=5><tr><td>".get_string('number', 'contester').
     	"</td><td>".get_string('name','contester')."</td><td>".
     	get_string('action', 'contester')."</td></tr>";
-    
+
     	$i = 1;
     	foreach ($problem_list as $problem)
     	{
-    		echo "<tr><td align=center>".($i++)."</td><td align=left><nobr>".
-	    	$problem['name']."</td><td>";
-    		print_single_button("problem.php", array("pid"=>$problem['id'], "a"=>$contester->id), get_string('view'), 'post');
+    		echo "<tr valign><td align=center valign=middle>".($i++)."</td><td valign=middle align=left><nobr>".
+	    	$problem['name']."</td><td  align=center valign=middle nobr>";
+    		//print_single_button("problem.php", array("pid"=>$problem['id'],"a"=>$contester->id), get_string('definition', 'contester'), 'post');
+    		contester_print_link_to_problem($contester->id, $problem['id']);
     		print_single_button("submit_form.php", array("pid"=>$problem['id'],"a"=>$contester->id), get_string('submit', 'contester'), 'post');
-	    	echo "</td></tr>";
+	    	echo "</nobr></td></tr>";
     	}
     	echo "</table>";
-    } else print_string('noproblems', 'contester');	
+    } else print_string('noproblems', 'contester');
+
 /// Finish the page
 	contester_print_end();
     print_footer($course);

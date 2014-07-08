@@ -1,7 +1,7 @@
 <?PHP  // $Id: view.php,v 1.2 2006/04/29 22:19:41 skodak Exp $
 
-/// This page prints a particular instance of contester
-/// (Replace contester with the name of your module)
+/// Ставит решение студента в очередь тестирования
+/// 
 
     require_once("../../config.php");
     require_once("lib.php");
@@ -13,18 +13,18 @@
         if (! $cm = get_record("course_modules", "id", $id)) {
             error("Course Module ID was incorrect");
         }
-
+    
         if (! $course = get_record("course", "id", $cm->course)) {
             error("Course is misconfigured");
         }
-
+    
         if (! $contester = get_record("contester", "id", $cm->instance)) {
-            error("Course module is incorrect");
+            error("Course module is incorrect 1");
         }
 
     } else {
         if (! $contester = get_record("contester", "id", $a)) {
-            error("Course module is incorrect");
+            error("Course module is incorrect 2");
         }
         if (! $course = get_record("course", "id", $contester->course)) {
             error("Course is misconfigured");
@@ -36,7 +36,7 @@
 
     require_login($course->id);
 
-    add_to_log($course->id, "contester", "status", "status.php?id=$cm->id", "$contester->id");
+    add_to_log($course->id, "contester", "submit", "submit.php?id=$cm->id", "$contester->id");
 
 /// Print the page header
 
@@ -48,19 +48,39 @@
     $strcontester  = get_string("modulename", "contester");
 
     print_header("$course->shortname: $contester->name", "$course->fullname",
-                 "$navigation <a href=index.php?id=$course->id>$strcontesters</a> -> $contester->name",
-                  "", "", true, update_module_button($cm->id, $course->id, $strcontester),
+                 "$navigation <a href=index.php?id=$course->id>$strcontesters</a> -> $contester->name", 
+                  "", "", true, update_module_button($cm->id, $course->id, $strcontester), 
                   navmenu($course, $cm));
 
 /// Print the main part of the page
-	contester_print_begin($contester->id);
 
-	$submitid = required_param('sid', PARAM_INT);
-	$result = contester_get_detailed_info($submitid);
-	//print_r($result);
-	echo "<p>";
-	contester_draw_assoc_table($result);
-	echo "</p>";
+///    echo "<form method=\"post\" action=\"submit.php\">Problem source: <input type=\"file\" name=\"solution\"><br><input type=\"submit\"></form>";
+
+	contester_print_begin($contester->id);
+	$temp_name = $_FILES["solution"]["tmp_name"];
+	if (!is_uploaded_file($temp_name))
+	{
+		// Handle submit error
+		print_string("fileerror", "contester");
+	}
+	else
+	{
+
+		$submit = NULL;
+		$submit->contester = $contester->id;
+		$submit->student = $USER->id;
+		$submit->problem = required_param("problem");
+		if ($submit->problem == -1) error(get_string("shudchuzprob", 'contester'), "submit_form.php?a=$contester->id");
+		$submit->lang = $_POST["lang"];
+		if ($submit->lang == -1) error(get_string("shudchuzlang", 'contester'), "submit_form.php?a=$contester->id");
+		$submit->solution = mysql_escape_string(file_get_contents($temp_name));	
+
+		insert_record("contester_submits", $submit);
+
+		print_string("successsubmit", "contester");
+
+		echo "<br><a href=\"status.php?id=$id&a=$a\">".get_string("status", 'contester')."</a><br>";
+	}
 
 /// Finish the page
 	contester_print_end();

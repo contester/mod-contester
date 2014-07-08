@@ -1,7 +1,6 @@
 <?php
 
-/// Отображает условие задачи со ссылками на отправку решения и список
-/// правильных решений.
+/// Отображает условие задачи
 
 
 /**
@@ -32,7 +31,6 @@ function mutate($s)
 
     $id = optional_param('id', 0, PARAM_INT); // Course Module ID, or
     $a  = optional_param('a', 0, PARAM_INT);  // contester ID
-    $pid = required_param('pid', PARAM_INT); // ID of problem in problemmap
 
     if ($id) {
         if (! $cm = get_record("course_modules", "id", $id)) {
@@ -59,42 +57,46 @@ function mutate($s)
         }
     }
 
-    require_login($course->id);
+    $context = get_context_instance(CONTEXT_MODULE, $cm->id);
+	$is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
 
-    add_to_log($course->id, "contester", "problem", "problem.php?id=$contester->id&pid=$pid", "$contester->id");
+    require_login();
 
+    $pid = required_param('pid', PARAM_INT); // ID of problem in problems
+    add_to_log(0, "contester", "preview", "problem_preview.php", "$pid");
+
+    if (!(isadmin() || $is_teacher)) {
+    	error(get_string('accessdenied', 'contester'));
+    }
 
 /// Print the page header
 
     if ($course->category) {
         $navigation = "<a href=\"../../course/view.php?id=$course->id\">$course->shortname</a> ->";
     }
-
-    $strcontesters = get_string("modulenameplural", "contester");
+    $problemspreview = "<a href=\"../../mod/contester/problems_preview.php?a=".$contester->id."\">".get_string('problemspreview', 'contester')."</a> ->";
+    $curcontester = "$contester->name ->";
     $strcontester  = get_string("modulename", "contester");
 
-    print_header("$course->shortname: $contester->name", "$course->fullname",
-                 "$navigation <a href=index.php?id=$course->id>$strcontesters</a> -> $contester->name",
-                  "", "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.css\" />", true, update_module_button($cm->id, $course->id, $strcontester),
-                  navmenu($course, $cm));
+	// достаем name для header-а, заодно всё остальное: название, условия, формат ввода-вывода
+	$sql = "select mdl_contester_problems.id as id, mdl_contester_problems.name as name,
+				   mdl_contester_problems.dbid as dbid, mdl_contester_problems.description as description,
+				   mdl_contester_problems.input_format as input, mdl_contester_problems.output_format as output
+			from   mdl_contester_problems
+			where  mdl_contester_problems.id=$pid";
+	if (!$problem = get_record_sql($sql)) error('No such problem!');
 
+    print_header("$course->shortname: $contester->name", "$course->fullname",
+                 "$navigation $curcontester $problemspreview".$problem->name,
+                  "", "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.css\" />",
+                  true, update_module_button($cm->id, $course->id, $strcontester),
+                  navmenu($course, $cm));
 
 /// Print the main part of the page
 
-	contester_print_begin($contester->id);
-	echo "<table width = 70%><tr><td>";
-	// достаем и выводим название, условия, формат ввода-вывода
-	$sql = "SELECT mdl_contester_problems.id as id,
-				   mdl_contester_problems.name as name,
-				   mdl_contester_problems.description as description,
-				   mdl_contester_problems.input_format as input,
-				   mdl_contester_problems.output_format as output
-		    FROM   mdl_contester_problems,
-		   		   mdl_contester_problemmap
-		    WHERE  mdl_contester_problemmap.problemid=mdl_contester_problems.id
-		    AND	   mdl_contester_problemmap.id=$pid";
-	if (!$problem = get_record_sql($sql)) error('No such problem!');
-	$text = "<div id=problemname>".$problem->name."</div><div id=description>".$problem->description.
+	echo "<table width = 95% height=95% cellpadding=10><tr><td>";
+
+	$text = "<div id=problemname> ".$problem->name."</div><div id=description>".$problem->description.
 	"</div><div id=textheader>".get_string('inputformat', 'contester')."</div><div id=inoutformat>".$problem->input.
 	"</div><div id=textheader>".get_string('outputformat', 'contester')."</div><div id=inoutformat>".$problem->output.
 	"</div>";
@@ -135,12 +137,26 @@ function mutate($s)
 	}
 	echo $text;//format_text($text); в <pre></pre> после формата в хроме лишние переводы строк и в IE выглядит как 1,5 интервал
 
-	echo "</td></tr></table>";
-	echo "<a href='problem_solutions.php?a=$contester->id&pid=$pid'>".get_string("solutionlist", "contester")."</a>";
+	echo "</td></tr>";
 
+   	if (isadmin())
+   	{
+		echo '<tr><td>';
+		contester_print_link_to_problem_details($contester->id, $problem->id, $problem->dbid);
+		echo '</td></tr>';
+    }
 
+   	if (isadmin())
+   	{
+   		echo '<tr><td><span id=textheader>'.get_string('tags', 'contester').':</span>';
+		echo '<span id=tags>';
+   		contester_show_problem_tags($problem->id);
+   		contester_print_link_to_problem_tags_details($contester->id, $problem->id);
+  		echo '</span></td></tr>';
+   	}
+
+	echo "</table>";
 /// Finish the page
-	contester_print_end();
     print_footer($course);
 
 ?>

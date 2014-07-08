@@ -8,6 +8,7 @@
 
     $id = optional_param('id', 0, PARAM_INT); // Course Module ID, or
     $a  = optional_param('a', 0, PARAM_INT);  // contester ID
+    $sid = required_param('sid');
 
     if ($id) {
         if (! $cm = get_record("course_modules", "id", $id)) {
@@ -33,10 +34,29 @@
             error("Course Module ID was incorrect");
         }
     }
-
+	//echo "botva";
     require_login($course->id);
-
-    add_to_log($course->id, "contester", "status", "status.php?id=$cm->id", "$contester->id");
+    //echo "botva";
+	add_to_log($course->id, "contester", "show_solution", "show_solution.php?a=$contester->id&sid=$sid", "$contester->id");
+	//echo "botva";
+	$context = get_context_instance(CONTEXT_MODULE, $cm->id);
+    $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
+    //echo "#".$is_teacher;
+    if ((!isadmin()) && (!$is_teacher) && (!get_field('contester', 'freeview', 'id', $contester->id))) {
+    	//echo "botva";
+        if (!$userid)
+        {
+        	//echo "botva";
+	       	if (empty($USER->id)) {
+    	        error('accessdenied', 'contester');
+        	}
+        	$userid = $USER->id;
+    	}
+    	$user = get_field_sql("SELECT user.id FROM mdl_user as user, mdl_contester_submits as submits
+    	WHERE submits.id=$sid AND user.id=submits.student");
+    	if ($userid != $user) error('accessdenied', 'contester');
+    }
+    //echo "botva";
 
 /// Print the page header
 
@@ -49,53 +69,19 @@
 
     print_header("$course->shortname: $contester->name", "$course->fullname",
                  "$navigation <a href=index.php?id=$course->id>$strcontesters</a> -> $contester->name",
-                  "", "", true, update_module_button($cm->id, $course->id, $strcontester),
+                  "", "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.css\" />", true, update_module_button($cm->id, $course->id, $strcontester),
                   navmenu($course, $cm));
 
 /// Print the main part of the page
 	contester_print_begin($contester->id);
 
-	$query = "SELECT   id
-			  FROM     mdl_contester_submits
-			  WHERE    (contester = $contester->id)
-			  AND      (student = $USER->id)
-			  ORDER BY submitted
-			  DESC
-			  LIMIT    0, 10 ";
+	$r = get_recordset_sql("SELECT mcp.name FROM mdl_contester_submits mcs JOIN mdl_contester_problems mcp ON mcs.problem=mcp.dbid WHERE mcs.id=".$sid);
 
-	$submits = get_recordset_sql($query);
-
-	//var_dump($submits);
-
-	$result = array();
-	/*foreach($submits as $line)
-		$result []= contester_get_submit($line["id"]);*/
-	while (!$submits->EOF)
-	{
-	    $result []= contester_get_submit_info($submits->fields["id"]);
-	    $submits->MoveNext();
-	}
-
-    //$submits = contester_get_last_submits($contester->id, 10, $USER->id);
-
-	// print the number of solutions in queue
-	//if (isadmin())
-	{
-		$qnum = get_record_sql("SELECT  COUNT(1) as cnt
-						    FROM    mdl_contester_submits
-       						WHERE   ((processed is NULL) or (processed = 1))");
-       	$cnum = get_record_sql("SELECT  COUNT(1) as cnt
-						    FROM    mdl_contester_submits
-       						WHERE   (processed = 255)");
-
-		echo "<p>".get_string("numinqueue", "contester").": ".$qnum->cnt.
-			" (".get_string("numchecked", "contester")." ". $cnum->cnt.")</p>";
-    }
-
-	echo "<p>";
-    contester_draw_assoc_table($result);
-	echo "</p>";
-	
+	$student = get_field('contester_submits', 'student', 'id', $sid);
+	echo get_field('user', 'firstname', 'id', $student).' '.get_field('user', 'lastname', 'id', $student).' ';
+	echo $r->fields['name'].' ';
+	echo  get_field('contester_submits', 'submitted', 'id', $sid).'<br/><br/>';
+	echo "<textarea cols=70 rows = 30 readonly='yes'>".get_field('contester_submits', 'solution', 'id', $sid)."</textarea>";
 
 /// Finish the page
 	contester_print_end();

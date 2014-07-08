@@ -35,67 +35,40 @@
     }
 
     require_login($course->id);
-
-    add_to_log($course->id, "contester", "status", "status.php?id=$cm->id", "$contester->id");
+    add_to_log($course->id, "contester", "details", "details.php?id=$cm->id", "$contester->id");
+    if (!isadmin()) error(get_string('accessdenied', 'contester'));
+	$pid = required_param('pid');
 
 /// Print the page header
 
     if ($course->category) {
         $navigation = "<a href=\"../../course/view.php?id=$course->id\">$course->shortname</a> ->";
     }
+    $problemspreview = "<a href=\"../../mod/contester/problems_preview.php?a=".$contester->id."\">".get_string('problemspreview', 'contester')."</a> ->";
+    $curcontester = "$contester->name ->";
+    $strcontester = get_string("modulename", "contester");
+    $strprdetails = get_string("problemdetails", "contester");
 
-    $strcontesters = get_string("modulenameplural", "contester");
-    $strcontester  = get_string("modulename", "contester");
+	$sql = "SELECT mdl_contester_problems.name as name
+			FROM   mdl_contester_problems
+			WHERE  mdl_contester_problems.id=$pid";
+	if (!$problem = get_record_sql($sql)) error('No such problem!');
+    $problempreview = "<a href=\"../../mod/contester/problem_preview.php?a=".$contester->id."&pid=".$pid."\">".$problem->name."</a> ->";
 
     print_header("$course->shortname: $contester->name", "$course->fullname",
-                 "$navigation <a href=index.php?id=$course->id>$strcontesters</a> -> $contester->name",
-                  "", "", true, update_module_button($cm->id, $course->id, $strcontester),
+                 "$navigation $curcontester $problemspreview $problempreview $strprdetails",
+                  "", "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.css\" />",
+                  true, update_module_button($cm->id, $course->id, $strcontester),
                   navmenu($course, $cm));
 
 /// Print the main part of the page
-	contester_print_begin($contester->id);
 
-	$query = "SELECT   id
-			  FROM     mdl_contester_submits
-			  WHERE    (contester = $contester->id)
-			  AND      (student = $USER->id)
-			  ORDER BY submitted
-			  DESC
-			  LIMIT    0, 10 ";
-
-	$submits = get_recordset_sql($query);
-
-	//var_dump($submits);
-
-	$result = array();
-	/*foreach($submits as $line)
-		$result []= contester_get_submit($line["id"]);*/
-	while (!$submits->EOF)
-	{
-	    $result []= contester_get_submit_info($submits->fields["id"]);
-	    $submits->MoveNext();
-	}
-
-    //$submits = contester_get_last_submits($contester->id, 10, $USER->id);
-
-	// print the number of solutions in queue
-	//if (isadmin())
-	{
-		$qnum = get_record_sql("SELECT  COUNT(1) as cnt
-						    FROM    mdl_contester_submits
-       						WHERE   ((processed is NULL) or (processed = 1))");
-       	$cnum = get_record_sql("SELECT  COUNT(1) as cnt
-						    FROM    mdl_contester_submits
-       						WHERE   (processed = 255)");
-
-		echo "<p>".get_string("numinqueue", "contester").": ".$qnum->cnt.
-			" (".get_string("numchecked", "contester")." ". $cnum->cnt.")</p>";
-    }
-
-	echo "<p>";
-    contester_draw_assoc_table($result);
-	echo "</p>";
-	
+	echo '<form action=save_problem.php method="POST">';
+	contester_show_problem_details($pid);
+	echo '<input type=submit value="'.get_string('save', 'contester').'">';
+	echo '<input type=hidden name="pid" value="'.$pid.'">';
+	echo '<input type=hidden name="a" value="'.$contester->id.'">';
+	echo '</form>';
 
 /// Finish the page
 	contester_print_end();

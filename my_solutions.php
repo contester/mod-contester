@@ -1,0 +1,119 @@
+<?PHP  // $Id: view.php,v 1.2 2006/04/29 22:19:41 skodak Exp $
+
+/// This page prints a particular instance of contester
+/// (Replace contester with the name of your module)
+
+    require_once("../../config.php");
+    require_once("lib.php");
+
+    $id = optional_param('id', 0, PARAM_INT); // Course Module ID, or
+    $a  = optional_param('a', 0, PARAM_INT);  // contester ID
+    $thisorall = optional_param('tha', 0 , PARAM_INT); // 0 - this contest, 1 - all submits
+
+    if ($id) {
+        if (! $cm = get_record("course_modules", "id", $id)) {
+            error("Course Module ID was incorrect");
+        }
+
+        if (! $course = get_record("course", "id", $cm->course)) {
+            error("Course is misconfigured");
+        }
+
+        if (! $contester = get_record("contester", "id", $cm->instance)) {
+            error("Course module is incorrect");
+        }
+
+    } else {
+        if (! $contester = get_record("contester", "id", $a)) {
+            error("Course module is incorrect");
+        }
+        if (! $course = get_record("course", "id", $contester->course)) {
+            error("Course is misconfigured");
+        }
+        if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
+            error("Course Module ID was incorrect");
+        }
+    }
+
+    require_login($course->id);
+
+    add_to_log($course->id, "contester", get_string('mysolutions', 'contester'), "my_solutions.php?a=$contester->id", "$contester->id");
+
+/// Print the page header
+
+    if ($course->category) {
+        $navigation = "<a href=\"../../course/view.php?id=$course->id\">$course->shortname</a> ->";
+    }
+
+    $strcontesters = get_string("modulenameplural", "contester");
+    $strcontester  = get_string("modulename", "contester");
+
+    print_header("$course->shortname: $contester->name", "$course->fullname",
+                 "$navigation <a href=index.php?id=$course->id>$strcontesters</a> -> $contester->name",
+                  "", "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.css\" />", true, update_module_button($cm->id, $course->id, $strcontester),
+                  navmenu($course, $cm));
+
+/// Print the main part of the page
+	contester_print_begin($contester->id);
+	// header
+	echo "<br />";
+
+	$thisc = get_string('thiscontester', 'contester');
+	$allc = get_string('all', 'contester');
+	$thiscontester = "";
+	if ($thisorall == 1)
+	{
+		$thisc = "<a href=my_solutions.php?a=".$contester->id."&tha=0>".$thisc."</a>";
+	}
+   	else
+   	{
+   		$thiscontester = " AND contester.id = ".$contester->id." ";
+   		$allc = "<a href=my_solutions.php?a=".$contester->id."&tha=1>".$allc."</a>";
+   	}
+	echo "<p><strong>".get_string('solutionlist', 'contester')." (".$thisc." \ ".$allc.")</strong></p>";
+
+	if (!$userid) $userid = $USER->id;
+
+	$table = null;
+	$table->head = array(get_string('problem', 'contester'), get_string('prlanguage', 'contester'),
+		get_string('date'), get_string('status', 'contester'), get_string('points', 'contester'),
+		get_string('modulename', 'contester'));
+
+	$sql = "
+	SELECT problems.name as p1, languages.name as p2, submits.submitted as p3,
+		   submits.id as p4, contester.name as p5
+	FROM   mdl_contester_problems as problems,
+		   mdl_contester_submits as submits,
+		   mdl_contester_languages as languages,
+		   mdl_contester as contester
+	WHERE
+		   submits.student=$userid AND
+		   submits.lang=languages.id AND
+		   submits.problem = problems.dbid AND
+		   submits.contester = contester.id".$thiscontester."
+	ORDER BY submits.submitted DESC
+	";
+	//echo "<textarea>".$sql."</textarea>";
+
+	$tmp = mysql_query($sql);
+	while ($row = mysql_fetch_array($tmp))
+	{
+		$tmpsubmitinfo = contester_get_special_submit_info($row[3], false, false); //do not return problem name & language info
+		$table->data []= array($row[0],$row[1],$row[2],$tmpsubmitinfo->status,
+			'<a href=show_solution.php?a='.$contester->id.'&sid='.$row[3].'>'.$tmpsubmitinfo->points.'</a>',$row[4]);
+	}
+
+	//print_r($table->data);
+
+	if ($table->data === false)
+	{
+		print_string('nosolutions', contester);
+	} else {
+		print_table($table);
+	}
+
+/// Finish the page
+	contester_print_end();
+    print_footer($course);
+
+?>

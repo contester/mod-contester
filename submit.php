@@ -1,7 +1,7 @@
 <?PHP  // $Id: view.php,v 1.2 2006/04/29 22:19:41 skodak Exp $
 
-/// This page prints a particular instance of contester
-/// (Replace contester with the name of your module)
+/// Ставит решение студента в очередь тестирования
+///
 
     require_once("../../config.php");
     require_once("lib.php");
@@ -13,11 +13,11 @@
         if (! $cm = get_record("course_modules", "id", $id)) {
             error("Course Module ID was incorrect");
         }
-    
+
         if (! $course = get_record("course", "id", $cm->course)) {
             error("Course is misconfigured");
         }
-    
+
         if (! $contester = get_record("contester", "id", $cm->instance)) {
             error("Course module is incorrect 1");
         }
@@ -48,40 +48,62 @@
     $strcontester  = get_string("modulename", "contester");
 
     print_header("$course->shortname: $contester->name", "$course->fullname",
-                 "$navigation <a href=index.php?id=$course->id>$strcontesters</a> -> $contester->name", 
-                  "", "", true, update_module_button($cm->id, $course->id, $strcontester), 
+                 "$navigation <a href=index.php?id=$course->id>$strcontesters</a> -> $contester->name",
+                  "", "", true, update_module_button($cm->id, $course->id, $strcontester),
                   navmenu($course, $cm));
 
 /// Print the main part of the page
 
-///    echo "<form method=\"post\" action=\"submit.php\">Problem source: <input type=\"file\" name=\"solution\"><br><input type=\"submit\"></form>";
-
 	contester_print_begin($contester->id);
-	$temp_name = $_FILES["solution"]["tmp_name"];
-	if (!is_uploaded_file($temp_name))
-	{
-		// Handle submit error
-		print_string("File submit error. Try again.", "contester");
-	}
-	else
-	{
 
-		$submit = NULL;
-		$submit->contester = $contester->id;
-		$submit->student = $USER->id;
-		$submit->problem = $_POST["problem"];
-		$submit->lang = $_POST["lang"];
-		$submit->solution = mysql_escape_string(file_get_contents($temp_name));	
+	$submit = NULL;
+	$submit->contester = $contester->id;
+	$submit->student = $USER->id;
+	$submit->problem = required_param("problem");
+	if ($submit->problem == -1) error(get_string("shudchuzprob", 'contester'), "submit_form.php?a=$contester->id");
+	$submit->lang = $_POST["lang"];
+	if ($submit->lang == -1) error(get_string("shudchuzlang", 'contester'), "submit_form.php?a=$contester->id");
+	//$submit->solution = required_param("code");
+	$submit->solution = trim($_POST['code']);
+    if ($submit->solution == "")
+    {
+    	$temp_name = $_FILES["solution"]["tmp_name"];
+    	if (!is_uploaded_file($temp_name))
+    	{
+    		error(get_string("shudchuzcode", 'contester'), "submit_form.php?a=$contester->id");
+    	}
+    	else
+    	{
+    		$submit->solution = /*mysql_escape_string(*/file_get_contents($temp_name);//);
+    	}
+    }
 
-		insert_record("contester_submits", $submit);
+    if (isadmin())
+    {
+        //$string = $submit->solution;
+        //$pattern ='/system\s*\(\s*\\\{0,1}"\s*pause\s*\\\{0,1}"\s*\)\s*;/i';
+        //$replacement = '/* system(\"pause\"); */';
+        //echo preg_replace($pattern, $replacement, $string);
+    }
+    
+    // c# problem (contester could not kill process which is waiting for console input)
+    $submit->solution = str_replace("Console.Read", '//Console.Read', $submit->solution);
+    
+    // c++ problem (contester could not kill process which is using system("PAUSE"))
+    // $submit->solution = str_replace('system', "//system", $submit->solution);
+    $pattern ='/system\s*\(\s*\\\{0,1}"\s*pause\s*\\\{0,1}"\s*\)\s*;/i';
+    $replacement = '/* system(\"pause\"); */';
+    $submit->solution = preg_replace($pattern, $replacement, $submit->solution);
+                            
+    
+    insert_record("contester_submits", $submit);
+    print_string("successsubmit", "contester");
+    
+    echo "<br><a href=\"status.php?id=$id&a=$a\">".get_string("status", 'contester')."</a><br>";
 
-		print_string("successsubmit", "contester");
-
-		echo "<br><a href=\"status.php?id=$id&a=$a\">".get_string("status", 'contester')."</a><br>";
-	}
 
 /// Finish the page
-	contester_print_end();
+    contester_print_end();
     print_footer($course);
 
 ?>

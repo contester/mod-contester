@@ -1,7 +1,11 @@
-<!-- This page defines the form to create or edit an instance of this module -->
-<!-- It is used from /course/mod.php.  The whole instance is available as $form. -->
 
+
+<!-- Страница определяет форму создания и правки экземпляра модуля. -->
+<!-- Используется в /course/mod.php.  Весь экземпляр доступен как $form. -->
+<!-- Отображает заголовок, список задач со ссылками на форму редактирования, -->
+<!-- форму добавления задачи и некоторые дополнительные опции. -->
 <?php
+//print_r($usehtmleditor);
 /// First we check that form variables have been initialised
 if (!isset($form->name)) {
     $form->name = '';
@@ -38,13 +42,15 @@ if (!isset($form->name)) {
            helpbutton("richtext", get_string("helprichtext"), "moodle", true, true);
         } else {
            emoticonhelpbutton("form", "description");
-        } 
+        }
       ?>
     </td>
     <td>
     <?php
+
+    	//print_r($form->description);
        print_textarea($usehtmleditor, 20, 60, 680, 400, "description", $form->description);
-    
+
        if ($usehtmleditor) {
            echo '<input type="hidden" name="format" value="'.FORMAT_HTML.'" />';
        } else {
@@ -55,11 +61,34 @@ if (!isset($form->name)) {
            if (!$form->format) {
                $form->format = $defaultformat;
            }
-           choose_from_menu(format_text_menu(), "format", $form->format, ""); 
+           choose_from_menu(format_text_menu(), "format", $form->format, "");
            echo '</div>';
        }
     ?>
     </td>
+</tr>
+<tr><td></td>
+<td>
+	<?php
+		echo "<p>";
+		print_checkbox('freeview', 1, get_field('contester', 'freeview', 'id', $form->instance), get_string('viewable', 'contester'));
+		echo "<br />";
+		$val = get_field('contester', 'viewown', 'id', $form->instance);
+		if ($add == 'contester') $val = true;
+		print_checkbox('viewown', 1, $val, get_string('viewown', 'contester'));
+		echo "</p>";
+
+		// права проверятся перед выводом (учитель этого курса или админ)
+		if ($add != 'contester')
+			contester_print_link_to_problems_preview($form->instance);
+
+		if (isadmin()) {
+			echo '<p>';
+			contester_print_link_to_upload();
+			echo '</p>';
+		}
+	?>
+</td>
 </tr>
 <!-- The following line for Moodle 1.5 prints the visibility setting form element -->
 <?php print_visible_setting($form); ?>

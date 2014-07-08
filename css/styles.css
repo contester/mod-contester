@@ -7,7 +7,14 @@
 #description{
 	text-align : left;
 	display : block;
+	padding-top: 20px;
 	font-size : medium;
+}
+#sample{
+	text-align : left;
+	display : block;
+	font-size : medium;
+	display : block;
 }
 #symbol{
 	text-transform : uppercase;
@@ -20,9 +27,33 @@
 	text-align : left;
 	font-weight : bold;
 	display : block;
+	padding-top: 16px;
+	padding-bottom: 8px;
 }
 #inoutformat{
 	font-size:medium;
 	text-align : left;
 	display : block;
+}
+#tags{
+	text-align : left;
+	display : block;
+	padding-left:  10px;
+	padding-right: 10px;
+	font-size : medium;
+}
+#taglist{
+	font-size : small;
+}
+#problemselect{
+	wigth : 50;
+}
+#langselect{
+	wigth : 50;
+}
+#sort{
+	font-size : small;
+	text-align : right;
+	font-weight : bold;
+	padding-right: 10px;
 }

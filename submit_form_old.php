@@ -57,60 +57,42 @@
 	contester_print_begin($contester->id);
 
     echo "<form enctype=\"multipart/form-data\" method=\"post\" action=\"submit.php?a={$contester->id}\">";
-	echo '<table cellpadding="5"><tbody>';
 
-    if ($r = get_recordset_sql("
-    			SELECT   *
-    			FROM     mdl_contester_problems cp
-    			JOIN     mdl_contester_problemmap cpm
-    			ON       cpm.problemid = cp.id
-    			WHERE    cpm.contesterid = ".$contester->id."
-    			ORDER BY cpm.id"))
-    {
-    	echo '<tr><td align="right">'.get_string('problem', 'contester').":</td>";
-    	echo "<td><select name=\"problem\" id=\"problemselect\">";
-    	echo "<option value=\"-1\"";
-    	if (optional_param('pid', -1) == -1) echo " selected";
-    	echo ">" . get_string('chooseproblem', 'contester') . "</option>";
-    	while (!$r->EOF)
-    	{
-    		echo "<option value=\"" . $r->fields["dbid"] . "\"";
-    		if (optional_param('pid') == $r->fields['id']) echo " selected";
-    		echo ">" . $r->fields["name"] . "</option>";
-    		$r->MoveNext();
-    	}
-    	echo "</select></td></tr>";
+    //if ($r = get_recordset_select("contester_problems")) {
+    if ($r = get_recordset_sql("SELECT * FROM mdl_contester_problems cp JOIN mdl_contester_problemmap cpm ON cpm.problemid = cp.id WHERE cpm.contesterid = ".$contester->id." order by cpm.id")) {
+      echo get_string('problem', 'contester').": <select name=\"problem\">";
+      echo "<option value=\"-1\"";
+      if (optional_param('pid', -1) == -1) echo " selected";
+      echo ">" . get_string('chooseproblem', 'contester') . "</option>";
+      while (!$r->EOF) {
+        echo "<option value=\"" . $r->fields["dbid"] . "\"";
+        if (optional_param('pid') == $r->fields['id']) echo " selected";
+        echo ">" . $r->fields["name"] . "</option>";
+        $r->MoveNext();
+      }
+      echo "</select><br />";
     }
 
-    if ($r = get_recordset_select("contester_languages"))
-    {
+    if ($r = get_recordset_select("contester_languages")) {
     	$m = get_recordset("contester_language_map", 'contester_id', $contester->id);
     	$langs = array();
     	foreach ($m as $lang) $langs[$lang['language_id']] = 1;
-    	echo '<tr><td align="right">'.get_string('prlanguage', 'contester').":</td>";
-    	echo "<td><select name=\"lang\" id=\"langselect\">";
-    	echo "<option value=\"-1\"";
-    	echo " selected";
-    	echo ">" . get_string('chooselanguage', 'contester') . "</option>";
-    	while (!$r->EOF)
-    	{
-    		// if ($langs[$r->fields["id"]] == 1) {
-    		echo "<option value=\"" . $r->fields["id"] . "\">" . $r->fields["name"] . "</option>";
-    		// }
-		    $r->MoveNext();
-		}
-		echo "</select></td></tr>";
+      echo get_string('prlanguage', 'contester').": <select name=\"lang\">";
+      echo "<option value=\"-1\"";
+	  echo " selected";
+      echo ">" . get_string('chooselanguage', 'contester') . "</option>";
+
+      while (!$r->EOF) {
+//      		if ($langs[$r->fields["id"]] == 1) {
+		        echo "<option value=\"" . $r->fields["id"] . "\">" . $r->fields["name"] . "</option>";
+//		}
+		        $r->MoveNext();
+      }
+      echo "</select><br />";
     }
 
-    echo '<tr><td colspan="2" align="center">'.get_string('solution', 'contester').":</td>";
-    //echo "<td><input type=\"file\" name=\"solution\"></td></tr>";
-
-    echo '<tr><td colspan="2"><textarea rows="20" cols="60" id="code" name="code"
-		placeholder="'.get_string('solution', 'contester').'"></textarea></td><tr>';
-
-    echo '<tr><td colspan="2" align="center"><input type="submit" value="'.get_string('submit', 'contester').'"></input></td></tr>';
-
-	echo '</tbody></table></form>';
+    echo get_string('solution', 'contester').": <input type=\"file\" name=\"solution\"><br />";
+	echo "<input type=\"submit\" value=\"".get_string('submit', 'contester')."\"></form>";
 
 /// Finish the page
 	contester_print_end();
