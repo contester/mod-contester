@@ -1,57 +1,48 @@
-USING THE NEW MODULE TEMPLATE
------------------------------
+The following steps should get you up and running with
+this module template code.
 
-1. Unzip the archive and read this file  ;-)
+* DO NOT PANIC!
 
-2. Change the name of the directory to your new module name.
-   This name should be a single english word, if possible, 
-   all lowercase and with only a-z characters. eg widget
+* Unzip the archive and read this file
 
-3. Edit all the files in this directory and change all the 
-   instances of NEWMODULE to your new module name (eg widget).
+* Rename the newmodule/ folder to the name of your module (eg "widget").
+  The module folder MUST be lower case and can't contain underscores. You should check the CVS contrib
+  area at http://cvs.moodle.org/contrib/plugins/mod/ to make sure that
+  your name is not already used by an other module. Registering the plugin
+  name @ http://moodle.org/plugins will secure it for you.
 
-4. Edit db/mysql.sql and put in the SQL database definitions 
-   for your module.  The names of any table definitions you create 
-   there should use the prefix 'prefix_' instead of 'mdl_' 
-   (or whatever you've configured your moodle installation to use 
-   as a table prefix) (optional)
-
-5. Edit db/mysql.php and change all the instances of NEWMODULE
-   to your new module name.  (optional)
-
-6. Do the same for db/postgres7.sql and db/postgres7.php as you 
-   did for db/mysql.sql and db/mysql.php (optional)
-
-7. Create one or more language files for your module in 
-   lang/LANG/NEWMODULE.php where LANG is the language or 
-   languages you are creating the module for use with.  (usually
-   this will be 'en') Use one of the language files for another
-   module as a template for the file.
-
-8. Visit the admin page and your module should be noticed and
-   registered as a new entry in the table "modules".
-
-Now you can start adding code to the .php and .html files in 
-this directory to make it do what you want!
-
-Note about database changes:
-
-  Every time you update the database schema in the db directory, 
-  remember to 
+* Edit all the files in this directory and its subdirectories and change
+  all the instances of the string "newmodule" to your module name
+  (eg "widget"). If you are using Linux, you can use the following command
+  $ find . -type f -exec sed -i 's/newmodule/widget/g' {} \;
   
-    - edit version.php with a higher version number
-    - edit db/mysql.php with an execute_sql() call that 
-      upgrades the databases to the new format (see core 
-      modules for examples)
-  
-  and then visit the admin page to actually upgrade your databases.
+  On a mac, use:
+  $ find . -type f -exec sed -i '' 's/newmodule/widget/g' {} \;
 
+* Rename the file lang/en/newmodule.php to lang/en/widget.php
+  where "widget" is the name of your module
 
-If you have problems, questions, suggestions etc then visit 
-the "Activity modules" developers forum in the online 
-course called "Using Moodle" at http:/* moodle.org */
+* Place the widget folder into the /mod folder of the moodle
+  directory.
 
-Or email me:  martin@moodle.com
+* Go to Settings > Site Administration > Development > XMLDB editor
+  and modify the module's tables.
+  Make sure, that the web server has write-access to the db/ folder.
+  You need at least one table, even if your module doesn't use it.
 
-Cheers!
-Martin Dougiamas
+* Modify version.php and set the initial version of you module.
+
+* Visit Settings > Site Administration > Notifications, you should find
+  the module's tables successfully created
+
+* Go to Site Administration > Plugins > Activity modules > Manage activities
+  and you should find that this newmodule has been added to the list of
+  installed modules.
+
+* You may now proceed to run your own code in an attempt to develop
+  your module. You will probably want to modify mod_form.php and view.php
+  as a first step. Check db/access.php to add capabilities.
+
+We encourage you to share your code and experience - visit http://moodle.org
+
+Good luck!

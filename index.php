@@ -1,83 +1,95 @@
 <?PHP // $Id: index.php,v 1.3 2006/04/29 22:22:27 skodak Exp $
 
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * This is a one-line short description of the file
+ *
+ * You can have a rather longer description of the file as well,
+ * if you like, and it can span multiple lines.
+ *
+ * @package    mod_contester
+ * @copyright  2011 Your Name
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+
 /// This page lists all the instances of contester in a particular course
-/// Replace contester with the name of your module
-
-    require_once("../../config.php");
-    require_once("lib.php");
-
-    $id = required_param('id', PARAM_INT);   // course
-
-    if (! $course = get_record("course", "id", $id)) {
-        error("Course ID is incorrect");
-    }
-
-    require_login($course->id);
-
-    add_to_log($course->id, "contester", "view all", "index.php?id=$course->id", "");
 
 
-/// Get all required strings
+require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
+require_once(dirname(__FILE__).'/lib.php');
 
-    $strcontesters = get_string("modulenameplural", "contester");
-    $strcontester  = get_string("modulename", "contester");
+$id = required_param('id', PARAM_INT);   // course
 
+$course = $DB->get_record('course', array('id' => $id), '*', MUST_EXIST);
 
-/// Print the header
+require_course_login($course);
 
-    if ($course->category) {
-        $navigation = "<a href=\"../../course/view.php?id=$course->id\">$course->shortname</a> ->";
-    }
+add_to_log($course->id, 'contester', 'view all', 'index.php?id='.$course->id, '');
 
-    print_header("$course->shortname: $strcontesters", "$course->fullname", "$navigation $strcontesters", "", "", true, "", navmenu($course));
+$coursecontext = context_course::instance($course->id);
 
-/// Get all the appropriate data
+$PAGE->set_url('/mod/contester/index.php', array('id' => $id));
+$PAGE->set_title(format_string($course->fullname));
+$PAGE->set_heading(format_string($course->fullname));
+$PAGE->set_context($coursecontext);
 
-    if (! $contesters = get_all_instances_in_course("contester", $course)) {
-        notice("There are no contesters", "../../course/view.php?id=$course->id");
-        die;
-    }
+echo $OUTPUT->header();
 
-/// Print the list of instances (your module will probably extend this)
+if (! $contesters = get_all_instances_in_course('contester', $course)) {
+    notice(get_string('nocontesters', 'contester'), new moodle_url('/course/view.php', array('id' => $course->id)));
+}
 
-    $timenow = time();
-    $strname  = get_string("name");
-    $strweek  = get_string("week");
-    $strtopic  = get_string("topic");
+$table = new html_table();
+if ($course->format == 'weeks') {
+    $table->head  = array(get_string('week'), get_string('name'));
+    $table->align = array('center', 'left');
+} else if ($course->format == 'topics') {
+    $table->head  = array(get_string('topic'), get_string('name'));
+    $table->align = array('center', 'left', 'left', 'left');
+} else {
+    $table->head  = array(get_string('name'));
+    $table->align = array('left', 'left', 'left');
+}
 
-    if ($course->format == "weeks") {
-        $table->head  = array ($strweek, $strname);
-        $table->align = array ("center", "left");
-    } else if ($course->format == "topics") {
-        $table->head  = array ($strtopic, $strname);
-        $table->align = array ("center", "left", "left", "left");
+foreach ($contesters as $contester) {
+    if (!$contester->visible) {
+        $link = html_writer::link(
+            new moodle_url('/mod/contester.php', array('id' => $contester->coursemodule)),
+            format_string($contester->name, true),
+            array('class' => 'dimmed'));
     } else {
-        $table->head  = array ($strname);
-        $table->align = array ("left", "left", "left");
+        $link = html_writer::link(
+            new moodle_url('/mod/contester.php', array('id' => $contester->coursemodule)),
+            format_string($contester->name, true));
     }
 
-    foreach ($contesters as $contester) {
-        if (!$contester->visible) {
-            //Show dimmed if the mod is hidden
-            $link = "<a class=\"dimmed\" href=\"view.php?id=$contester->coursemodule\">$contester->name</a>";
-        } else {
-            //Show normal if the mod is visible
-            $link = "<a href=\"view.php?id=$contester->coursemodule\">$contester->name</a>";
-        }
-
-        if ($course->format == "weeks" or $course->format == "topics") {
-            $table->data[] = array ($contester->section, $link);
-        } else {
-            $table->data[] = array ($link);
-        }
+    if ($course->format == 'weeks' or $course->format == 'topics') {
+        $table->data[] = array($contester->section, $link);
+    } else {
+        $table->data[] = array($link);
     }
+}
 
-    echo "<br />";
+echo $OUTPUT->heading(get_string('modulenameplural', 'contester'), 2);
+echo html_writer::table($table);
+echo $OUTPUT->footer();
 
-    print_table($table);
 
-/// Finish the page
 
-    print_footer($course);
 
-?>
+

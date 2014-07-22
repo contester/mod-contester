@@ -16,7 +16,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Capability definitions for the newmodule module
+ * Capability definitions for the contester module
  *
  * The capabilities are loaded into the database table when the module is
  * installed or updated. Whenever the capability definitions are updated,
@@ -40,7 +40,7 @@
  *
  * The variable name for the capability definitions array is $capabilities
  *
- * @package    mod_newmodule
+ * @package    mod_contester
  * @copyright  2011 Your Name
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -50,7 +50,7 @@ defined('MOODLE_INTERNAL') || die();
 $capabilities = array(
 /***************************** remove these comment marks and modify the code as needed
 
-	'mod/newmodule:addinstance' => array(
+	'mod/contester:addinstance' => array(
 			'riskbitmask' => RISK_XSS,
 	
 			'captype' => 'write',
@@ -62,7 +62,7 @@ $capabilities = array(
 			'clonepermissionsfrom' => 'moodle/course:manageactivities'
 	),
 
-    'mod/newmodule:view' => array(
+    'mod/contester:view' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
         'legacy' => array(
@@ -74,7 +74,7 @@ $capabilities = array(
         )
     ),
 
-    'mod/newmodule:submit' => array(
+    'mod/contester:submit' => array(
         'riskbitmask' => RISK_SPAM,
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
@@ -84,3 +84,4 @@ $capabilities = array(
     ),
 ******************************/
 );
+
