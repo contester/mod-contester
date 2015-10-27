@@ -1743,21 +1743,21 @@ function contester_print_end() {
 function contester_get_special_submit_info($submitid, $cget_problem_name = true, $cget_langinfo = true, $cget_status = true, $cget_points = true)
 {
 	global $DB;
-	$submit = $DB->get_record("contester_submits", "id", $submitid);
-	$tmp = $DB->get_record_sql("SELECT  COUNT(1) as cnt
-						   FROM    contester_submits
-						   WHERE   (contester = {$submit->contester})
-						   AND     (student = {$submit->student})
-						   AND     (problem = {$submit->problem})
-						   AND     (submitted < '{$submit->submitted}')");
+	$submit = $DB->get_record('contester_submits', array('id' => $submitid));
+	$tmp = $DB->get_record_sql('SELECT  COUNT(1) as cnt
+						   FROM    mdl_contester_submits
+						   WHERE   (contester = ?)
+						   AND     (student = ?)
+						   AND     (problem = ?)
+						   AND     (submitted < ?)', array($submit->contester, $submit->student, $submit->problem, $submit->submitted));
 
 	$attempts = 0 + $tmp->cnt;
 
-	if (!$testing = $DB->get_record_sql("SELECT   *
-	                                FROM     contester_testings
-	                                WHERE    (submitid = {$submitid})
+	if (!$testing = $DB->get_record_sql('SELECT   *
+	                                FROM     mdl_contester_testings
+	                                WHERE    (submitid = ?)
 	                                ORDER BY id
-	                                DESC"))
+	                                DESC', array($submitid)))
 		$queued = true;
 	else
 	{
@@ -1776,7 +1776,7 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 
 	$submit->attempt = $attempts + 1;
 	//$mapping = $DB->get_record("contester_problemmap", "id", $submit->problem, "contesterid", $submit->contester);
-	$problem = $DB->get_record("contester_problems", "dbid", $submit->problem);
+	$problem = $DB->get_record('contester_problems', array('dbid' => $submit->problem));
 	$res = null;
 	if ($cget_problem_name == true) {
 		$res->problem = $problem->name;
@@ -1785,7 +1785,7 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 		$res->problem = "";
 	}
 	if ($cget_langinfo == true) {
-		$lang = $DB->get_record("contester_languages", "id", $submit->lang);
+		$lang = $DB->get_record('contester_languages', array('id' => $submit->lang));
 		$res->prlanguage = $lang->name;
 	}
 	else {
@@ -1800,19 +1800,19 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 			else
 			{
 				$res_id = 2;
-				$res_desc = $DB->get_record("contester_resultdesc", "id", $res_id, 'language', 2);
+				$res_desc = $DB->get_record('contester_resultdesc', array('id' => $res_id, 'language' => 2));
 				$res->status = $res_desc->description;
 			}
 		} else {
 			if (!$queued){
-				$result = $DB->get_record_sql("SELECT    *
-							  FROM      contester_results
-							  WHERE    (testingid = {$testing->id})
-							  ORDER BY  testingid DESC");
+				$result = $DB->get_record_sql('SELECT    *
+							  FROM      mld_contester_results
+							  WHERE    (testingid = ?)
+							  ORDER BY  testingid DESC', array($testing->id));
 				//$res_id = $result->result;
 				$res_id = 1;
 			} else $res_id = 0;
-			$res_desc = $DB->get_record("contester_resultdesc", "id", $res_id, 'language', 2);
+			$res_desc = $DB->get_record('contester_resultdesc', array('id' => $res_id, 'language' => 2));
 			$res->status = $res_desc->description;
 		}
 	}
