@@ -116,18 +116,18 @@ if (!isset ($contester->freeview)) $contester->freeview = 0;
 		foreach ($contester->add_problem as $k=>$v) {
 			$map_inst->problemid = $v;
 			$map_inst->contesterid = $contester->id;
-			$DB->insert_record("contester_problemmap", $map_inst, false);
+			$DB->insert_record('contester_problemmap', $map_inst, false);
 		}
     	unset($map_inst);
     }
 
     if (!isset($contester->description)) $contester->description = '';
 
-    $sql = "SELECT contester_problemmap.id as id
-    		FROM   contester_problemmap
-			WHERE  contester_problemmap.contesterid=$contester->id";
+    $sql = "SELECT mdl_contester_problemmap.id as id
+    		FROM   mdl_contester_problemmap
+			WHERE  mdl_contester_problemmap.contesterid=$contester->id";
     
-    $res = get_recordset_sql($sql);
+    $res = $DB->get_recordset_sql($sql);
 
     foreach ($res as $line)
     {
@@ -705,9 +705,9 @@ function contester_get_submit($submitid)
 {
     global $DB;
 
-	$submit = $DB->get_record("contester_submits", "id", $submitid);
+	$submit = $DB->get_record("contester_submits", array("id" => $submitid));
 	$tmp = $DB->get_record_sql("SELECT  COUNT(1) as cnt
-						   FROM    contester_submits
+						   FROM    mdl_contester_submits
 						   WHERE   (contester = {$submit->contester})
 						   AND     (student = {$submit->student})
 						   AND     (problem = {$submit->problem})
@@ -715,16 +715,19 @@ function contester_get_submit($submitid)
 	$attempts = 0 + $tmp->cnt;
 
 	$result = $DB->get_record_sql("SELECT    *
-							  FROM      contester_testings
+							  FROM      mdl_contester_testings
 							  WHERE     (submitid = {$submitid})
 							  ORDER BY  id
 							  DESC");
 
 	$fields = array("compiled", "taken", "passed");
-	foreach($fields as $field)
+	foreach($result as $res)
 	{
-		$submit->$field = $result->$field;
-	}
+    	foreach($fields as $field)
+    	{
+    		$submit->$field = $res->$field;
+    	}
+    }
 
 	if ($submit->compiled && $submit->taken)
 		$submit->points = contester_get_rounded_points($attempts, $submit->passed, $submit->taken);
@@ -747,9 +750,9 @@ function contester_get_submit_info($submitid)
 	//$submit = contester_get_submit($submitid);
 
 	
-	$submit = $DB->get_record("contester_submits", "id", $submitid);
+	$submit = $DB->get_record("contester_submits", array("id" => $submitid));
 	$tmp = $DB->get_record_sql("SELECT COUNT(1) as cnt
-						   FROM            contester_submits
+						   FROM            mdl_contester_submits
 						   WHERE           (contester = {$submit->contester})
 						   AND             (student = {$submit->student})
 						   AND             (problem = {$submit->problem})

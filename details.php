@@ -10,23 +10,23 @@
     $a  = optional_param('a', 0, PARAM_INT);  // contester ID
 
     if ($id) {
-        if (! $cm = get_record("course_modules", "id", $id)) {
+        if (! $cm = get_record('course_modules', array('id' => $id))) {
             error("Course Module ID was incorrect");
         }
 
-        if (! $course = get_record("course", "id", $cm->course)) {
+        if (! $course = get_record('course', array('id' => $cm->course))) {
             error("Course is misconfigured");
         }
 
-        if (! $contester = get_record("contester", "id", $cm->instance)) {
+        if (! $contester = get_record('contester', array('id' => $cm->instance))) {
             error("Course module is incorrect");
         }
 
     } else {
-        if (! $contester = get_record("contester", "id", $a)) {
+        if (! $contester = get_record('contester', array('id' => $a))) {
             error("Course module is incorrect");
         }
-        if (! $course = get_record("course", "id", $contester->course)) {
+        if (! $course = get_record('course', array('id' => $contester->course))) {
             error("Course is misconfigured");
         }
         if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {

@@ -114,7 +114,7 @@
     }
 
 	//Нужно обдумать второй параметр true
-    if ($r = $DB->get_recordset_select("contester_languages", true))
+    if ($r = $DB->get_records_select("contester_languages", true))
     {
     	$m = $DB->get_recordset("contester_language_map", array('contester_id'=>$contester->id));
     	$langs = array();
@@ -124,12 +124,11 @@
     	echo "<option value=\"-1\"";
     	echo " selected";
     	echo ">" . get_string('chooselanguage', 'contester') . "</option>";
-    	while ($r->valid())
+    	foreach($r as $rr)
     	{
     		// if ($langs[$r->fields["id"]] == 1) {
-    		echo "<option value=\"" . $r->fields["id"] . "\">" . $r->fields["name"] . "</option>";
+    		echo "<option value=\"" . $rr->id . "\">" . $rr->name . "</option>";
     		// }
-		    $r->MoveNext();
 		}
 		echo "</select></td></tr>";
     }

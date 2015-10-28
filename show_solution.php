@@ -39,9 +39,10 @@
 	//echo "botva";
     require_login($course->id);
     //echo "botva";
-	add_to_log($course->id, "contester", "show_solution", "show_solution.php?a=$contester->id&sid=$sid", "$contester->id");
+	//add_to_log($course->id, "contester", "show_solution", "show_solution.php?a=$contester->id&sid=$sid", "$contester->id");	
 	//echo "botva";
-	$context = get_context_instance(CONTEXT_MODULE, $cm->id);
+	//$context = get_context_instance(CONTEXT_MODULE, $cm->id);
+	$context = context_module::instance($cm->id);
     $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
     $is_admin = has_capability('moodle/site:config', $context);
     //echo "#".$is_teacher;
@@ -55,7 +56,7 @@
         	}
         	$userid = $USER->id;
     	}
-    	$user = get_field_sql("SELECT user.id FROM user as user, contester_submits as submits
+    	$user = get_field_sql("SELECT user.id FROM mdl_user as user, mdl_contester_submits as submits
     	WHERE submits.id=$sid AND user.id=submits.student");
     	if ($userid != $user) error('accessdenied', 'contester');
     }

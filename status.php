@@ -69,18 +69,18 @@
 			  DESC
 			  LIMIT    0, 10 ";
 
-	$submits = $DB->get_recordset_sql($query);
+	$submits = $DB->get_records_sql($query);
 
 	//var_dump($submits);
 
 	$result = array();
-	/*foreach($submits as $line)
-		$result []= contester_get_submit($line["id"]);*/
-	while ($submits->valid())
+	foreach($submits as $line)
+		$result []= contester_get_submit($line->id);
+	/*while ($submits->valid())
 	{
 	    $result []= contester_get_submit_info($submits->fields["id"]);
 	    $submits->MoveNext();
-	}
+	}*/
 
     //$submits = contester_get_last_submits($contester->id, 10, $USER->id);
 
