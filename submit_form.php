@@ -78,7 +78,8 @@
 	$PAGE->set_url('/mod/contester/submit_form.php', array('id' => $cm->id));
 	$PAGE->set_title(format_string($contester->name));
 	$PAGE->set_heading(format_string($course->fullname));
-	
+	$PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));
+
 	//End new code
 	
 /// Print the main part of the page
@@ -90,25 +91,26 @@
     echo "<form enctype=\"multipart/form-data\" method=\"post\" action=\"submit.php?a={$contester->id}\">";
 	echo '<table cellpadding="5"><tbody>';
 
-    if ($r = $DB->get_recordset_sql("
+    if ($r = $DB->get_records_sql("
     			SELECT   *
     			FROM     mdl_contester_problems cp
     			JOIN     mdl_contester_problemmap cpm
     			ON       cpm.problemid = cp.id
-    			WHERE    cpm.contesterid = ".$contester->id."
-    			ORDER BY cpm.id"))
+    			WHERE    cpm.contesterid = ?
+    			ORDER BY cpm.id", array($contester->id)))
     {
     	echo '<tr><td align="right">'.get_string('problem', 'contester').":</td>";
     	echo "<td><select name=\"problem\" id=\"problemselect\">";
     	echo "<option value=\"-1\"";
     	if (optional_param('pid', -1, PARAM_INT) == -1) echo " selected";
     	echo ">" . get_string('chooseproblem', 'contester') . "</option>";
-    	while ($r->valid())
+    	//while ($r->valid())
+    	foreach($r as $rr)
     	{
-    		echo "<option value=\"" . $r->fields["dbid"] . "\"";
-    		if (optional_param('pid') == $r->fields['id']) echo " selected";
-    		echo ">" . $r->fields["name"] . "</option>";
-    		$r->MoveNext();
+    		echo "<option value=\"" . $rr->dbid . "\"";
+    		if (optional_param('pid', -1, PARAM_INT) == $rr->id) echo " selected";
+    		echo ">" . $rr->name . "</option>";
+    		//$r->MoveNext();
     	}
     	echo "</select></td></tr>";
     }

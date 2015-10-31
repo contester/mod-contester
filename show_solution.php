@@ -76,16 +76,13 @@
                   "", "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.css\" />", true, update_module_button($cm->id, $course->id, $strcontester)),
                   navmenu($course, $cm));*/
                   
-    $strcontesters = get_string("modulenameplural", "contester");
-    $strcontester  = get_string("modulename", "contester");    
-    
     $PAGE->set_url('/mod/contester/show_solution.php', array('a' => $a, 'sid' => $id));
     $PAGE->set_title("$course->shortname: $contester->name");
     $PAGE->set_heading("$course->fullname");
     $PAGE->navbar->add("$contester->name");
     $PAGE->set_focuscontrol("");
     $PAGE->set_cacheable(true);
-    $PAGE->set_button(update_module_button($cm->id, $course->id, $strcontester));
+    $PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));
     
     echo $OUTPUT->header();
 

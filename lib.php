@@ -714,7 +714,7 @@ function contester_get_submit($submitid)
 						   AND     (submitted < '{$submit->submitted}')");
 	$attempts = 0 + $tmp->cnt;
 
-	$result = $DB->get_record_sql("SELECT    *
+	$result = $DB->get_records_sql("SELECT    *
 							  FROM      mdl_contester_testings
 							  WHERE     (submitid = {$submitid})
 							  ORDER BY  id
@@ -834,44 +834,41 @@ function contester_get_detailed_info($submitid)
     global $DB;
 
 	$result = array();
-	$submit = $DB->get_record("contester_submits", "id", $submitid);
+	$submit = $DB->get_record("contester_submits", array("id" => $submitid));
 	//print_r($submit);
 	$res = null;
 	if ($submit->processed == 0) { // если еще пока в очереди
-		$res_desc = $DB->get_record("contester_resultdesc", "id", 0, 'language', 2);
+		$res_desc = $DB->get_record("contester_resultdesc", array("id" => 0, 'language' => 2));
 		$res->status = $res_desc->description;
 		$result []= $res;
 		return $result;
 	}
 
-	if (!$testing = $DB->get_record_sql("SELECT * FROM contester_testings WHERE (submitid = {$submitid}) ORDER BY id DESC")) {
-		$res_desc = $DB->get_record("contester_resultdesc", "id", 0, 'language', 2);
+	if (!$testing = $DB->get_record_sql("SELECT * FROM mdl_contester_testings WHERE (submitid = ?) ORDER BY id DESC", array($submitid))) {
+		$res_desc = $DB->get_record("contester_resultdesc", array("id" => 0, 'language' => 2));
 		$res->status = $res_desc->description;
 		$result []= $res;
 		return $result;
 	}
 	if (!$testing->compiled) {
 		//$res->status = get_string('ce', 'contester');
-		$res_desc = $DB->get_record("contester_resultdesc", "id", 1, 'language', 2);
+		$res_desc = $DB->get_record("contester_resultdesc", array("id" => 1, 'language' => 2));
 		$res->status = $res_desc->description;
 		$result []= $res;
 		return $result;
 	}
-	$sql = "SELECT * FROM contester_results WHERE testingid=$testing->id and not (test = 0)";
-	//echo $sql;
-	$results = $DB->get_recordset_sql($sql);
-	while (!$results->EOF)
+	$results = $DB->get_records_sql("SELECT * FROM mdl_contester_results WHERE testingid=? and not (test = 0)", array($testing->id));
+	foreach($results as $r)
 	{
-		$res = null;
+		$res = new stdClass();
 		//print_r($results);
-		$res->number = $results->fields['test'];
-		$res->time = $results->fields['timex'].'ms';
-		$res->memory = ($results->fields['memory']/1024).'KB';
-		$desc = $DB->get_record('contester_resultdesc', 'id', $results->fields['result'], 'language', '2');
+		$res->number = $r->test;
+		$res->time = $r->timex.'ms';
+		$res->memory = ($r->memory/1024).'KB';
+		$desc = $DB->get_record('contester_resultdesc', array('id' => $r->result, 'language' => '2'));
 		$res->result = $desc->description;
 		//print_r($res);
 		$result []= $res;
-		$results->MoveNext();
 	}
 	return $result;
 }
@@ -887,33 +884,44 @@ function contester_get_last_submits($contesterid, $cnt = 1, $user = NULL, $probl
 {
     global $DB;
 
-	$query = "SELECT id FROM contester_submits WHERE (contester = $contesterid) ";
+    $qarr = array();
+	$query = "SELECT id FROM mdl_contester_submits WHERE (contester = ?) ";
+	$qarr []= $contesterid;
 	if ($user != NULL)
-		$query .= " AND (student = $user) ";
+	{
+		$query .= " AND (student = ?) ";
+		$qarr []= $user;
+	}
 	if ($datefrom != NULL)
-		$query .= " AND (submitted >= \"$datefrom\") ";
+	{
+		$query .= " AND (submitted >= ?) ";
+		$qarr []= $datefrom;		
+	}
 	if ($dateto != NULL)
-		$query .= " AND (submitted <= \"$dateto\") ";
+	{
+		$query .= " AND (submitted <= ?) ";
+		$qarr []= $dateto;
+	}
 	if ($problem != NULL)
 	{
-		$res = $DB->get_record('contester_problems', 'id', $problem);
+		$res = $DB->get_record('contester_problems', array('id' => $problem));
 		$problem = $res->dbid;
-		$query .= " AND (problem = $problem) ";
+		$query .= " AND (problem = ?) ";
+		$qarr []= $problem;
 	}
-	$query .= " ORDER BY submitted DESC LIMIT 0, $cnt ";
+	$query .= " ORDER BY submitted DESC";
+	//$qarr []= $cnt;
 	//echo "$query<br>";
-	$submits = $DB->get_recordset_sql($query);
+	$submits = $DB->get_records_sql($query, $qarr, 0, $cnt);
 
 	//var_dump($submits);
 
 	$result = array();
 	/*foreach($submits as $line)
 		$result []= contester_get_submit($line["id"]);*/
-	while (!$submits->EOF)
-	{
-	    $result []= contester_get_submit($submits->fields["id"]);
-	    $submits->MoveNext();
-	}
+	//while (!$submits->EOF)
+	foreach($submits as $submit)
+	    $result []= contester_get_submit($submits->id);
 
 	return $result;
 }
@@ -1218,14 +1226,14 @@ function contester_show_problemlist($instance)
     echo '<table><tr><td colspan=3>'.get_string('problemstodelete', 'contester').'</td></tr>';
     unset($res);
 
-    $sql = "SELECT   contester_problems.name as name,
-    				 contester_problemmap.id as id,
-    				 contester_problems.id as pid,
-    				 contester_problems.dbid as dbid
-    		from	 contester_problems, contester_problemmap
-    		WHERE	 contester_problemmap.problemid=contester_problems.id
-    			and  contester_problemmap.contesterid=$instance
-    		order by contester_problemmap.id";
+    $sql = "SELECT   mdl_contester_problems.name as name,
+    				 mdl_contester_problemmap.id as id,
+    				 mdl_contester_problems.id as pid,
+    				 mdl_contester_problems.dbid as dbid
+    		from	 mdl_contester_problems, mdl_contester_problemmap
+    		WHERE	 mdl_contester_problemmap.problemid=mdl_contester_problems.id
+    			and  mdl_contester_problemmap.contesterid=$instance
+    		order by mdl_contester_problemmap.id";
 
     $res = $DB->get_recordset_sql($sql);
     //print_r($res);
@@ -1247,13 +1255,13 @@ function contester_get_all_tags()
 {
 	global $DB;
 	unset($res);
-	$res = $DB->get_records_sql("SELECT   contester_tags.id  as id,
-									 contester_tags.tag as tag,
-									 COUNT(contester_tagmap.tagid) as count
-							FROM     contester_tags LEFT JOIN contester_tagmap
-							ON       contester_tags.id=contester_tagmap.tagid
-							GROUP BY contester_tags.id
-							ORDER BY contester_tags.tag");
+	$res = $DB->get_records_sql("SELECT   mdl_contester_tags.id  as id,
+									 mdl_contester_tags.tag as tag,
+									 COUNT(mdl_contester_tagmap.tagid) as count
+							FROM     mdl_contester_tags LEFT JOIN mdl_contester_tagmap
+							ON       mdl_contester_tags.id=contester_tagmap.tagid
+							GROUP BY mdl_contester_tags.id
+							ORDER BY mdl_contester_tags.tag");
     return $res;
 }
 
@@ -1261,8 +1269,8 @@ function contester_count_all_problems()
 {
 	global $DB;
 	unset($num);
-	$num = $DB->get_records_sql("SELECT   COUNT(contester_problems.id) as n
-							FROM     contester_problems");
+	$num = $DB->get_records_sql("SELECT   COUNT(mdl_contester_problems.id) as n
+							FROM     mdl_contester_problems");
     return array_shift($num)->n;
 }
 
@@ -1270,8 +1278,8 @@ function contester_count_all_tags()
 {
 	global $DB;
 	unset($num);
-	$num = $DB->get_records_sql("SELECT   COUNT(contester_tags.id) as n
-							FROM     contester_tags");
+	$num = $DB->get_records_sql("SELECT   COUNT(mdl_contester_tags.id) as n
+							FROM     mdl_contester_tags");
     return array_shift($num)->n;
 }
 
@@ -1293,13 +1301,13 @@ function contester_get_problem_tags($pid)
 {
 	global $DB;
 	unset($tags);
-    $tags = $DB->get_records_sql("SELECT   contester_tags.tag as tag,
-                                      contester_tags.id as id,
-                                      contester_tagmap.id as mid
-    						 FROM     contester_tagmap LEFT JOIN contester_tags
-    						       ON contester_tagmap.tagid = contester_tags.id
-    						 WHERE	  contester_tagmap.problemid = ".$pid."
-    						 ORDER BY contester_tags.tag");
+    $tags = $DB->get_records_sql("SELECT   mdl_contester_tags.tag as tag,
+                                      mdl_contester_tags.id as id,
+                                      mdl_contester_tagmap.id as mid
+    						 FROM     mdl_contester_tagmap LEFT JOIN mdl_contester_tags
+    						       ON mdl_contester_tagmap.tagid = mdl_contester_tags.id
+    						 WHERE	  mdl_contester_tagmap.problemid = ".$pid."
+    						 ORDER BY mdl_contester_tags.tag");
 	return $tags;
 }
 
@@ -1307,16 +1315,16 @@ function contester_get_not_problem_tags($pid)
 {
 	global $DB;
 	unset($tags);
-    $tags = $DB->get_records_sql("SELECT   contester_tags.tag,
-                                      contester_tags.id
-    						 FROM     contester_tags LEFT JOIN contester_tagmap
-    						       ON contester_tagmap.tagid = contester_tags.id
-    						 WHERE 	  0 = (SELECT COUNT(contester_tagmap.id)
-    						               FROM   contester_tagmap
-    						 		 	   WHERE  contester_tagmap.problemid = ".$pid."
-    						 		   		 AND  contester_tagmap.tagid = contester_tags.id)
-  				 		     GROUP BY contester_tags.tag
-    						 ORDER BY contester_tags.tag");
+    $tags = $DB->get_records_sql("SELECT   mdl_contester_tags.tag,
+                                      mdl_contester_tags.id
+    						 FROM     mdl_contester_tags LEFT JOIN mdl_contester_tagmap
+    						       ON mdl_contester_tagmap.tagid = mdl_contester_tags.id
+    						 WHERE 	  0 = (SELECT COUNT(mdl_contester_tagmap.id)
+    						               FROM   mdl_contester_tagmap
+    						 		 	   WHERE  mdl_contester_tagmap.problemid = ".$pid."
+    						 		   		 AND  mdl_contester_tagmap.tagid = mdl_contester_tags.id)
+  				 		     GROUP BY mdl_contester_tags.tag
+    						 ORDER BY mdl_contester_tags.tag");
 	return $tags;
 }
 
@@ -1338,17 +1346,17 @@ function contester_show_problems_preview($instance, $sort, $tag)
     unset($whtag);
    	if ($sort == 1) {$order = "contester_problems.name";}
    	else {$order = "contester_problems.dbid";}
-   	if ($tag != 0) {$whtag = " WHERE EXISTS (SELECT contester_tagmap.id
-   											FROM   contester_tagmap
-   											WHERE  contester_tagmap.problemid=contester_problems.id
+   	if ($tag != 0) {$whtag = " WHERE EXISTS (SELECT mdl_contester_tagmap.id
+   											FROM   mdl_contester_tagmap
+   											WHERE  mdl_contester_tagmap.problemid=mdl_contester_problems.id
    											       AND
-   											       contester_tagmap.tagid=".$tag.") ";}
+   											       mdl_contester_tagmap.tagid=".$tag.") ";}
    	else {$whtag = "";}
 
-	$res = $DB->get_records_sql("SELECT   contester_problems.id as pr_id,
-	   							     contester_problems.name as name,
-   								     contester_problems.dbid as dbid
-   							FROM     contester_problems".$whtag."
+	$res = $DB->get_records_sql("SELECT   mdl_contester_problems.id as pr_id,
+	   							     mdl_contester_problems.name as name,
+   								     mdl_contester_problems.dbid as dbid
+   							FROM     mdl_contester_problems".$whtag."
    							ORDER BY ".$order);
 
     echo '<table cellpadding=5 border=1 bordercolor=#D0D0D0>';
@@ -1392,66 +1400,87 @@ function contester_get_problems_preview_all($instance, $sort, $tag)
     unset($whtag);
    	if ($sort == 1) {$order = "contester_problems.name";}
    	else {$order = "contester_problems.dbid";}
-   	if ($tag != 0) {$whtag = " WHERE EXISTS (SELECT contester_tagmap.id
-   											 FROM   contester_tagmap
-   											 WHERE  contester_tagmap.problemid=contester_problems.id
+   	if ($tag != 0) {$whtag = " WHERE EXISTS (SELECT mdl_contester_tagmap.id
+   											 FROM   mdl_contester_tagmap
+   											 WHERE  mdl_contester_tagmap.problemid=mdl_contester_problems.id
    											      AND
-   											        contester_tagmap.tagid=".$tag.") ";}
+   											        mdl_contester_tagmap.tagid=".$tag.") ";}
    	else {$whtag = "";}
 
-	$res = $DB->get_records_sql("SELECT  contester_problems.id as id,
-	   							    contester_problems.name as name,
-   								    contester_problems.dbid as dbid,
-   								    contester_problems.description as description,
-   								    contester_problems.input_format as input,
-   								    contester_problems.output_format as output
-   							    FROM     contester_problems".$whtag."
+	$res = $DB->get_records_sql("SELECT  mdl_contester_problems.id as id,
+	   							    mdl_contester_problems.name as name,
+   								    mdl_contester_problems.dbid as dbid,
+   								    mdl_contester_problems.description as description,
+   								    mdl_contester_problems.input_format as input,
+   								    mdl_contester_problems.output_format as output
+   							    FROM     mdl_contester_problems".$whtag."
    							    ORDER BY ".$order);
  	return $res;
 }
 
 function contester_print_link_to_problem($instance, $pid)
 {
+	global $CFG;
 	echo "<a href=$CFG->dirroot/mod/contester/problem.php?a=$instance&pid=$pid>".
    		get_string('problemstatement', 'contester')."</a>";
 }
 
 function contester_print_link_to_problem_details($instance, $pid, $dbid)
 {
-   	if (isadmin())
+	global $CFG;
+	
+	$context = context_module::instance($cm->id);
+    $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
+    $is_admin = has_capability('moodle/site:config', $context);	
+
+   	if ($is_admin)
    		echo "<a href=$CFG->dirroot/mod/contester/problem_details.php?a=$instance&pid=$pid>".
 	   		get_string('problemdetails', 'contester')." (".$dbid.")</a>";
 }
 
 function contester_print_link_to_problem_tags_details($instance, $pid)
 {
-   	if (isadmin())
+	global $CFG;
+	
+	$context = context_module::instance($cm->id);
+    $is_admin = has_capability('moodle/site:config', $context);	
+
+   	if ($is_admin)
    		echo "<a href=$CFG->dirroot/mod/contester/problem_tags_details.php?a=$instance&pid=$pid>".
 	   		get_string('tagsdetails', 'contester')."</a>";
 }
 
 function contester_print_link_to_upload()
 {
-	if (isadmin())
+	global $CFG;
+	
+	$context = context_module::instance($cm->id);
+    $is_admin = has_capability('moodle/site:config', $context);	
+
+	if ($is_admin)
 		echo "<a href=$CFG->dirroot/mod/contester/upload_problem_form.php>".get_string('uploadtask', 'contester')."</a>";
 }
 
 function contester_print_link_to_problems_preview($instance)
 {
 	global $DB;
-	if (! $contester = $DB->get_record("contester", "id", $instance)) {
+	if (! $contester = $DB->get_record("contester", array("id" => $instance))) {
     	error("Course module is incorrect");
  	}
-    if (! $course = $DB->get_record("course", "id", $contester->course)) {
+    if (! $course = $DB->get_record("course", array("id" => $contester->course))) {
     	error("Course is misconfigured");
     }
     if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
     	error("Course Module ID was incorrect");
     }
-	$context = get_context_instance(CONTEXT_MODULE, $cm->id);
-	$is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
+	//$context = get_context_instance(CONTEXT_MODULE, $cm->id);
+	//$is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
+	$context = context_module::instance($cm->id);
+    $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
+    $is_admin = has_capability('moodle/site:config', $context);
+
 //	echo "<p>is_teacher".$is_teacher."</p>";
-	if (isadmin() || $is_teacher)
+	if ($is_admin || $is_teacher)
 		echo "<p><a href=$CFG->dirroot/mod/contester/problems_preview.php?a=$instance>".get_string('problemspreview', 'contester')."</a></p>";
 }
 
@@ -1468,11 +1497,11 @@ function contester_show_problemadd()
 	echo '<td>';
     unset($choices);
     unset($res);
-    $res = $DB->get_records_sql("SELECT   contester_problems.id as pr_id,
-    								 contester_problems.dbid as dbid,
-    							     contester_problems.name as name
-    						FROM     contester_problems
-    						ORDER BY contester_problems.dbid");
+    $res = $DB->get_records_sql("SELECT   mdl_contester_problems.id as pr_id,
+    								 mdl_contester_problems.dbid as dbid,
+    							     mdl_contester_problems.name as name
+    						FROM     mdl_contester_problems
+    						ORDER BY mdl_contester_problems.dbid");
     foreach ($res as $line){
     	$choices[$line->pr_id] = $line->dbid." ".$line->name;
     }
@@ -1656,7 +1685,7 @@ function contester_show_problem_details($pid)
 function contester_show_problem_tags_to_delete($pid)
 {
 	global $DB;
-	if (!$problem = $DB->get_record('contester_problems', 'id', $pid)) {
+	if (!$problem = $DB->get_record('contester_problems', array('id' => $pid))) {
 		error(get_string('noproblem'));
 		return false;
 	}
@@ -1671,7 +1700,7 @@ function contester_show_problem_tags_to_delete($pid)
 
 function contester_show_problem_tags_to_add($pid)
 {
-	if (!$problem = get_record('contester_problems', 'id', $pid)) {
+	if (!$problem = get_record('contester_problems', array('id' => $pid))) {
 		error(get_string('noproblem'));
 		return false;
 	}
@@ -1701,8 +1730,8 @@ function contester_show_nav_bar($instance) {
     	error("Course Module ID was incorrect");
     }
 	//$context = get_context_instance(CONTEXT_MODULE, $cm->id); Old code
-	$context=context_module::instance($cm->id);
-	$is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
+	//$context=context_module::instance($cm->id);
+	//$is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
 
 	echo "<nobr><a href=view.php?a=$instance>".get_string('problemlist','contester')."</a></nobr><br>";
 	echo "<nobr><a href=submit_form.php?a=$instance>".get_string('submit','contester')."</a></nobr><br>";
@@ -1747,6 +1776,11 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 {
 	global $DB;
 	$submit = $DB->get_record('contester_submits', array('id' => $submitid));
+	$fields = array("compiled", "taken", "passed");
+	foreach($fields as $field)
+	{
+		$submit->$field = 0;
+	}
 	$tmp = $DB->get_record_sql('SELECT  COUNT(1) as cnt
 						   FROM    mdl_contester_submits
 						   WHERE   (contester = ?)
@@ -1765,12 +1799,14 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 	else
 	{
 		$queued = false;
-		$fields = array("compiled", "taken", "passed");
+		//$fields = array("compiled", "taken", "passed");
 		foreach($fields as $field)
 		{
 			$submit->$field = $testing->$field;
 		}
 	}
+	
+	//print_r($submit);
 
 	if ($submit->taken)
 		$submit->points = contester_get_rounded_points($attempts, $submit->passed, $submit->taken);
@@ -1808,10 +1844,11 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 			}
 		} else {
 			if (!$queued){
-				$result = $DB->get_record_sql('SELECT    *
-							  FROM      mld_contester_results
+				$result = $DB->get_records_sql('SELECT    *
+							  FROM      mdl_contester_results
 							  WHERE    (testingid = ?)
 							  ORDER BY  testingid DESC', array($testing->id));
+				//print_r($result);
 				//$res_id = $result->result;
 				$res_id = 1;
 			} else $res_id = 0;

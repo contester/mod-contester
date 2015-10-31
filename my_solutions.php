@@ -58,6 +58,7 @@
 	$PAGE->set_url('/mod/contester/my_solutions.php', array('id' => $cm->id));
 	$PAGE->set_title(format_string($contester->name));
 	$PAGE->set_heading(format_string($course->fullname));
+	$PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));	
 
 /// Print the main part of the page
 	echo $OUTPUT->header();

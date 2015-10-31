@@ -33,25 +33,27 @@ function mutate($s)
     $id = optional_param('id', 0, PARAM_INT); // Course Module ID, or
     $a  = optional_param('a', 0, PARAM_INT);  // contester ID
     $pid = required_param('pid', PARAM_INT); // ID of problem in problemmap
+    
+    global $DB;
 
     if ($id) {
-        if (! $cm = get_record("course_modules", "id", $id)) {
+        if (! $cm = $DB->get_record("course_modules", array("id" => $id))) {
             error("Course Module ID was incorrect");
         }
 
-        if (! $course = get_record("course", "id", $cm->course)) {
+        if (! $course = $DB->get_record("course", array("id" => $cm->course))) {
             error("Course is misconfigured");
         }
 
-        if (! $contester = get_record("contester", "id", $cm->instance)) {
+        if (! $contester = $DB->get_record("contester", array("id" => $cm->instance))) {
             error("Course module is incorrect");
         }
 
     } else {
-        if (! $contester = get_record("contester", "id", $a)) {
+        if (! $contester = $DB->get_record("contester", array("id" => $a))) {
             error("Course module is incorrect");
         }
-        if (! $course = get_record("course", "id", $contester->course)) {
+        if (! $course = $DB->get_record("course", array("id" => $contester->course))) {
             error("Course is misconfigured");
         }
         if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
@@ -61,12 +63,12 @@ function mutate($s)
 
     require_login($course->id);
 
-    add_to_log($course->id, "contester", "problem", "problem.php?id=$contester->id&pid=$pid", "$contester->id");
+    //add_to_log($course->id, "contester", "problem", "problem.php?id=$contester->id&pid=$pid", "$contester->id");
 
 
 /// Print the page header
 
-    if ($course->category) {
+    /*if ($course->category) {
         $navigation = "<a href=\"../../course/view.php?id=$course->id\">$course->shortname</a> ->";
     }
 
@@ -76,24 +78,34 @@ function mutate($s)
     print_header("$course->shortname: $contester->name", "$course->fullname",
                  "$navigation <a href=index.php?id=$course->id>$strcontesters</a> -> $contester->name",
                   "", "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.css\" />", true, update_module_button($cm->id, $course->id, $strcontester),
-                  navmenu($course, $cm));
+                  navmenu($course, $cm));*/
+    $PAGE->set_url('/mod/contester/problem.php', array('a' => $a, 'pid' => $id));
+    $PAGE->set_title("$course->shortname: $contester->name");
+    $PAGE->set_heading("$course->fullname");
+    $PAGE->navbar->add("$contester->name");
+    $PAGE->set_focuscontrol("");
+    $PAGE->set_cacheable(true);
+    $PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));
+    
+    echo $OUTPUT->header();              
 
 
 /// Print the main part of the page
 
 	contester_print_begin($contester->id);
 	echo "<table width = 70%><tr><td>";
-	// достаем и выводим название, условия, формат ввода-вывода
-	$sql = "SELECT contester_problems.id as id,
-				   contester_problems.name as name,
-				   contester_problems.description as description,
-				   contester_problems.input_format as input,
-				   contester_problems.output_format as output
-		    FROM   contester_problems,
-		   		   contester_problemmap
-		    WHERE  contester_problemmap.problemid=contester_problems.id
-		    AND	   contester_problemmap.id=$pid";
-	if (!$problem = get_record_sql($sql)) error('No such problem!');
+	
+	if (!$problem = $DB->get_record_sql("SELECT mdl_contester_problems.id as id,
+				   mdl_contester_problems.name as name,
+				   mdl_contester_problems.description as description,
+				   mdl_contester_problems.input_format as input,
+				   mdl_contester_problems.output_format as output
+		    FROM   mdl_contester_problems,
+		   		   mdl_contester_problemmap
+		    WHERE  mdl_contester_problemmap.problemid=mdl_contester_problems.id
+		    AND	   mdl_contester_problemmap.id=?", array($pid))) 
+		    	error('No such problem!');
+	
 	$text = "<div id=problemname>".$problem->name."</div><div id=description>".$problem->description.
 	"</div><div id=textheader>".get_string('inputformat', 'contester')."</div><div id=inoutformat>".$problem->input.
 	"</div><div id=textheader>".get_string('outputformat', 'contester')."</div><div id=inoutformat>".$problem->output.
@@ -120,18 +132,18 @@ function mutate($s)
 	echo format_text($text);
 	// дальше сэмплы выводятся
 	$sql = "select samples.input as input, samples.output as output
-	from contester_samples samples
-	where samples.problem_id=$problem->id order by samples.number";
+	from mdl_contester_samples samples
+	where samples.problem_id=? order by samples.number";
 	//error($sql);
 
 	$text = "";
 	$text .= "<div id=textheader>".get_string('samples', 'contester')."</div>";
-	$samples = get_recordset_sql($sql);
+	$samples = $DB->get_recordset_sql($sql, array($problem->id));
 	foreach($samples as $sample)
 	{
 		$text .= "<div id=sample>".get_string('input', 'contester')."</div>
-		<div id=code align=left><pre>".$sample['input']."</pre></div>"."<div id=sample>".
-		get_string('output', 'contester')."</div><div id=code align=left><pre>".$sample['output']."</pre></div>";
+		<div id=code align=left><pre>".$sample->input."</pre></div>"."<div id=sample>".
+		get_string('output', 'contester')."</div><div id=code align=left><pre>".$sample->output."</pre></div>";
 	}
 	echo $text;//format_text($text); в <pre></pre> после формата в хроме лишние переводы строк и в IE выглядит как 1,5 интервал
 
@@ -141,6 +153,7 @@ function mutate($s)
 
 /// Finish the page
 	contester_print_end();
-    print_footer($course);
+    //print_footer($course);
+    echo $OUTPUT->footer();
 
 ?>

@@ -60,10 +60,10 @@
 	echo $OUTPUT->header();
 	contester_print_begin($contester->id);
 
-	$submit = NULL;
+	$submit = new stdClass();
 	$submit->contester = $contester->id;
 	$submit->student = $USER->id;
-	$submit->problem = required_param("problem", PARAM_INT); //???
+	$submit->problem = required_param("problem", PARAM_INT); 
 	if ($submit->problem == -1) error(get_string("shudchuzprob", 'contester'), "submit_form.php?a=$contester->id");
 	$submit->lang = $_POST["lang"];
 	if ($submit->lang == -1) error(get_string("shudchuzlang", 'contester'), "submit_form.php?a=$contester->id");
@@ -81,8 +81,11 @@
     		$submit->solution = /*mysql_escape_string(*/file_get_contents($temp_name);//);
     	}
     }
+    
+	$context = context_module::instance($cm->id);
+    $is_admin = has_capability('moodle/site:config', $context);    
 
-    if (isadmin())
+    if ($is_admin)
     {
         //$string = $submit->solution;
         //$pattern ='/system\s*\(\s*\\\{0,1}"\s*pause\s*\\\{0,1}"\s*\)\s*;/i';
@@ -100,7 +103,7 @@
     $submit->solution = preg_replace($pattern, $replacement, $submit->solution);
                             
     
-    insert_record("contester_submits", $submit);
+    $DB->insert_record("contester_submits", $submit);
     print_string("successsubmit", "contester");
     
     echo "<br><a href=\"status.php?id=$id&a=$a\">".get_string("status", 'contester')."</a><br>";
