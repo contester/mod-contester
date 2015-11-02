@@ -32,6 +32,8 @@ $string['lang'] = 'Язык';
 $string['submitted'] = 'Время отправки';
 $string['processed'] = 'Время обработки';
 $string['attempt'] = 'Попытка';
+$string['compiled'] = 'Компиляция';
+$string['taken'] = 'Тестов протестировано';
 
 $string['nocontesters'] = 'Нет контестеров';
 

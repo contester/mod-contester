@@ -74,10 +74,14 @@
 	";
 	echo " ".get_string('oftask', 'contester')." ".$DB->get_field_sql($sql_problem_name, array($contester->id, $pid))."<br>";
 	// достаем и выводим список правильных решений.
-	$table = null;
+	//$table = null;
+	$table = new html_table();
 	$table->head = array(get_string('student', 'contester'), get_string('time', 'contester'), get_string('size', 'contester'));
 	$size = 'CHAR_LENGTH(submits.solution)';
-	if (isadmin() || get_field('contester', 'freeview', 'id', $contester->id)) $size = 
+	$context = context_module::instance($cm->id);
+    $is_admin = has_capability('moodle/site:config', $context);
+	
+	if ($is_admin || get_field('contester', 'freeview', 'id', $contester->id)) $size = 
 	"concat('<a href=show_solution.php?a=$contester->id&sid=', CAST(submits.id AS CHAR), '>', CAST($size AS CHAR), '</a>')";
 	
 	$realpid = $DB->get_record('contester_problemmap', array('id' => $pid));
@@ -97,17 +101,17 @@
 		//print_r(var_export($solution, true));
 		$row = array();
 		$user = $DB->get_record_sql("SELECT user.firstname, user.lastname FROM mdl_user as user, mdl_contester_submits as submit
-			WHERE submit.id= AND user.id = submit.student", array($solution->id));
+			WHERE submit.id=? AND user.id = submit.student", array($solution->id));
 		$row[]= $user->firstname.' '.$user->lastname;
 		$time = $DB->get_record_sql("SELECT MAX(res.timex) as time FROM mdl_contester_results as res 
 			WHERE 
-			res.testingid={$solution->id}");
+			res.testingid=?", array($solution->id));
 		$row[]= $time->time;
-		$length = get_record_sql("SELECT CHAR_LENGTH(solution) as len from contester_submits
-		WHERE id={$solution['id']}");
+		$length = $DB->get_record_sql("SELECT CHAR_LENGTH(solution) as len from mdl_contester_submits
+		WHERE id=?", array($solution->id));
 		$len = $length->len;
-		if (isadmin() || get_field('contester', 'freeview', 'id', $contester->id)) 
-			$len = "<a href=show_solution.php?a=$contester->id&sid={$solution['id']}>".$len."</a>";
+		if ($is_admin || $DB->get_field('contester', 'freeview', 'id', $contester->id)) 
+			$len = "<a href=show_solution.php?a=$contester->id&sid={$solution->id}>".$len."</a>";
 		$row[]= $len;
 		$table->data []= $row;
 	}
@@ -135,10 +139,12 @@
 	{
 		print_string('nocorrectsolutions', contester);		
 	} else {
-		print_table($table);	
+		echo html_writer::table($table);
+		//print_table($table);	
 	}
 /// Finish the page
 	contester_print_end();
-    print_footer($course);
+    //print_footer($course);
+    echo $OUTPUT->footer();
 
 ?>

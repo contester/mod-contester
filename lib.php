@@ -921,7 +921,7 @@ function contester_get_last_submits($contesterid, $cnt = 1, $user = NULL, $probl
 		$result []= contester_get_submit($line["id"]);*/
 	//while (!$submits->EOF)
 	foreach($submits as $submit)
-	    $result []= contester_get_submit($submits->id);
+	    $result []= contester_get_submit($submit->id);
 
 	return $result;
 }

@@ -251,7 +251,7 @@
 	echo '<table border="1"><tr><td></td>';
 	foreach ($prs as $pr)
 	{
-		echo "<td><a href=http://school.sgu.ru/mod/contester/problem.php?pid=".$pr->pid.
+		echo "<td><a href=problem.php?pid=".$pr->pid.
 			"&a=".$contester->id.">".$pr->name."</a></td>";
 	}
 	echo '<td>'.get_string('total', 'contester').'</td>';
@@ -261,7 +261,7 @@
 	if (!$userid) $userid = $USER->id;
 	foreach ($sts as $st)
 	{
-		echo "<tr><td><a href=\"http://school.sgu.ru/user/view.php?id=$st->id&course=$course->id\">$st->name</a></td>";
+		echo "<tr><td><a href=\"view.php?id=$st->id&course=$course->id\">$st->name</a></td>";
 		$cnt = 0;
 		foreach ($prs as $pr) {
 			if ($is_admin || $is_teacher || $st->id == $userid)
