@@ -110,22 +110,22 @@ function mutate($s)
 	"</div><div id=textheader>".get_string('inputformat', 'contester')."</div><div id=inoutformat>".$problem->input.
 	"</div><div id=textheader>".get_string('outputformat', 'contester')."</div><div id=inoutformat>".$problem->output.
 	"</div>";
-	$text = str_replace("\n", "<br />", $text);
+	/*$text = str_replace("\n", "<br />", $text);
 	//$text = iconv("CP-1251", "UTF-8", $text);
 	$text = preg_replace('/<[bB][rR]>(\n<[bB][rR]>|й|ц|у|к|е|н|г|ш|щ|з|х|ъ|ф|ы|в|а|п|р|о|л|д|ж|э|я|ч|с|м|и|т|ь|б|ю|ё{1})/' ,'\1',$text);
 	//$text = preg_replace('/<[bB][rR]>([а-я])/', '\\1', $text);
 	$text = str_replace("\"е", "ё", $text);
 	$text = str_replace("\"e", "ё", $text); // какие-то нехорошие написали в условии ЛАТИНСКУЮ БУКВУ e,
 											// и хотят чтоб она тоже заменялась на ё. Ну хрен ли ё не пишется?
-	$text = str_replace("$$", "$", $text);
+	//$text = str_replace("$$", "$", $text);*/
 
 
-	while (strpos($text, "$") !== false) {
+	/*while (strpos($text, "$") !== false) {
 		$pos = strpos($text, "$");
 		$pos2 = strpos(substr($text, $pos+1), "$");
 		$text = substr($text, 0, $pos).mutate(substr($text, $pos+1, $pos2)).substr($text, $pos+$pos2 + 2);
 		//$text = substr($text, 0, $pos).'\\$\\$'.substr($text, $pos+1, $pos2).'\\$\\$'.substr($text, $pos+$pos2 + 2);
-	}
+	}*/
 	/*
 	echo $text;*/
 

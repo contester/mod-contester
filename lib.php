@@ -107,7 +107,7 @@ function contester_update_instance(stdClass $contester, mod_contester_mod_form $
 
     // You may have to add extra stuff in here.
 //Start new code
-if (!isset ($contester->freeview)) $contester->freeview = 0;
+	if (!isset ($contester->freeview)) $contester->freeview = 0;
     if (!isset ($contester->viewown)) $contester->viewown = 0;
 
     if (isset($contester->add_problem) && (trim($contester->add_problem) != '0'))
@@ -131,10 +131,10 @@ if (!isset ($contester->freeview)) $contester->freeview = 0;
 
     foreach ($res as $line)
     {
-    	$id = "pid".$line['id'];
+    	$id = "pid".$line->id;
     	if (isset($contester->$id)) {
     		if ($contester->$id == "checked")
-    			$DB->delete_records('contester_problemmap', 'id', $line['id']);
+    			$DB->delete_records('contester_problemmap', 'id', $line->id);
     	}
     }
 //End new code
@@ -1420,45 +1420,38 @@ function contester_get_problems_preview_all($instance, $sort, $tag)
 
 function contester_print_link_to_problem($instance, $pid)
 {
-	global $CFG;
-	echo "<a href=$CFG->dirroot/mod/contester/problem.php?a=$instance&pid=$pid>".
+	echo "<a href=problem.php?a=$instance&pid=$pid>".
    		get_string('problemstatement', 'contester')."</a>";
 }
 
 function contester_print_link_to_problem_details($instance, $pid, $dbid)
 {
-	global $CFG;
-	
-	$context = context_module::instance($cm->id);
+	$context = context_module::instance($instance);
     $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
     $is_admin = has_capability('moodle/site:config', $context);	
 
    	if ($is_admin)
-   		echo "<a href=$CFG->dirroot/mod/contester/problem_details.php?a=$instance&pid=$pid>".
+   		echo "<a href=problem_details.php?a=$instance&pid=$pid>".
 	   		get_string('problemdetails', 'contester')." (".$dbid.")</a>";
 }
 
 function contester_print_link_to_problem_tags_details($instance, $pid)
 {
-	global $CFG;
-	
-	$context = context_module::instance($cm->id);
+	$context = context_module::instance($instance);
     $is_admin = has_capability('moodle/site:config', $context);	
 
    	if ($is_admin)
-   		echo "<a href=$CFG->dirroot/mod/contester/problem_tags_details.php?a=$instance&pid=$pid>".
+   		echo "<a href=problem_tags_details.php?a=$instance&pid=$pid>".
 	   		get_string('tagsdetails', 'contester')."</a>";
 }
 
 function contester_print_link_to_upload()
 {
-	global $CFG;
-	
-	$context = context_module::instance($cm->id);
+	$context = context_module::instance($instance);
     $is_admin = has_capability('moodle/site:config', $context);	
 
 	if ($is_admin)
-		echo "<a href=$CFG->dirroot/mod/contester/upload_problem_form.php>".get_string('uploadtask', 'contester')."</a>";
+		echo "<a href=upload_problem_form.php>".get_string('uploadtask', 'contester')."</a>";
 }
 
 function contester_print_link_to_problems_preview($instance)
@@ -1475,13 +1468,13 @@ function contester_print_link_to_problems_preview($instance)
     }
 	//$context = get_context_instance(CONTEXT_MODULE, $cm->id);
 	//$is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
-	$context = context_module::instance($cm->id);
+	$context = context_module::instance($instance);
     $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
     $is_admin = has_capability('moodle/site:config', $context);
 
 //	echo "<p>is_teacher".$is_teacher."</p>";
 	if ($is_admin || $is_teacher)
-		echo "<p><a href=$CFG->dirroot/mod/contester/problems_preview.php?a=$instance>".get_string('problemspreview', 'contester')."</a></p>";
+		echo "<p><a href=problems_preview.php?a=$instance>".get_string('problemspreview', 'contester')."</a></p>";
 }
 
 /**
@@ -1609,8 +1602,9 @@ function contester_show_problem_details($pid)
 {
 	global $DB;
 	//echo $usehtmleditor='Gecko';
-	$usehtmleditor = can_use_html_editor();
-	if (!$problem = $DB->get_record('contester_problems', 'id', $pid)) {
+	//$usehtmleditor = can_use_html_editor();
+	$usehtmleditor = true;
+	if (!$problem = $DB->get_record('contester_problems', array('id' => $pid))) {
 		error(get_string('noproblem'));
 		return false;
 	}
@@ -1700,7 +1694,9 @@ function contester_show_problem_tags_to_delete($pid)
 
 function contester_show_problem_tags_to_add($pid)
 {
-	if (!$problem = get_record('contester_problems', array('id' => $pid))) {
+	global $DB;
+	
+	if (!$problem = $DB->get_record('contester_problems', array('id' => $pid))) {
 		error(get_string('noproblem'));
 		return false;
 	}

@@ -8,25 +8,27 @@
 
     $id = optional_param('id', 0, PARAM_INT); // Course Module ID, or
     $a  = optional_param('a', 0, PARAM_INT);  // contester ID
+    
+    global $DB;
 
     if ($id) {
-        if (! $cm = get_record("course_modules", "id", $id)) {
+        if (! $cm = $DB->get_record("course_modules", array("id" => $id))) {
             error("Course Module ID was incorrect");
         }
 
-        if (! $course = get_record("course", "id", $cm->course)) {
+        if (! $course = $DB->get_record("course", array("id" => $cm->course))) {
             error("Course is misconfigured");
         }
 
-        if (! $contester = get_record("contester", "id", $cm->instance)) {
+        if (! $contester = $DB->get_record("contester", array("id" => $cm->instance))) {
             error("Course module is incorrect");
         }
 
     } else {
-        if (! $contester = get_record("contester", "id", $a)) {
+        if (! $contester = $DB->get_record("contester", array("id" => $a))) {
             error("Course module is incorrect");
         }
-        if (! $course = get_record("course", "id", $contester->course)) {
+        if (! $course = $DB->get_record("course", array("id" => $contester->course))) {
             error("Course is misconfigured");
         }
         if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
@@ -35,9 +37,12 @@
     }
 
     require_login($course->id);
-    add_to_log($course->id, "contester", "details", "details.php?id=$cm->id", "$contester->id");
-    if (!isadmin()) error(get_string('accessdenied', 'contester'));
-	$pid = required_param('pid');
+    //add_to_log($course->id, "contester", "details", "details.php?id=$cm->id", "$contester->id");
+    $context = context_module::instance($cm->id);
+    $is_admin = has_capability('moodle/site:config', $context);
+
+    if (!$is_admin) error(get_string('accessdenied', 'contester'));
+	$pid = required_param('pid', PARAM_INT);
 
 /// Print the page header
 
@@ -46,20 +51,30 @@
     }
     $problemspreview = "<a href=\"../../mod/contester/problems_preview.php?a=".$contester->id."\">".get_string('problemspreview', 'contester')."</a> ->";
     $curcontester = "$contester->name ->";
-    $strcontester = get_string("modulename", "contester");
+    //$strcontester = get_string("modulename", "contester");
     $strprdetails = get_string("problemdetails", "contester");
 
-	$sql = "SELECT contester_problems.name as name
-			FROM   contester_problems
-			WHERE  contester_problems.id=$pid";
-	if (!$problem = get_record_sql($sql)) error('No such problem!');
-    $problempreview = "<a href=\"../../mod/contester/problem_preview.php?a=".$contester->id."&pid=".$pid."\">".$problem->name."</a> ->";
+	$sql = "SELECT mdl_contester_problems.name as name
+			FROM   mdl_contester_problems
+			WHERE  mdl_contester_problems.id=?";
+	if (!$problem = $DB->get_record_sql($sql, array($pid))) error('No such problem!');
+    /*$problempreview = "<a href=\"../../mod/contester/problem_preview.php?a=".$contester->id."&pid=".$pid."\">".$problem->name."</a> ->";
 
     print_header("$course->shortname: $contester->name", "$course->fullname",
                  "$navigation $curcontester $problemspreview $problempreview $strprdetails",
                   "", "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.css\" />",
                   true, update_module_button($cm->id, $course->id, $strcontester),
-                  navmenu($course, $cm));
+                  navmenu($course, $cm));*/
+                  
+    $PAGE->set_url('/mod/contester/problem_details.php', array('a' => $a, 'pid' => $pid));
+    $PAGE->set_title("$course->shortname: $contester->name");
+    $PAGE->set_heading("$course->fullname");
+    $PAGE->navbar->add("$contester->name");
+    $PAGE->set_focuscontrol("");
+    $PAGE->set_cacheable(true);
+    $PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));                  
+    
+    echo $OUTPUT->header();
 
 /// Print the main part of the page
 
@@ -72,6 +87,7 @@
 
 /// Finish the page
 	contester_print_end();
-    print_footer($course);
+    //print_footer($course);
+    echo $OUTPUT->footer()
 
 ?>

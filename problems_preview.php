@@ -37,7 +37,7 @@
 	$context = get_context_instance(CONTEXT_MODULE, $cm->id);
 	$is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
 
-    require_login();
+    require_login($course->id);
 
     add_to_log($course->id, "contester", "preview", "problems_preview.php?a=$contester->id", "$contester->id");
 
