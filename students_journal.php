@@ -25,26 +25,26 @@
     
 	if ($id) {
         if (! $cm = get_record("course_modules", "id", $id)) {
-            error("Course Module ID was incorrect");
+            print_error("Course Module ID was incorrect");
         }
     
         if (! $course = get_record("course", "id", $cm->course)) {
-            error("Course is misconfigured");
+            print_error("Course is misconfigured");
         }
     
         if (! $contester = get_record("contester", "id", $cm->instance)) {
-            error("Course module is incorrect");
+            print_error("Course module is incorrect");
         }
 
     } else {
         if (! $contester = get_record("contester", "id", $a)) {
-            error("Course module is incorrect");
+            print_error("Course module is incorrect");
         }
         if (! $course = get_record("course", "id", $contester->course)) {
-            error("Course is misconfigured");
+            print_error("Course is misconfigured");
         }
         if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
-            error("Course Module ID was incorrect");
+            print_error("Course Module ID was incorrect");
         }
     }
 
@@ -71,7 +71,7 @@
 	$context = get_context_instance(CONTEXT_MODULE, $cm->id);
 	$is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
 
-	if (!(isadmin() || $is_teacher)) error(get_string('accessdenied', 'contester'));
+	if (!(isadmin() || $is_teacher)) print_error(get_string('accessdenied', 'contester'));
 //////////////////////D.r.
 ///Select group number
 	$query = "SELECT groups.id FROM groups JOIN contester ON groups.courseid=contester.course 

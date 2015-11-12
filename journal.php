@@ -24,26 +24,26 @@
 
 	if ($id) {
         if (! $cm = $DB->get_record("course_modules", array("id"=>$id))) {
-            error("Course Module ID was incorrect");
+            print_error("Course Module ID was incorrect");
         }
 
         if (! $course = $DB->get_record("course", array("id"=>$cm->course))) {
-            error("Course is misconfigured");
+            print_error("Course is misconfigured");
         }
 
         if (! $contester = $DB->get_record("contester", array("id"=>$cm->instance))) {
-            error("Course module is incorrect");
+            print_error("Course module is incorrect");
         }
 
     } else {
         if (! $contester = $DB->get_record("contester", array("id"=>$a))) {
-            error("Course module is incorrect");
+            print_error("Course module is incorrect");
         }
         if (! $course = $DB->get_record("course", array("id"=>$contester->course))) {
-            error("Course is misconfigured");
+            print_error("Course is misconfigured");
         }
         if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
-            error("Course Module ID was incorrect");
+            print_error("Course Module ID was incorrect");
         }
     }
 
@@ -261,7 +261,7 @@
 	if (!$userid) $userid = $USER->id;
 	foreach ($sts as $st)
 	{
-		echo "<tr><td><a href=\"view.php?id=$st->id&course=$course->id\">$st->name</a></td>";
+		echo "<tr><td><a href=\"../../user/view.php?id=$st->id&course=$course->id\">$st->name</a></td>";
 		$cnt = 0;
 		foreach ($prs as $pr) {
 			if ($is_admin || $is_teacher || $st->id == $userid)

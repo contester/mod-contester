@@ -11,26 +11,26 @@
 
     if ($id) {
         if (! $cm = $DB->get_record('course_modules', array('id' => $id))) {
-            error("Course Module ID was incorrect");
+            print_error("Course Module ID was incorrect");
         }
 
         if (! $course = $DB->get_record('course', array('id' => $cm->course))) {
-            error("Course is misconfigured");
+            print_error("Course is misconfigured");
         }
 
         if (! $contester = $DB->get_record('contester', array('id' => $cm->instance))) {
-            error("Course module is incorrect 1");
+            print_error("Course module is incorrect 1");
         }
 
     } else {
         if (! $contester = $DB->get_record('contester', array('id' => $a))) {
-            error("Course module is incorrect 2");
+            print_error("Course module is incorrect 2");
         }
         if (! $course = $DB->get_record('course', array('id' => $contester->course))) {
-            error("Course is misconfigured");
+            print_error("Course is misconfigured");
         }
         if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
-            error("Course Module ID was incorrect");
+            print_error("Course Module ID was incorrect");
         }
     }
 
@@ -64,9 +64,9 @@
 	$submit->contester = $contester->id;
 	$submit->student = $USER->id;
 	$submit->problem = required_param("problem", PARAM_INT); 
-	if ($submit->problem == -1) error(get_string("shudchuzprob", 'contester'), "submit_form.php?a=$contester->id");
+	if ($submit->problem == -1) print_error(get_string("shudchuzprob", 'contester'), "submit_form.php?a=$contester->id");
 	$submit->lang = $_POST["lang"];
-	if ($submit->lang == -1) error(get_string("shudchuzlang", 'contester'), "submit_form.php?a=$contester->id");
+	if ($submit->lang == -1) print_error(get_string("shudchuzlang", 'contester'), "submit_form.php?a=$contester->id");
 	//$submit->solution = required_param("code");
 	$submit->solution = trim($_POST['code']);
     if ($submit->solution == "")
@@ -74,7 +74,7 @@
     	$temp_name = $_FILES["solution"]["tmp_name"];
     	if (!is_uploaded_file($temp_name))
     	{
-    		error(get_string("shudchuzcode", 'contester'), "submit_form.php?a=$contester->id");
+    		print_error(get_string("shudchuzcode", 'contester'), "submit_form.php?a=$contester->id");
     	}
     	else
     	{

@@ -14,26 +14,26 @@
 
     if ($id) {
         if (! $cm = $DB->get_record('course_modules', array('id' => $id))) {
-            error("Course Module ID was incorrect");
+            print_error("Course Module ID was incorrect");
         }
 
         if (! $course = $DB->get_record('course', array('id' => $cm->course))) {
-            error("Course is misconfigured");
+            print_error("Course is misconfigured");
         }
 
         if (! $contester = $DB->get_record('contester', array('id' => $cm->instance))) {
-            error("Course module is incorrect");
+            print_error("Course module is incorrect");
         }
 
     } else {
         if (! $contester = $DB->get_record('contester', array('id' => $a))) {
-            error("Course module is incorrect");
+            print_error("Course module is incorrect");
         }
         if (! $course = $DB->get_record('course', array('id' => $contester->course))) {
-            error("Course is misconfigured");
+            print_error("Course is misconfigured");
         }
         if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
-            error("Course Module ID was incorrect");
+            print_error("Course Module ID was incorrect");
         }
     }
 	//echo "botva";
@@ -52,13 +52,13 @@
         {
         	//echo "botva";
 	       	if (empty($USER->id)) {
-    	        error('accessdenied', 'contester');
+    	        print_error('accessdenied', 'contester');
         	}
         	$userid = $USER->id;
     	}
     	$user = get_field_sql("SELECT user.id FROM mdl_user as user, mdl_contester_submits as submits
     	WHERE submits.id=$sid AND user.id=submits.student");
-    	if ($userid != $user) error('accessdenied', 'contester');
+    	if ($userid != $user) print_error('accessdenied', 'contester');
     }
     //echo "botva";
 

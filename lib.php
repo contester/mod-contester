@@ -120,6 +120,11 @@ function contester_update_instance(stdClass $contester, mod_contester_mod_form $
 		}
     	unset($map_inst);
     }
+    
+    if (!isset($contester->intro))
+    	$contester->intro = "Test";
+    if (!isset($contester->introformat))
+    	$contester->introformat = 0;
 
     if (!isset($contester->description)) $contester->description = '';
 
@@ -127,7 +132,10 @@ function contester_update_instance(stdClass $contester, mod_contester_mod_form $
     		FROM   mdl_contester_problemmap
 			WHERE  mdl_contester_problemmap.contesterid=$contester->id";
     
-    $res = $DB->get_recordset_sql($sql);
+    $res = $DB->get_records_sql($sql);
+    
+    print_r($res);
+	print_r($contester);
 
     foreach ($res as $line)
     {
@@ -1224,6 +1232,7 @@ function contester_show_problemlist($instance)
 	echo '<td align="right"><b>'.get_string('availableproblems', 'contester').':</b></td>';
     echo '<td align="left">';
     echo '<table><tr><td colspan=3>'.get_string('problemstodelete', 'contester').'</td></tr>';
+    
     unset($res);
 
     $sql = "SELECT   mdl_contester_problems.name as name,
@@ -1259,7 +1268,7 @@ function contester_get_all_tags()
 									 mdl_contester_tags.tag as tag,
 									 COUNT(mdl_contester_tagmap.tagid) as count
 							FROM     mdl_contester_tags LEFT JOIN mdl_contester_tagmap
-							ON       mdl_contester_tags.id=contester_tagmap.tagid
+							ON       mdl_contester_tags.id=mdl_contester_tagmap.tagid
 							GROUP BY mdl_contester_tags.id
 							ORDER BY mdl_contester_tags.tag");
     return $res;
@@ -1288,11 +1297,11 @@ function contester_show_tags_ref($instance, $sort, $ifall="")
 	unset($tags);
 	$tags = contester_get_all_tags();
 
-	echo "<a href=$CFG->dirroot/mod/contester/problems_preview".$ifall.".php?a=$instance&sort=".$sort.
+	echo "<a href=problems_preview".$ifall.".php?a=$instance&sort=".$sort.
     		"&tag=0>".get_string("alltags", "contester").' ('.contester_count_all_problems().')'."</a> ";
 	foreach ($tags as $item)
     {
-    	echo "<nobr><a href=$CFG->dirroot/mod/contester/problems_preview".$ifall.".php?a=$instance&sort=".$sort.
+    	echo "<nobr><a href=problems_preview".$ifall.".php?a=$instance&sort=".$sort.
     		"&tag=".$item->id.">".$item->tag.' ('.$item->count.')'."</a></nobr> ";
     }
 }
@@ -1344,32 +1353,43 @@ function contester_show_problems_preview($instance, $sort, $tag)
 	unset($res);
     unset($order);
     unset($whtag);
-   	if ($sort == 1) {$order = "contester_problems.name";}
-   	else {$order = "contester_problems.dbid";}
-   	if ($tag != 0) {$whtag = " WHERE EXISTS (SELECT mdl_contester_tagmap.id
+    unset($data);
+    
+    $sql = "SELECT   mdl_contester_problems.id as pr_id,
+	   							     mdl_contester_problems.name as name,
+   								     mdl_contester_problems.dbid as dbid
+   							FROM     mdl_contester_problems";
+   	if ($tag != 0)
+   	{
+   		$sql .= " WHERE EXISTS (SELECT mdl_contester_tagmap.id
    											FROM   mdl_contester_tagmap
    											WHERE  mdl_contester_tagmap.problemid=mdl_contester_problems.id
    											       AND
-   											       mdl_contester_tagmap.tagid=".$tag.") ";}
-   	else {$whtag = "";}
+   											       mdl_contester_tagmap.tagid=?)";
 
-	$res = $DB->get_records_sql("SELECT   mdl_contester_problems.id as pr_id,
-	   							     mdl_contester_problems.name as name,
-   								     mdl_contester_problems.dbid as dbid
-   							FROM     mdl_contester_problems".$whtag."
-   							ORDER BY ".$order);
+		$data []= $tag; 
+   	}
+   	
+   	$sql .= " ORDER BY ";
+    
+   	if ($sort == 1) 
+   		$sql .= "mdl_contester_problems.name";
+   	else 	
+   		$sql .= "mdl_contester_problems.dbid";
+
+	$res = $DB->get_records_sql($sql, $data);
 
     echo '<table cellpadding=5 border=1 bordercolor=#D0D0D0>';
     echo '<tr>';
     if ($sort == 0)
     {
    		echo "<th>".get_string('id', 'contester')."</th>";
-    	echo "<th><a href=$CFG->dirroot/mod/contester/problems_preview.php?a=$instance&sort=1&tag=".$tag.">".
+    	echo "<th><a href=problems_preview.php?a=$instance&sort=1&tag=".$tag.">".
     		get_string('problemname', 'contester')."</a></th>";
     }
     else
     {
-   		echo "<th><a href=$CFG->dirroot/mod/contester/problems_preview.php?a=$instance&sort=0&tag=".$tag.">".
+   		echo "<th><a href=problems_preview.php?a=$instance&sort=0&tag=".$tag.">".
    			get_string('id', 'contester')."</a></th>";
     	echo "<th>".get_string('problemname', 'contester')."</th>";
     }
@@ -1382,7 +1402,7 @@ function contester_show_problems_preview($instance, $sort, $tag)
     {
     	echo '<tr>';
     	echo '<td>'.$line->dbid.'</td>';
-    	echo "<td><a href=$CFG->dirroot/mod/contester/problem_preview.php?a=$instance&pid=".$line->pr_id.">".$line->name."</a></td>";
+    	echo "<td><a href=problem_preview.php?a=$instance&pid=".$line->pr_id.">".$line->name."</a></td>";
 
    		echo "<td><span id=taglist>";
    		contester_show_problem_tags($line->pr_id);
@@ -1398,7 +1418,36 @@ function contester_get_problems_preview_all($instance, $sort, $tag)
 	unset($res);
     unset($order);
     unset($whtag);
-   	if ($sort == 1) {$order = "contester_problems.name";}
+    unset($data);
+    
+    $sql = "SELECT  mdl_contester_problems.id as id,
+	   							    mdl_contester_problems.name as name,
+   								    mdl_contester_problems.dbid as dbid,
+   								    mdl_contester_problems.description as description,
+   								    mdl_contester_problems.input_format as input,
+   								    mdl_contester_problems.output_format as output
+   							    FROM     mdl_contester_problems";
+   	if ($tag != 0)
+   	{
+   		$sql .= " WHERE EXISTS (SELECT mdl_contester_tagmap.id
+   											 FROM   mdl_contester_tagmap
+   											 WHERE  mdl_contester_tagmap.problemid=mdl_contester_problems.id
+   											      AND
+   											        mdl_contester_tagmap.tagid=?)";
+   											        
+		$data []= $tag;
+   	}
+   	
+   	$sql .= " ORDER BY ";
+   	
+   	if ($sort == 1)
+   		$sql .= "mdl_contester_problems.name";
+   	else
+   		$sql .= "mdl_contester_problems.dbid";
+   		
+   	$res = $DB->get_records_sql($sql, $data);
+   	
+   	/*if ($sort == 1) {$order = "contester_problems.name";}
    	else {$order = "contester_problems.dbid";}
    	if ($tag != 0) {$whtag = " WHERE EXISTS (SELECT mdl_contester_tagmap.id
    											 FROM   mdl_contester_tagmap
@@ -1414,7 +1463,7 @@ function contester_get_problems_preview_all($instance, $sort, $tag)
    								    mdl_contester_problems.input_format as input,
    								    mdl_contester_problems.output_format as output
    							    FROM     mdl_contester_problems".$whtag."
-   							    ORDER BY ".$order);
+   							    ORDER BY ".$order);*/
  	return $res;
 }
 
@@ -1447,24 +1496,20 @@ function contester_print_link_to_problem_tags_details($instance, $pid)
 
 function contester_print_link_to_upload()
 {
-	$context = context_module::instance($instance);
-    $is_admin = has_capability('moodle/site:config', $context);	
-
-	if ($is_admin)
-		echo "<a href=upload_problem_form.php>".get_string('uploadtask', 'contester')."</a>";
+	echo "<a href=upload_problem_form.php>".get_string('uploadtask', 'contester')."</a>";
 }
 
 function contester_print_link_to_problems_preview($instance)
 {
 	global $DB;
 	if (! $contester = $DB->get_record("contester", array("id" => $instance))) {
-    	error("Course module is incorrect");
+    	print_error("Course module is incorrect");
  	}
     if (! $course = $DB->get_record("course", array("id" => $contester->course))) {
-    	error("Course is misconfigured");
+    	print_error("Course is misconfigured");
     }
     if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
-    	error("Course Module ID was incorrect");
+    	print_error("Course Module ID was incorrect");
     }
 	//$context = get_context_instance(CONTEXT_MODULE, $cm->id);
 	//$is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
@@ -1488,6 +1533,7 @@ function contester_show_problemadd()
     echo '<tr valign="top">';
 	echo '<td align="right"><b>'.get_string('addproblem', 'contester').':</b></td>';
 	echo '<td>';
+	
     unset($choices);
     unset($res);
     $res = $DB->get_records_sql("SELECT   mdl_contester_problems.id as pr_id,
@@ -1605,7 +1651,7 @@ function contester_show_problem_details($pid)
 	//$usehtmleditor = can_use_html_editor();
 	$usehtmleditor = true;
 	if (!$problem = $DB->get_record('contester_problems', array('id' => $pid))) {
-		error(get_string('noproblem'));
+		print_error(get_string('noproblem'));
 		return false;
 	}
 ?>
@@ -1680,7 +1726,7 @@ function contester_show_problem_tags_to_delete($pid)
 {
 	global $DB;
 	if (!$problem = $DB->get_record('contester_problems', array('id' => $pid))) {
-		error(get_string('noproblem'));
+		print_error(get_string('noproblem'));
 		return false;
 	}
 	unset($tags);
@@ -1692,12 +1738,76 @@ function contester_show_problem_tags_to_delete($pid)
     return 0;
 }
 
+function contester_show_problems_to_delete($a)
+{
+	global $DB;
+	if (!$contester = $DB->get_record('contester', array('id' => $a))) {
+		print_error(get_string('nocontester'));
+		return false;
+	}
+	
+	unset($problems);
+    
+    $problems = $DB->get_records_sql("SELECT mdl_contester_problems.name as name,
+				 mdl_contester_problemmap.id as id,
+				 mdl_contester_problems.id as pid,
+				 mdl_contester_problems.dbid as dbid
+		FROM	 mdl_contester_problems, mdl_contester_problemmap
+		WHERE	 mdl_contester_problemmap.problemid=mdl_contester_problems.id
+		AND		 mdl_contester_problemmap.contesterid=?
+		ORDER BY mdl_contester_problemmap.id", array($a));
+
+	echo '<td align="right"><b>'.get_string('availableproblems', 'contester').':</br></b></td>';
+    echo '<tr><td>'.get_string('problemstodelete', 'contester').'</br></br></td></tr>';
+    foreach ($problems as $problem)
+    {
+    	echo "<nobr><input type=\"checkbox\" name=\"probsdel[]\" value=".$problem->pid.">".$problem->name;
+  		echo "<td size=40%><nobr>
+  			<a href=problem_details.php?a=".$a."&pid=".$problem->pid.">".
+  			get_string('problemdetails', 'contester')." (".$problem->dbid.")</a></nobr></td>";
+    	echo "</nobr>&nbsp;";
+    	echo "</br>";
+    }
+    echo '</td></tr>';    
+    return 0;
+}
+
+function contester_show_problems_to_add($a)
+{
+	global $DB;
+	
+	if (!$problem = $DB->get_record('contester', array('id' => $a))) {
+		print_error(get_string('nocontester'));
+		return false;
+	}
+	
+    unset($res);
+    $res = $DB->get_records_sql("SELECT   mdl_contester_problems.id as pr_id,
+    								 mdl_contester_problems.dbid as dbid,
+    							     mdl_contester_problems.name as name
+    						FROM     mdl_contester_problems
+    						ORDER BY mdl_contester_problems.dbid");
+
+    unset($choices);  
+    foreach ($res as $line){
+    	$choices[$line->pr_id] = $line->dbid." ".$line->name;
+    }
+
+    echo '<tr valign="top">';
+	echo '<td align="center"><b>'.get_string('addproblem', 'contester').':   </b></td>';
+	echo '<td align="center">';
+    contester_choose_from_list($choices, 'probsadd[]', true, 20); //multiple + 20 rows
+    echo '</td></tr>';	    
+    
+    return 0;
+}
+
 function contester_show_problem_tags_to_add($pid)
 {
 	global $DB;
 	
 	if (!$problem = $DB->get_record('contester_problems', array('id' => $pid))) {
-		error(get_string('noproblem'));
+		print_error(get_string('noproblem'));
 		return false;
 	}
 	unset($tags);
@@ -1717,35 +1827,31 @@ function contester_show_problem_tags_to_add($pid)
 function contester_show_nav_bar($instance) {
 	global $DB;
     if (! $contester = $DB->get_record('contester', array('id'=>$instance))) {
-    	error("Course module is incorrect");
+    	print_error("Course module is incorrect");
     }
 	if (! $course = $DB->get_record('course', array('id'=>$contester->course))) {
-		error("Course is misconfigured");
+		print_error("Course is misconfigured");
 	}
     if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
-    	error("Course Module ID was incorrect");
+    	print_error("Course Module ID was incorrect");
     }
-	//$context = get_context_instance(CONTEXT_MODULE, $cm->id); Old code
-	//$context=context_module::instance($cm->id);
-	//$is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
+
+	$context = context_module::instance($cm->id);
+    $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
+    $is_admin = has_capability('moodle/site:config', $context);
 
 	echo "<nobr><a href=view.php?a=$instance>".get_string('problemlist','contester')."</a></nobr><br>";
 	echo "<nobr><a href=submit_form.php?a=$instance>".get_string('submit','contester')."</a></nobr><br>";
 	echo "<nobr><a href=status.php?a=$instance>".get_string('status', 'contester')."</a></nobr><br>";
 	
-	//$table='contester';
-	//$field1='viewown';
-	
-	//$DB->get_field($table, );
-	
-	/*if (get_field('contester', 'viewown', 'id', $instance)) echo "<nobr><a href=my_solutions.php?a=$instance>".get_string('mysolutions', 'contester')."</a></nobr><br>";*/
-	
 	//Start new code
 	if ($DB->get_field('contester', 'viewown', array('id'=>$instance))) echo "<nobr><a href=my_solutions.php?a=$instance>".get_string('mysolutions', 'contester')."</a></nobr><br>";
 	//End new code
 	
-	//if ($is_teacher) раньше журнал был только для учителей
 	echo "<nobr><a href=journal.php?a=$instance>".get_string('journal', 'contester')."</a></nobr><br>";
+	
+	if ($is_admin || $is_teacher)
+		echo "<nobr><a href=problems_details.php?a=$instance>".get_string('contesterupdate', 'contester')."</a></nobr><br>";		
 }
 
 /**

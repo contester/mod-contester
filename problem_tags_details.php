@@ -13,26 +13,26 @@
 
     if ($id) {
         if (! $cm = $DB->get_record("course_modules", array("id" => $id))) {
-            error("Course Module ID was incorrect");
+            print_error("Course Module ID was incorrect");
         }
 
         if (! $course = $DB->get_record("course", array("id" => $cm->course))) {
-            error("Course is misconfigured");
+            print_error("Course is misconfigured");
         }
 
         if (! $contester = $DB->get_record("contester", array("id" => $cm->instance))) {
-            error("Course module is incorrect");
+            print_error("Course module is incorrect");
         }
 
     } else {
         if (! $contester = $DB->get_record("contester", array("id" => $a))) {
-            error("Course module is incorrect");
+            print_error("Course module is incorrect");
         }
         if (! $course = $DB->get_record("course", array("id" => $contester->course))) {
-            error("Course is misconfigured");
+            print_error("Course is misconfigured");
         }
         if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
-            error("Course Module ID was incorrect");
+            print_error("Course Module ID was incorrect");
         }
     }
 
@@ -41,7 +41,7 @@
 	$context = context_module::instance($cm->id);
     $is_admin = has_capability('moodle/site:config', $context);
     
-    if (!$is_admin) error(get_string('accessdenied', 'contester'));
+    if (!$is_admin) print_error(get_string('accessdenied', 'contester'));
     $pid = required_param('pid', PARAM_INT);
 
 /// Print the page header
@@ -49,7 +49,7 @@
 	$sql = "SELECT mdl_contester_problems.name as name
 			FROM   mdl_contester_problems
 			WHERE  mdl_contester_problems.id=?";
-	if (!$problem = $DB->get_record_sql($sql, array($pid))) error('No such problem!');
+	if (!$problem = $DB->get_record_sql($sql, array($pid))) print_error('No such problem!');
 
     /*if ($course->category) {
         $navigation = "<a href=\"../../course/view.php?id=$course->id\">$course->shortname</a> ->";

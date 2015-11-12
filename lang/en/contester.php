@@ -41,6 +41,7 @@ $string['modulename_help'] = 'Use the contester module for... | The contester mo
 $string['pluginadministration'] = 'contester administration';
 $string['pluginname'] = 'contester';
 
+$string['contesterupdate']      = 'Обновить задачи контестера';
 $string['action']				= 'Действие';
 $string['accessdenied']			= 'Доступ запрещен';
 $string['addproblem']			= 'Добавить задачу';

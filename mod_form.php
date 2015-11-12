@@ -66,60 +66,11 @@ class mod_contester_mod_form extends moodleform_mod {
 
         // Adding the rest of contester settings, spreading all them into this fieldset
         // ... or adding more fieldsets ('header' elements) if needed for better logic.
-		
-        //$mform->addElement('static', 'label1', 'contestersetting1', 'Hello world');
-		
-		$mform->addElement('static', 'label1', 'Доступные задачи', 'Отметьте задачи, которые нужно удалить');
-		
-		$sql = "SELECT   mdl_contester_problems.name as name,
-				 mdl_contester_problemmap.id as id,
-				 mdl_contester_problems.id as pid,
-				 mdl_contester_problems.dbid as dbid
-		FROM	 mdl_contester_problems, mdl_contester_problemmap
-		WHERE	 mdl_contester_problemmap.problemid=mdl_contester_problems.id
-		AND		 mdl_contester_problemmap.contesterid=?
-		ORDER BY mdl_contester_problemmap.id";
-
-		global $DB;
-		global $COURSE;
-		
-		$contesterId = 1;
-		
-    	$res = $DB->get_records_sql($sql, array($contesterId));
+        
+        //$mform->addElement('static', 'label1', get_string('contesterupdate', 'contester'), $out);
 	
-		$context = context_module::instance($COURSE->id);
-    	$is_admin = has_capability('moodle/site:config', $context);
-		
-		foreach ($res as $line)
-		{
-			$name = $line->name;
-			$out = "<tr><td><input type=checkbox name=\"pid".$line->id."\" value=checked></td><td size=60%>
-			<nobr>$name</nobr></td>";
-			if ($is_admin) 
-				$out .= "<td size=40%><nobr>
-				<a href=../mod/contester/problem_details.php?a=.$contesterId.&pid=".$line->pid.">".
-				get_string('problemdetails', 'contester')." (".$line->dbid.")</a></nobr></td>";
-			$out .= "</tr>";
-			
-			$mform->addElement('static', 'label1', '', $out);		
-		}
-		
-        /*echo '<tr valign="top">';
-    	echo '<td align="right"><b>'.get_string('addproblem', 'contester').':</b></td>';
-    	echo '<td>';
-        $res = $DB->get_records_sql("SELECT   mdl_contester_problems.id as pr_id,
-        								 mdl_contester_problems.dbid as dbid,
-        							     mdl_contester_problems.name as name
-        						FROM     mdl_contester_problems
-        						ORDER BY mdl_contester_problems.dbid");
-        foreach ($res as $line){
-        	$choices[$line->pr_id] = $line->dbid." ".$line->name;
-        }
-        contester_choose_from_list($choices, 'add_problem[]', true, 20); //multiple + 20 rows
-        echo '</td></tr>';*/
-		
-        $mform->addElement('header', 'contesterfieldset', get_string('contesterfieldset', 'contester'));
-        $mform->addElement('static', 'label2', 'contestersetting2', 'Your contester fields go here. Replace me!');
+        //$mform->addElement('header', 'contesterfieldset', get_string('contesterfieldset', 'contester'));
+        //$mform->addElement('static', 'label2', 'contestersetting2', 'Your contester fields go here. Replace me!');
 		
         // Add standard grading elements.
         $this->standard_grading_coursemodule_elements();
