@@ -25,26 +25,26 @@
     
 	if ($id) {
         if (! $cm = get_record("course_modules", "id", $id)) {
-            error("Course Module ID was incorrect");
+            print_error("Course Module ID was incorrect");
         }
     
         if (! $course = get_record("course", "id", $cm->course)) {
-            error("Course is misconfigured");
+            print_error("Course is misconfigured");
         }
     
         if (! $contester = get_record("contester", "id", $cm->instance)) {
-            error("Course module is incorrect");
+            print_error("Course module is incorrect");
         }
 
     } else {
         if (! $contester = get_record("contester", "id", $a)) {
-            error("Course module is incorrect");
+            print_error("Course module is incorrect");
         }
         if (! $course = get_record("course", "id", $contester->course)) {
-            error("Course is misconfigured");
+            print_error("Course is misconfigured");
         }
         if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
-            error("Course Module ID was incorrect");
+            print_error("Course Module ID was incorrect");
         }
     }
 
@@ -71,11 +71,11 @@
 	$context = get_context_instance(CONTEXT_MODULE, $cm->id);
 	$is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
 
-	if (!(isadmin() || $is_teacher)) error(get_string('accessdenied', 'contester'));
+	if (!(isadmin() || $is_teacher)) print_error(get_string('accessdenied', 'contester'));
 //////////////////////D.r.
 ///Select group number
-	$query = "SELECT mdl_groups.id FROM mdl_groups JOIN mdl_contester ON mdl_groups.courseid=mdl_contester.course 
-	WHERE (mdl_contester.id = $contester->id)";
+	$query = "SELECT groups.id FROM groups JOIN contester ON groups.courseid=contester.course 
+	WHERE (contester.id = $contester->id)";
 	$groups = get_recordset_sql($query);
 	$grps = array();
 	foreach($groups as $group)
@@ -158,18 +158,18 @@
 	echo '</td></tr></table>';
 	echo '</form>';
 /////////////////////////D.r.	
-	$query = "SELECT DISTINCT mdl_contester_submits.student 
-		FROM mdl_contester_submits JOIN mdl_user ON mdl_user.id=
-		mdl_contester_submits.student
+	$query = "SELECT DISTINCT contester_submits.student 
+		FROM contester_submits JOIN user ON user.id=
+		contester_submits.student
 		WHERE 
-		(contester = $contester->id) ORDER BY mdl_user.lastname";
+		(contester = $contester->id) ORDER BY user.lastname";
 	//echo $query."<BR>";
 	//echo $group_value.' '.$year_value.' '.date(m, mktime(0, 0, 0, $month_value, 1, 2000)).' '.$month_value.
 	//date(d, mktime(0, 0, 0, 1, $day_value, 2000)).' '.$time_value.mktime(0, 0, 0, 3, 1, 2000);
 	if ($group_value == -1 || $group_value == 'none')
 		$groupquery = '';
 		else
-		$groupquery = 'AND (mdl_groups_members.groupid ='.$group_value.')';
+		$groupquery = 'AND (groups_members.groupid ='.$group_value.')';
 	if ($year_from_value == -1 || $year_from_value == 'none') $year_from_param = $MIN_year;
 		else $year_from_param = $year_from_value;
 	if ($month_from_value == -1 || $month_from_value == 'none') $month_from_param = date(m, mktime(0, 0, 0, 1, 1, 2000));
@@ -191,20 +191,20 @@
 	$dateto = $year_to_param.'-'.$month_to_param.'-'.$day_to_param.' '.$time_to_param;
 	
 	$contester_str = '(contester ='.$contester->id.') and';
-	$query2 = "SELECT DISTINCT mdl_groups_members.userid AS student FROM 
-			(mdl_groups_members JOIN mdl_user ON mdl_user.id=mdl_groups_members.userid) JOIN
-			mdl_contester_submits ON mdl_groups_members.userid=mdl_contester_submits.student
+	$query2 = "SELECT DISTINCT groups_members.userid AS student FROM 
+			(groups_members JOIN user ON user.id=groups_members.userid) JOIN
+			contester_submits ON groups_members.userid=contester_submits.student
 			WHERE ".
-			$contester_str." mdl_contester_submits.submitted >= \"".$datefrom. 
-			"\" ". $groupquery ."AND mdl_contester_submits.submitted <= \"".$dateto. "\"
-			ORDER BY mdl_user.lastname, mdl_user.firstname";
+			$contester_str." contester_submits.submitted >= \"".$datefrom. 
+			"\" ". $groupquery ."AND contester_submits.submitted <= \"".$dateto. "\"
+			ORDER BY user.lastname, user.firstname";
 	//echo $query."<BR>";
 	if ($group_value == -1 || $group_value == 'none') {
 	    $students = get_recordset_sql($query);
 	} else {
 	    $students = get_recordset_sql($query2);
 	}
-	$query = "SELECT problemid FROM mdl_contester_problemmap 
+	$query = "SELECT problemid FROM contester_problemmap 
 		WHERE 
 		(contesterid = $contester->id) ORDER BY id";
 	

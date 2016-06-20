@@ -10,36 +10,37 @@
     $a  = optional_param('a', 0, PARAM_INT);  // contester ID
 
     if ($id) {
-        if (! $cm = get_record("course_modules", "id", $id)) {
-            error("Course Module ID was incorrect");
+        if (! $cm = $DB->get_record("course_modules", array("id"=>$id))) {
+            print_error("Course Module ID was incorrect");
         }
 
-        if (! $course = get_record("course", "id", $cm->course)) {
-            error("Course is misconfigured");
+        if (! $course = $DB->get_record("course", array("id"=> $cm->course))) {
+            print_error("Course is misconfigured");
         }
 
-        if (! $contester = get_record("contester", "id", $cm->instance)) {
-            error("Course module is incorrect");
+        if (! $contester = $DB->get_record("contester", array("id"=> $cm->instance))) {
+            print_error("Course module is incorrect");
         }
 
     } else {
-        if (! $contester = get_record("contester", "id", $a)) {
-            error("Course module is incorrect");
+        if (! $contester = $DB->get_record("contester", array("id"=>$a))) {
+            print_error("Course module is incorrect");
         }
-        if (! $course = get_record("course", "id", $contester->course)) {
-            error("Course is misconfigured");
+        if (! $course = $DB->get_record("course", array("id"=>$contester->course))) {
+            print_error("Course is misconfigured");
         }
         if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
-            error("Course Module ID was incorrect");
+            print_error("Course Module ID was incorrect");
         }
     }
 
     require_login($course->id);
 
-    add_to_log($course->id, "contester", "status", "status.php?id=$cm->id", "$contester->id");
+    //add_to_log($course->id, "contester", "status", "status.php?id=$cm->id", "$contester->id");
 
 /// Print the page header
 
+	/*
     if ($course->category) {
         $navigation = "<a href=\"../../course/view.php?id=$course->id\">$course->shortname</a> ->";
     }
@@ -51,8 +52,14 @@
                  "$navigation <a href=index.php?id=$course->id>$strcontesters</a> -> $contester->name",
                   "", "", true, update_module_button($cm->id, $course->id, $strcontester),
                   navmenu($course, $cm));
+				  */
+	$PAGE->set_url('/mod/contester/status.php', array('id' => $cm->id));
+	$PAGE->set_title(format_string($contester->name));
+	$PAGE->set_heading(format_string($course->fullname));
+	$PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));	
 
 /// Print the main part of the page
+	echo $OUTPUT->header();
 	contester_print_begin($contester->id);
 
 	$query = "SELECT   id
@@ -63,28 +70,28 @@
 			  DESC
 			  LIMIT    0, 10 ";
 
-	$submits = get_recordset_sql($query);
+	$submits = $DB->get_records_sql($query);
 
 	//var_dump($submits);
 
 	$result = array();
-	/*foreach($submits as $line)
-		$result []= contester_get_submit($line["id"]);*/
-	while (!$submits->EOF)
+	foreach($submits as $line)
+		$result []= contester_get_submit($line->id);
+	/*while ($submits->valid())
 	{
 	    $result []= contester_get_submit_info($submits->fields["id"]);
 	    $submits->MoveNext();
-	}
+	}*/
 
     //$submits = contester_get_last_submits($contester->id, 10, $USER->id);
 
 	// print the number of solutions in queue
 	//if (isadmin())
 	{
-		$qnum = get_record_sql("SELECT  COUNT(1) as cnt
+		$qnum = $DB->get_record_sql("SELECT  COUNT(1) as cnt
 						    FROM    mdl_contester_submits
        						WHERE   ((processed is NULL) or (processed = 1))");
-       	$cnum = get_record_sql("SELECT  COUNT(1) as cnt
+       	$cnum = $DB->get_record_sql("SELECT  COUNT(1) as cnt
 						    FROM    mdl_contester_submits
        						WHERE   (processed = 255)");
 
@@ -99,6 +106,7 @@
 
 /// Finish the page
 	contester_print_end();
-    print_footer($course);
+    //print_footer($course);
+	echo $OUTPUT->footer();
 
 ?>

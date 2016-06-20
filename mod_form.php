@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -22,7 +21,7 @@
  * visit: http://docs.moodle.org/en/Development:lib/formslib.php
  *
  * @package    mod_contester
- * @copyright  2011 Your Name
+ * @copyright  2015 Your Name
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -32,6 +31,10 @@ require_once($CFG->dirroot.'/course/moodleform_mod.php');
 
 /**
  * Module instance settings form
+ *
+ * @package    mod_contester
+ * @copyright  2015 Your Name
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_contester_mod_form extends moodleform_mod {
 
@@ -42,12 +45,11 @@ class mod_contester_mod_form extends moodleform_mod {
 
         $mform = $this->_form;
 
-        //-------------------------------------------------------------------------------
-        // Adding the "general" fieldset, where all the common settings are showed
+        // Adding the "general" fieldset, where all the common settings are showed.
         $mform->addElement('header', 'general', get_string('general', 'form'));
 
-        // Adding the standard "name" field
-        $mform->addElement('text', 'name', get_string('contestername', 'contester'), array('size'=>'64'));
+        // Adding the standard "name" field.
+        $mform->addElement('text', 'name', 'Контестер', array('size' => '64'));
         if (!empty($CFG->formatstringstriptags)) {
             $mform->setType('name', PARAM_TEXT);
         } else {
@@ -56,23 +58,27 @@ class mod_contester_mod_form extends moodleform_mod {
         $mform->addRule('name', null, 'required', null, 'client');
         $mform->addRule('name', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
         $mform->addHelpButton('name', 'contestername', 'contester');
+		
+        // Adding the standard "intro" and "introformat" fields.
+        //$this->add_intro_editor();
+        //$this->standard_intro_elements();
+		
 
-        // Adding the standard "intro" and "introformat" fields
-        $this->add_intro_editor();
+        // Adding the rest of contester settings, spreading all them into this fieldset
+        // ... or adding more fieldsets ('header' elements) if needed for better logic.
+        
+        //$mform->addElement('static', 'label1', get_string('contesterupdate', 'contester'), $out);
+	
+        //$mform->addElement('header', 'contesterfieldset', get_string('contesterfieldset', 'contester'));
+        //$mform->addElement('static', 'label2', 'contestersetting2', 'Your contester fields go here. Replace me!');
+		
+        // Add standard grading elements.
+        $this->standard_grading_coursemodule_elements();
 
-        //-------------------------------------------------------------------------------
-        // Adding the rest of contester settings, spreeading all them into this fieldset
-        // or adding more fieldsets ('header' elements) if needed for better logic
-        $mform->addElement('static', 'label1', 'contestersetting1', 'Your contester fields go here. Replace me!');
-
-        $mform->addElement('header', 'contesterfieldset', get_string('contesterfieldset', 'contester'));
-        $mform->addElement('static', 'label2', 'contestersetting2', 'Your contester fields go here. Replace me!');
-
-        //-------------------------------------------------------------------------------
-        // add standard elements, common to all modules
+        // Add standard elements, common to all modules.
         $this->standard_coursemodule_elements();
-        //-------------------------------------------------------------------------------
-        // add standard buttons, common to all modules
+
+        // Add standard buttons, common to all modules.
         $this->add_action_buttons();
     }
 }

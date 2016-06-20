@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -41,26 +40,24 @@
  * The variable name for the capability definitions array is $capabilities
  *
  * @package    mod_contester
- * @copyright  2011 Your Name
+ * @copyright  2015 Your Name
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
+// Modify capabilities as needed and remove this comment.
 $capabilities = array(
-/***************************** remove these comment marks and modify the code as needed
-
-	'mod/contester:addinstance' => array(
-			'riskbitmask' => RISK_XSS,
-	
-			'captype' => 'write',
-			'contextlevel' => CONTEXT_COURSE,
-			'archetypes' => array(
-					'editingteacher' => CAP_ALLOW,
-					'manager' => CAP_ALLOW
-			),
-			'clonepermissionsfrom' => 'moodle/course:manageactivities'
-	),
+    'mod/contester:addinstance' => array(
+        'riskbitmask' => RISK_XSS,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW
+        ),
+        'clonepermissionsfrom' => 'moodle/course:manageactivities'
+    ),
 
     'mod/contester:view' => array(
         'captype' => 'read',
@@ -70,7 +67,7 @@ $capabilities = array(
             'student' => CAP_ALLOW,
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'admin' => CAP_ALLOW
+            'manager' => CAP_ALLOW
         )
     ),
 
@@ -82,6 +79,4 @@ $capabilities = array(
             'student' => CAP_ALLOW
         )
     ),
-******************************/
 );
-

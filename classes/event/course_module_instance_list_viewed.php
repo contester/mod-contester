@@ -15,20 +15,23 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Redirect the user to the appropriate submission related page
+ * The mod_contester instance list viewed event.
  *
- * @package   mod_test
- * @category  grade
- * @copyright 2015 Your Name
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_contester
+ * @copyright  2015 Your Name <your@email.adress>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(__DIR__ . "../../../config.php");
+namespace mod_contester\event;
 
-$id = required_param('id', PARAM_INT);// Course module ID.
-// Item number may be != 0 for activities that allow more than one grade per user.
-$itemnumber = optional_param('itemnumber', 0, PARAM_INT);
-$userid = optional_param('userid', 0, PARAM_INT); // Graded user ID (optional).
+defined('MOODLE_INTERNAL') || die();
 
-// In the simplest case just redirect to the view page.
-redirect('view.php?id='.$id);
+/**
+ * The mod_contester instance list viewed event class.
+ *
+ * @package    mod_contester
+ * @copyright  2015 Your Name <your@email.adress>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class course_module_instance_list_viewed extends \core\event\course_module_instance_list_viewed {
+}

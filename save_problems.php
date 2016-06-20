@@ -40,34 +40,19 @@
     //add_to_log($course->id, "contester", "details", "details.php?id=$cm->id", "$contester->id");
     $context = context_module::instance($cm->id);
     $is_admin = has_capability('moodle/site:config', $context);
+    $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);    
     
-    if (!$is_admin) print_error(get_string('accessdenied', 'contester'));
-	$pid = required_param('pid', PARAM_INT);
+    if (!$is_admin && !$is_teacher) print_error(get_string('accessdenied', 'contester'));
 
 /// Print the page header
 
-	$sql = "SELECT mdl_contester_problems.name as name
-			FROM   mdl_contester_problems
-			WHERE  mdl_contester_problems.id=?";
-	if (!$problem = $DB->get_record_sql($sql, array($pid))) print_error('No such problem!');
+	$sql = "SELECT mdl_contester.id as id, 
+				   mdl_contester.name as name
+			FROM   mdl_contester
+			WHERE  mdl_contester.id=?";
+	if (!$contester = $DB->get_record_sql($sql, array($a))) print_error('No such problem!');
 
-    /*if ($course->category) {
-        $navigation = "<a href=\"../../course/view.php?id=$course->id\">$course->shortname</a> ->";
-    }
-    $problemspreview = "<a href=\"../../mod/contester/problems_preview.php?a=".$contester->id."\">".get_string('problemspreview', 'contester')."</a> ->";
-    $curcontester = "$contester->name ->";
-    $strcontester = get_string("modulename", "contester");
-    $strtags = get_string("tags", "contester");
-
-    $problempreview = "<a href=\"../../mod/contester/problem_preview.php?a=".$contester->id."&pid=".$pid."\">".$problem->name."</a> ->";
-
-    print_header("$course->shortname: $contester->name", "$course->fullname",
-                 "$navigation $curcontester $problemspreview $problempreview $strtags",
-                  "", "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.css\" />",
-                  true, update_module_button($cm->id, $course->id, $strcontester),
-                  navmenu($course, $cm));*/
-                  
-    $PAGE->set_url('/mod/contester/save_problem_tags.php');
+    $PAGE->set_url('/mod/contester/save_problems.php');
     $PAGE->set_title("$course->shortname: $contester->name");
     $PAGE->set_heading("$course->fullname");
     $PAGE->navbar->add("$contester->name");
@@ -77,23 +62,34 @@
 
 /// Print the main part of the page
 
-	$dels = optional_param('tagsdel', array(), PARAM_TAGLIST);
-	//print_r($dels);
+	$dels = optional_param('probsdel', array(), PARAM_TAGLIST);
 	foreach ($dels as $item)
 	{
-		$DB->delete_records('contester_tagmap', array('id' => $item));
-	}
-	$adds = optional_param('tagsadd', array(), PARAM_TAGLIST);
-	//print_r($adds);
-	foreach ($adds as $item)
-	{
-		$tagmr = new stdClass();
-		$tagmr->problemid = $pid;
-		$tagmr->tagid = $item;
-		$tmid = $DB->insert_record('contester_tagmap', $tagmr);
+		$DB->delete_records('contester_problemmap', array('problemid'=>$item, 'contesterid'=>$a));
 	}
 
-	redirect("problem_preview.php?a=$contester->id&pid=$pid", get_string('updatesuccess', 'contester'), 2);
+	$adds = optional_param('probsadd', array(), PARAM_TAGLIST);
+	foreach ($adds as $item)
+	{
+		if (!$DB->get_record('contester_problemmap', array('problemid'=>$item, 'contesterid'=>$a)))
+		{
+    		$probmr = new stdClass();
+    		$probmr->problemid = $item;
+    		$probmr->contesterid = $a;
+    		$DB->insert_record('contester_problemmap', $probmr);
+    	}
+	}
+	
+	$freeview = optional_param('freeview', 0, PARAM_INT);
+	$viewown = optional_param('viewown', 0, PARAM_INT);	
+	
+	$contester = $DB->get_record('contester', array('id' => $a));
+	$contester->freeview = $freeview;
+	$contester->viewown = $viewown;
+	
+	$DB->update_record('contester', $contester);
+	
+	redirect("view.php?a=$contester->id", get_string('updatesuccess', 'contester'), 2);
 
 /// Finish the page
 	contester_print_end();

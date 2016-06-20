@@ -59,7 +59,7 @@
     echo "<form enctype=\"multipart/form-data\" method=\"post\" action=\"submit.php?a={$contester->id}\">";
 
     //if ($r = get_recordset_select("contester_problems")) {
-    if ($r = get_recordset_sql("SELECT * FROM mdl_contester_problems cp JOIN mdl_contester_problemmap cpm ON cpm.problemid = cp.id WHERE cpm.contesterid = ".$contester->id." order by cpm.id")) {
+    if ($r = get_recordset_sql("SELECT * FROM contester_problems cp JOIN contester_problemmap cpm ON cpm.problemid = cp.id WHERE cpm.contesterid = ".$contester->id." order by cpm.id")) {
       echo get_string('problem', 'contester').": <select name=\"problem\">";
       echo "<option value=\"-1\"";
       if (optional_param('pid', -1) == -1) echo " selected";

@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -16,25 +15,34 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Definition of log events
- *
- * NOTE: this is an example how to insert log event during installation/update.
- * It is not really essential to know about it, but these logs were created as example
- * in the previous 1.9 contester.
+ * Defines the view event.
  *
  * @package    mod_contester
- * @copyright  2011 Your Name <your@email.adress>
+ * @copyright  2015 Your Name <your@email.adress>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace mod_contester\event;
+
 defined('MOODLE_INTERNAL') || die();
 
-global $DB;
+/**
+ * The mod_contester instance list viewed event class
+ *
+ * If the view mode needs to be stored as well, you may need to
+ * override methods get_url() and get_legacy_log_data(), too.
+ *
+ * @package    mod_contester
+ * @copyright  2015 Your Name <your@email.adress>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class course_module_viewed extends \core\event\course_module_viewed {
 
-$logs = array(
-    array('module'=>'contester', 'action'=>'add', 'mtable'=>'contester', 'field'=>'name'),
-    array('module'=>'contester', 'action'=>'update', 'mtable'=>'contester', 'field'=>'name'),
-    array('module'=>'contester', 'action'=>'view', 'mtable'=>'contester', 'field'=>'name'),
-    array('module'=>'contester', 'action'=>'view all', 'mtable'=>'contester', 'field'=>'name')
-);
-
+    /**
+     * Initialize the event
+     */
+    protected function init() {
+        $this->data['objecttable'] = 'contester';
+        parent::init();
+    }
+}

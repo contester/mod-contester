@@ -1,12 +1,4 @@
-<?PHP  // $Id: lib.php,v 1.3 2004/06/09 22:35:27 gustav_delius Exp $
-
-
-
-
-
-
-
-
+<?php
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -27,37 +19,46 @@
  *
  * All the core Moodle functions, neeeded to allow the module to work
  * integrated in Moodle should be placed here.
+ *
  * All the contester specific functions, needed to implement all the module
  * logic, should go to locallib.php. This will help to save some memory when
  * Moodle is performing actions across all modules.
  *
  * @package    mod_contester
- * @copyright  2011 Your Name
+ * @copyright  2015 Your Name
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-/** example constant */
-//define('contester_ULTIMATE_ANSWER', 42);
+/**
+ * Example constant, you probably want to remove this :-)
+ */
+define('contester_ULTIMATE_ANSWER', 42);
 
-////////////////////////////////////////////////////////////////////////////////
-// Moodle core API                                                            //
-////////////////////////////////////////////////////////////////////////////////
+/* Moodle core API */
 
 /**
  * Returns the information on whether the module supports a feature
  *
- * @see plugin_supports() in lib/moodlelib.php
+ * See {@link plugin_supports()} for more info.
+ *
  * @param string $feature FEATURE_xx constant for requested feature
  * @return mixed true if the feature is supported, null if unknown
  */
 function contester_supports($feature) {
-    switch($feature) {
-        case FEATURE_MOD_INTRO:         return true;
-        case FEATURE_SHOW_DESCRIPTION:  return true;
 
-        default:                        return null;
+    switch($feature) {
+        case FEATURE_MOD_INTRO:
+            return true;
+        case FEATURE_SHOW_DESCRIPTION:
+            return true;
+        case FEATURE_GRADE_HAS_GRADE:
+            return true;
+        case FEATURE_BACKUP_MOODLE2:
+            return true;
+        default:
+            return null;
     }
 }
 
@@ -69,21 +70,23 @@ function contester_supports($feature) {
  * will create a new instance and return the id number
  * of the new instance.
  *
- * @param object $contester An object from the form in mod_form.php
- * @param mod_contester_mod_form $mform
+ * @param stdClass $contester Submitted data from the form in mod_form.php
+ * @param mod_contester_mod_form $mform The form instance itself (if needed)
  * @return int The id of the newly inserted contester record
  */
 function contester_add_instance(stdClass $contester, mod_contester_mod_form $mform = null) {
-
     global $DB;
 
     $contester->timecreated = time();
 
-    # You may have to add extra stuff in here #
+    // You may have to add extra stuff in here.
 
-    return $DB->insert_record('contester', $contester);
+    $contester->id = $DB->insert_record('contester', $contester);
+
+    contester_grade_item_update($contester);
+
+    return $contester->id;
 }
-
 
 /**
  * Updates an instance of the contester in the database
@@ -92,20 +95,19 @@ function contester_add_instance(stdClass $contester, mod_contester_mod_form $mfo
  * (defined by the form in mod_form.php) this function
  * will update an existing instance with new data.
  *
- * @param object $contester An object from the form in mod_form.php
- * @param mod_contester_mod_form $mform
+ * @param stdClass $contester An object from the form in mod_form.php
+ * @param mod_contester_mod_form $mform The form instance itself (if needed)
  * @return boolean Success/Fail
  */
 function contester_update_instance(stdClass $contester, mod_contester_mod_form $mform = null) {
-
     global $DB;
 
     $contester->timemodified = time();
     $contester->id = $contester->instance;
 
-    # You may have to add extra stuff in here #
-
-    if (!isset ($contester->freeview)) $contester->freeview = 0;
+    // You may have to add extra stuff in here.
+//Start new code
+	if (!isset ($contester->freeview)) $contester->freeview = 0;
     if (!isset ($contester->viewown)) $contester->viewown = 0;
 
     if (isset($contester->add_problem) && (trim($contester->add_problem) != '0'))
@@ -114,10 +116,15 @@ function contester_update_instance(stdClass $contester, mod_contester_mod_form $
 		foreach ($contester->add_problem as $k=>$v) {
 			$map_inst->problemid = $v;
 			$map_inst->contesterid = $contester->id;
-			$DB->insert_record("contester_problemmap", $map_inst, false);
+			$DB->insert_record('contester_problemmap', $map_inst, false);
 		}
     	unset($map_inst);
     }
+    
+    if (!isset($contester->intro))
+    	$contester->intro = "Test";
+    if (!isset($contester->introformat))
+    	$contester->introformat = 0;
 
     if (!isset($contester->description)) $contester->description = '';
 
@@ -125,18 +132,25 @@ function contester_update_instance(stdClass $contester, mod_contester_mod_form $
     		FROM   mdl_contester_problemmap
 			WHERE  mdl_contester_problemmap.contesterid=$contester->id";
     
-    $res = get_recordset_sql($sql);
+    $res = $DB->get_records_sql($sql);
+    
+    print_r($res);
+	print_r($contester);
 
     foreach ($res as $line)
     {
-    	$id = "pid".$line['id'];
+    	$id = "pid".$line->id;
     	if (isset($contester->$id)) {
     		if ($contester->$id == "checked")
-    			$DB->delete_records('contester_problemmap', 'id', $line['id']);
+    			$DB->delete_records('contester_problemmap', 'id', $line->id);
     	}
     }
+//End new code
+    $result = $DB->update_record('contester', $contester);
 
-    return $DB->update_record('contester', $contester);
+    contester_grade_item_update($contester);
+
+    return $result;
 }
 
 /**
@@ -150,58 +164,66 @@ function contester_update_instance(stdClass $contester, mod_contester_mod_form $
  * @return boolean Success/Failure
  */
 function contester_delete_instance($id) {
-
     global $DB;
 
     if (! $contester = $DB->get_record('contester', array('id' => $id))) {
         return false;
     }
 
-    # Delete any dependent records here #
-   
-    $result = true;
+    // Delete any dependent records here.
 
-    if (! $DB->delete_records("contester", "id", "$contester->id")) {   //$DB->delete_records('contester', array('id' => $contester->id));
+    contester_grade_item_delete($contester);
+
+//Start new code
+$result = true;
+
+    if (! $DB->delete_records("contester", array("id"=>$contester->id))) {   //$DB->delete_records('contester', array('id' => $contester->id));
         $result = false;
     }
-    if (! $DB->delete_records("contester_problemmap", "contesterid", "$contester->id"))
+    if (! $DB->delete_records("contester_problemmap", array("contesterid"=> $contester->id)))
     {
     	$result = false;
     }
     // Deleting submits !!!
-    "DELETE FROM mdl_contester_results
-     WHERE testingid IN (SELECT DISTINCT id FROM mdl_contester_testings
-                         WHERE submitid IN (SELECT DISTINCT id FROM mdl_contester_submits WHERE contester = {$contester->id}))";
-    "DELETE FROM mdl_contester_testings
-     WHERE submitid IN (SELECT DISTINCT id FROM mdl_contester_submits
+    "DELETE FROM contester_results
+     WHERE testingid IN (SELECT DISTINCT id FROM contester_testings
+                         WHERE submitid IN (SELECT DISTINCT id FROM contester_submits WHERE contester = {$contester->id}))";
+    "DELETE FROM contester_testings
+     WHERE submitid IN (SELECT DISTINCT id FROM contester_submits
                         WHERE contester = {$contester->id})";
-    if (! $DB->delete_records("contester_submits", "contester", "$contester->id"))
+    if (! $DB->delete_records("contester_submits", array("contester"=>$contester->id)))
     {
     	$result = false;
     }
 
     return $result;
-
+//End new code
 }
 
 /**
  * Returns a small object with summary information about what a
  * user has done with a given particular instance of this module
  * Used for user activity reports.
+ *
  * $return->time = the time they did it
  * $return->info = a short text description
  *
+ * @param stdClass $course The course record
+ * @param stdClass $user The user record
+ * @param cm_info|stdClass $mod The course module info object or record
+ * @param stdClass $contester The contester instance record
  * @return stdClass|null
  */
 function contester_user_outline($course, $user, $mod, $contester) {
-
-/*
+/* Comment code
     $return = new stdClass();
     $return->time = 0;
     $return->info = '';
     return $return;
 */
-    global $DB;
+
+//Start new code
+global $DB;
 
 	unset($return);
 	$submits = contester_get_last_submits($contester->id, 65536, $user->id);
@@ -222,21 +244,23 @@ function contester_user_outline($course, $user, $mod, $contester) {
 	}
 
 	return $return;
+//End new code
 }
 
 /**
  * Prints a detailed representation of what a user has done with
  * a given particular instance of this module, for user activity reports.
  *
+ * It is supposed to echo directly without returning a value.
+ *
  * @param stdClass $course the current course record
  * @param stdClass $user the record of the user we are generating report for
  * @param cm_info $mod course module info
  * @param stdClass $contester the module instance record
- * @return void, is supposed to echp directly
  */
 function contester_user_complete($course, $user, $mod, $contester) {
-    
-     global $DB;
+//Start new code	
+	global $DB;
 
 	unset($submits);
 	$submits = contester_get_last_submits($contester->id, 65536, $user->id);
@@ -262,18 +286,20 @@ function contester_user_complete($course, $user, $mod, $contester) {
 		 echo ": 0.";
 	}
     return true;
+//End new code
 }
-
 
 /**
  * Given a course and a time, this module should find recent activity
  * that has occurred in contester activities and print it out.
- * Return true if there was output, or false is there was none.
  *
- * @return boolean
+ * @param stdClass $course The course record
+ * @param bool $viewfullnames Should we display full names
+ * @param int $timestart Print activity since this timestamp
+ * @return boolean True if anything was printed, otherwise false
  */
 function contester_print_recent_activity($course, $viewfullnames, $timestart) {
-    return false;  //  True if anything was printed, otherwise false
+    return false;
 }
 
 /**
@@ -283,34 +309,41 @@ function contester_print_recent_activity($course, $viewfullnames, $timestart) {
  * custom activity records. These records are then rendered into HTML via
  * {@link contester_print_recent_mod_activity()}.
  *
- * @param array $activities sequentially indexed array of objects with the 'cmid' property
+ * Returns void, it adds items into $activities and increases $index.
+ *
+ * @param array $activities sequentially indexed array of objects with added 'cmid' property
  * @param int $index the index in the $activities to use for the next record
  * @param int $timestart append activity since this time
  * @param int $courseid the id of the course we produce the report for
  * @param int $cmid course module id
  * @param int $userid check for a particular user's activity only, defaults to 0 (all users)
  * @param int $groupid check for a particular group's activity only, defaults to 0 (all groups)
- * @return void adds items into $activities and increases $index
  */
 function contester_get_recent_mod_activity(&$activities, &$index, $timestart, $courseid, $cmid, $userid=0, $groupid=0) {
 }
 
 /**
- * Prints single activity item prepared by {@see contester_get_recent_mod_activity()}
-
- * @return void
+ * Prints single activity item prepared by {@link contester_get_recent_mod_activity()}
+ *
+ * @param stdClass $activity activity record with added 'cmid' property
+ * @param int $courseid the id of the course we produce the report for
+ * @param bool $detail print detailed report
+ * @param array $modnames as returned by {@link get_module_types_names()}
+ * @param bool $viewfullnames display users' full names
  */
 function contester_print_recent_mod_activity($activity, $courseid, $detail, $modnames, $viewfullnames) {
 }
 
 /**
  * Function to be run periodically according to the moodle cron
+ *
  * This function searches for things that need to be done, such
  * as sending out mail, toggling flags etc ...
  *
+ * Note that this has been deprecated in favour of scheduled task API.
+ *
  * @return boolean
- * @todo Finish documenting this function
- **/
+ */
 function contester_cron () {
     return true;
 }
@@ -318,32 +351,30 @@ function contester_cron () {
 /**
  * Returns all other caps used in the module
  *
- * @example return array('moodle/site:accessallgroups');
+ * For example, this could be array('moodle/site:accessallgroups') if the
+ * module uses that capability.
+ *
  * @return array
  */
 function contester_get_extra_capabilities() {
     return array();
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Gradebook API                                                              //
-////////////////////////////////////////////////////////////////////////////////
+/* Gradebook API */
 
 /**
  * Is a given scale used by the instance of contester?
  *
  * This function returns if a scale is being used by one contester
- * if it has support for grading and scales. Commented code should be
- * modified if necessary. See forum, glossary or journal modules
- * as reference.
+ * if it has support for grading and scales.
  *
  * @param int $contesterid ID of an instance of this module
+ * @param int $scaleid ID of the scale
  * @return bool true if the scale is used by the given contester instance
  */
 function contester_scale_used($contesterid, $scaleid) {
     global $DB;
 
-    /** @example */
     if ($scaleid and $DB->record_exists('contester', array('id' => $contesterid, 'grade' => -$scaleid))) {
         return true;
     } else {
@@ -356,13 +387,12 @@ function contester_scale_used($contesterid, $scaleid) {
  *
  * This is used to find out if scale used anywhere.
  *
- * @param $scaleid int
+ * @param int $scaleid ID of the scale
  * @return boolean true if the scale is used by any contester instance
  */
 function contester_scale_used_anywhere($scaleid) {
     global $DB;
 
-    /** @example */
     if ($scaleid and $DB->record_exists('contester', array('grade' => -$scaleid))) {
         return true;
     } else {
@@ -371,50 +401,74 @@ function contester_scale_used_anywhere($scaleid) {
 }
 
 /**
- * Creates or updates grade item for the give contester instance
+ * Creates or updates grade item for the given contester instance
  *
- * Needed by grade_update_mod_grades() in lib/gradelib.php
+ * Needed by {@link grade_update_mod_grades()}.
  *
  * @param stdClass $contester instance object with extra cmidnumber and modname property
- * @param mixed optional array/object of grade(s); 'reset' means reset grades in gradebook
+ * @param bool $reset reset grades in the gradebook
  * @return void
  */
-function contester_grade_item_update(stdClass $contester, $grades=null) {
+function contester_grade_item_update(stdClass $contester, $reset=false) {
     global $CFG;
     require_once($CFG->libdir.'/gradelib.php');
 
-    /** @example */
     $item = array();
     $item['itemname'] = clean_param($contester->name, PARAM_NOTAGS);
     $item['gradetype'] = GRADE_TYPE_VALUE;
-    $item['grademax']  = $contester->grade;
-    $item['grademin']  = 0;
 
-    grade_update('mod/contester', $contester->course, 'mod', 'contester', $contester->id, 0, null, $item);
+    if ($contester->grade > 0) {
+        $item['gradetype'] = GRADE_TYPE_VALUE;
+        $item['grademax']  = $contester->grade;
+        $item['grademin']  = 0;
+    } else if ($contester->grade < 0) {
+        $item['gradetype'] = GRADE_TYPE_SCALE;
+        $item['scaleid']   = -$contester->grade;
+    } else {
+        $item['gradetype'] = GRADE_TYPE_NONE;
+    }
+
+    if ($reset) {
+        $item['reset'] = true;
+    }
+
+    grade_update('mod/contester', $contester->course, 'mod', 'contester',
+            $contester->id, 0, null, $item);
+}
+
+/**
+ * Delete grade item for given contester instance
+ *
+ * @param stdClass $contester instance object
+ * @return grade_item
+ */
+function contester_grade_item_delete($contester) {
+    global $CFG;
+    require_once($CFG->libdir.'/gradelib.php');
+
+    return grade_update('mod/contester', $contester->course, 'mod', 'contester',
+            $contester->id, 0, null, array('deleted' => 1));
 }
 
 /**
  * Update contester grades in the gradebook
  *
- * Needed by grade_update_mod_grades() in lib/gradelib.php
+ * Needed by {@link grade_update_mod_grades()}.
  *
  * @param stdClass $contester instance object with extra cmidnumber and modname property
  * @param int $userid update grade of specific user only, 0 means all participants
- * @return void
  */
 function contester_update_grades(stdClass $contester, $userid = 0) {
     global $CFG, $DB;
     require_once($CFG->libdir.'/gradelib.php');
 
-    /** @example */
-    $grades = array(); // populate array of grade objects indexed by userid
+    // Populate array of grade objects indexed by userid.
+    $grades = array();
 
     grade_update('mod/contester', $contester->course, 'mod', 'contester', $contester->id, 0, $grades);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// File API                                                                   //
-////////////////////////////////////////////////////////////////////////////////
+/* File API */
 
 /**
  * Returns the lists of all browsable file areas within the given module context
@@ -478,9 +532,7 @@ function contester_pluginfile($course, $cm, $context, $filearea, array $args, $f
     send_file_not_found();
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Navigation API                                                             //
-////////////////////////////////////////////////////////////////////////////////
+/* Navigation API */
 
 /**
  * Extends the global navigation tree by adding contester nodes if there is a relevant content
@@ -488,11 +540,12 @@ function contester_pluginfile($course, $cm, $context, $filearea, array $args, $f
  * This can be called by an AJAX request so do not rely on $PAGE as it might not be set up properly.
  *
  * @param navigation_node $navref An object representing the navigation tree node of the contester module instance
- * @param stdClass $course
- * @param stdClass $module
- * @param cm_info $cm
+ * @param stdClass $course current course record
+ * @param stdClass $module current contester instance record
+ * @param cm_info $cm course module information
  */
-function contester_extend_navigation(navigation_node $navref, stdclass $course, stdclass $module, cm_info $cm) {
+function contester_extend_navigation(navigation_node $navref, stdClass $course, stdClass $module, cm_info $cm) {
+    // TODO Delete this function and its docblock, or implement it.
 }
 
 /**
@@ -501,18 +554,14 @@ function contester_extend_navigation(navigation_node $navref, stdclass $course, 
  * This function is called when the context for the page is a contester module. This is not called by AJAX
  * so it is safe to rely on the $PAGE.
  *
- * @param settings_navigation $settingsnav {@link settings_navigation}
- * @param navigation_node $contesternode {@link navigation_node}
+ * @param settings_navigation $settingsnav complete settings navigation tree
+ * @param navigation_node $contesternode contester administration node
  */
 function contester_extend_settings_navigation(settings_navigation $settingsnav, navigation_node $contesternode=null) {
+    // TODO Delete this function and its docblock, or implement it.
 }
 
-
-
-////////////////////////////////////////////////////////////////////////////////
-// OLD                                                                        //
-////////////////////////////////////////////////////////////////////////////////
-
+//Start new code
 $contester_SAMPLES_PREFIX = '\\begin{example}';
 $contester_SAMPLES_SUFFIX = '\\end{example}';
 $contester_SAMPLE_PREFIX = '\\exmp';
@@ -614,7 +663,7 @@ function contester_get_participants($contesterid) {
 //See other modules as example.
 
 	//echo $contesterid;
-	$sql = "SELECT DISTINCT student FROM mdl_contester_submits WHERE contester=$contesterid";
+	$sql = "SELECT DISTINCT student FROM contester_submits WHERE contester=$contesterid";
 	$students = mysql_query($sql);
 	$ret = null;
 	while ($student = mysql_fetch_assoc($students)) $ret []= $student;
@@ -664,7 +713,7 @@ function contester_get_submit($submitid)
 {
     global $DB;
 
-	$submit = $DB->get_record("contester_submits", "id", $submitid);
+	$submit = $DB->get_record("contester_submits", array("id" => $submitid));
 	$tmp = $DB->get_record_sql("SELECT  COUNT(1) as cnt
 						   FROM    mdl_contester_submits
 						   WHERE   (contester = {$submit->contester})
@@ -673,17 +722,20 @@ function contester_get_submit($submitid)
 						   AND     (submitted < '{$submit->submitted}')");
 	$attempts = 0 + $tmp->cnt;
 
-	$result = $DB->get_record_sql("SELECT    *
+	$result = $DB->get_records_sql("SELECT    *
 							  FROM      mdl_contester_testings
 							  WHERE     (submitid = {$submitid})
 							  ORDER BY  id
 							  DESC");
 
 	$fields = array("compiled", "taken", "passed");
-	foreach($fields as $field)
+	foreach($result as $res)
 	{
-		$submit->$field = $result->$field;
-	}
+    	foreach($fields as $field)
+    	{
+    		$submit->$field = $res->$field;
+    	}
+    }
 
 	if ($submit->compiled && $submit->taken)
 		$submit->points = contester_get_rounded_points($attempts, $submit->passed, $submit->taken);
@@ -706,7 +758,7 @@ function contester_get_submit_info($submitid)
 	//$submit = contester_get_submit($submitid);
 
 	
-	$submit = $DB->get_record("contester_submits", "id", $submitid);
+	$submit = $DB->get_record("contester_submits", array("id" => $submitid));
 	$tmp = $DB->get_record_sql("SELECT COUNT(1) as cnt
 						   FROM            mdl_contester_submits
 						   WHERE           (contester = {$submit->contester})
@@ -717,7 +769,7 @@ function contester_get_submit_info($submitid)
 	$attempts = 0 + $tmp->cnt;
 
 	if (!$testing = $DB->get_record_sql("SELECT   *
-									FROM     mdl_contester_testings
+									FROM     contester_testings
 									WHERE    (submitid = {$submitid})
 									ORDER BY id DESC"))
 		$queued = true;
@@ -762,7 +814,7 @@ function contester_get_submit_info($submitid)
 		if (!$queued)
 		{
 			/*$result = get_record_sql("SELECT    *
-						  FROM      mdl_contester_results
+						  FROM      contester_results
 						  WHERE    (testingid = {$testing->id})
 						  ORDER BY  testingid DESC");
 		        */
@@ -790,44 +842,41 @@ function contester_get_detailed_info($submitid)
     global $DB;
 
 	$result = array();
-	$submit = $DB->get_record("contester_submits", "id", $submitid);
+	$submit = $DB->get_record("contester_submits", array("id" => $submitid));
 	//print_r($submit);
 	$res = null;
 	if ($submit->processed == 0) { // если еще пока в очереди
-		$res_desc = $DB->get_record("contester_resultdesc", "id", 0, 'language', 2);
+		$res_desc = $DB->get_record("contester_resultdesc", array("id" => 0, 'language' => 2));
 		$res->status = $res_desc->description;
 		$result []= $res;
 		return $result;
 	}
 
-	if (!$testing = $DB->get_record_sql("SELECT * FROM mdl_contester_testings WHERE (submitid = {$submitid}) ORDER BY id DESC")) {
-		$res_desc = $DB->get_record("contester_resultdesc", "id", 0, 'language', 2);
+	if (!$testing = $DB->get_record_sql("SELECT * FROM mdl_contester_testings WHERE (submitid = ?) ORDER BY id DESC", array($submitid))) {
+		$res_desc = $DB->get_record("contester_resultdesc", array("id" => 0, 'language' => 2));
 		$res->status = $res_desc->description;
 		$result []= $res;
 		return $result;
 	}
 	if (!$testing->compiled) {
 		//$res->status = get_string('ce', 'contester');
-		$res_desc = $DB->get_record("contester_resultdesc", "id", 1, 'language', 2);
+		$res_desc = $DB->get_record("contester_resultdesc", array("id" => 1, 'language' => 2));
 		$res->status = $res_desc->description;
 		$result []= $res;
 		return $result;
 	}
-	$sql = "SELECT * FROM mdl_contester_results WHERE testingid=$testing->id and not (test = 0)";
-	//echo $sql;
-	$results = $DB->get_recordset_sql($sql);
-	while (!$results->EOF)
+	$results = $DB->get_records_sql("SELECT * FROM mdl_contester_results WHERE testingid=? and not (test = 0)", array($testing->id));
+	foreach($results as $r)
 	{
-		$res = null;
+		$res = new stdClass();
 		//print_r($results);
-		$res->number = $results->fields['test'];
-		$res->time = $results->fields['timex'].'ms';
-		$res->memory = ($results->fields['memory']/1024).'KB';
-		$desc = $DB->get_record('contester_resultdesc', 'id', $results->fields['result'], 'language', '2');
+		$res->number = $r->test;
+		$res->time = $r->timex.'ms';
+		$res->memory = ($r->memory/1024).'KB';
+		$desc = $DB->get_record('contester_resultdesc', array('id' => $r->result, 'language' => '2'));
 		$res->result = $desc->description;
 		//print_r($res);
 		$result []= $res;
-		$results->MoveNext();
 	}
 	return $result;
 }
@@ -843,33 +892,44 @@ function contester_get_last_submits($contesterid, $cnt = 1, $user = NULL, $probl
 {
     global $DB;
 
-	$query = "SELECT id FROM mdl_contester_submits WHERE (contester = $contesterid) ";
+    $qarr = array();
+	$query = "SELECT id FROM mdl_contester_submits WHERE (contester = ?) ";
+	$qarr []= $contesterid;
 	if ($user != NULL)
-		$query .= " AND (student = $user) ";
+	{
+		$query .= " AND (student = ?) ";
+		$qarr []= $user;
+	}
 	if ($datefrom != NULL)
-		$query .= " AND (submitted >= \"$datefrom\") ";
+	{
+		$query .= " AND (submitted >= ?) ";
+		$qarr []= $datefrom;		
+	}
 	if ($dateto != NULL)
-		$query .= " AND (submitted <= \"$dateto\") ";
+	{
+		$query .= " AND (submitted <= ?) ";
+		$qarr []= $dateto;
+	}
 	if ($problem != NULL)
 	{
-		$res = $DB->get_record('contester_problems', 'id', $problem);
+		$res = $DB->get_record('contester_problems', array('id' => $problem));
 		$problem = $res->dbid;
-		$query .= " AND (problem = $problem) ";
+		$query .= " AND (problem = ?) ";
+		$qarr []= $problem;
 	}
-	$query .= " ORDER BY submitted DESC LIMIT 0, $cnt ";
+	$query .= " ORDER BY submitted DESC";
+	//$qarr []= $cnt;
 	//echo "$query<br>";
-	$submits = $DB->get_recordset_sql($query);
+	$submits = $DB->get_records_sql($query, $qarr, 0, $cnt);
 
 	//var_dump($submits);
 
 	$result = array();
 	/*foreach($submits as $line)
 		$result []= contester_get_submit($line["id"]);*/
-	while (!$submits->EOF)
-	{
-	    $result []= contester_get_submit($submits->fields["id"]);
-	    $submits->MoveNext();
-	}
+	//while (!$submits->EOF)
+	foreach($submits as $submit)
+	    $result []= contester_get_submit($submit->id);
 
 	return $result;
 }
@@ -1172,6 +1232,7 @@ function contester_show_problemlist($instance)
 	echo '<td align="right"><b>'.get_string('availableproblems', 'contester').':</b></td>';
     echo '<td align="left">';
     echo '<table><tr><td colspan=3>'.get_string('problemstodelete', 'contester').'</td></tr>';
+    
     unset($res);
 
     $sql = "SELECT   mdl_contester_problems.name as name,
@@ -1236,11 +1297,11 @@ function contester_show_tags_ref($instance, $sort, $ifall="")
 	unset($tags);
 	$tags = contester_get_all_tags();
 
-	echo "<a href=$CFG->dirroot/mod/contester/problems_preview".$ifall.".php?a=$instance&sort=".$sort.
+	echo "<a href=problems_preview".$ifall.".php?a=$instance&sort=".$sort.
     		"&tag=0>".get_string("alltags", "contester").' ('.contester_count_all_problems().')'."</a> ";
 	foreach ($tags as $item)
     {
-    	echo "<nobr><a href=$CFG->dirroot/mod/contester/problems_preview".$ifall.".php?a=$instance&sort=".$sort.
+    	echo "<nobr><a href=problems_preview".$ifall.".php?a=$instance&sort=".$sort.
     		"&tag=".$item->id.">".$item->tag.' ('.$item->count.')'."</a></nobr> ";
     }
 }
@@ -1292,32 +1353,43 @@ function contester_show_problems_preview($instance, $sort, $tag)
 	unset($res);
     unset($order);
     unset($whtag);
-   	if ($sort == 1) {$order = "mdl_contester_problems.name";}
-   	else {$order = "mdl_contester_problems.dbid";}
-   	if ($tag != 0) {$whtag = " WHERE EXISTS (SELECT mdl_contester_tagmap.id
+    unset($data);
+    
+    $sql = "SELECT   mdl_contester_problems.id as pr_id,
+	   							     mdl_contester_problems.name as name,
+   								     mdl_contester_problems.dbid as dbid
+   							FROM     mdl_contester_problems";
+   	if ($tag != 0)
+   	{
+   		$sql .= " WHERE EXISTS (SELECT mdl_contester_tagmap.id
    											FROM   mdl_contester_tagmap
    											WHERE  mdl_contester_tagmap.problemid=mdl_contester_problems.id
    											       AND
-   											       mdl_contester_tagmap.tagid=".$tag.") ";}
-   	else {$whtag = "";}
+   											       mdl_contester_tagmap.tagid=?)";
 
-	$res = $DB->get_records_sql("SELECT   mdl_contester_problems.id as pr_id,
-	   							     mdl_contester_problems.name as name,
-   								     mdl_contester_problems.dbid as dbid
-   							FROM     mdl_contester_problems".$whtag."
-   							ORDER BY ".$order);
+		$data []= $tag; 
+   	}
+   	
+   	$sql .= " ORDER BY ";
+    
+   	if ($sort == 1) 
+   		$sql .= "mdl_contester_problems.name";
+   	else 	
+   		$sql .= "mdl_contester_problems.dbid";
+
+	$res = $DB->get_records_sql($sql, $data);
 
     echo '<table cellpadding=5 border=1 bordercolor=#D0D0D0>';
     echo '<tr>';
     if ($sort == 0)
     {
    		echo "<th>".get_string('id', 'contester')."</th>";
-    	echo "<th><a href=$CFG->dirroot/mod/contester/problems_preview.php?a=$instance&sort=1&tag=".$tag.">".
+    	echo "<th><a href=problems_preview.php?a=$instance&sort=1&tag=".$tag.">".
     		get_string('problemname', 'contester')."</a></th>";
     }
     else
     {
-   		echo "<th><a href=$CFG->dirroot/mod/contester/problems_preview.php?a=$instance&sort=0&tag=".$tag.">".
+   		echo "<th><a href=problems_preview.php?a=$instance&sort=0&tag=".$tag.">".
    			get_string('id', 'contester')."</a></th>";
     	echo "<th>".get_string('problemname', 'contester')."</th>";
     }
@@ -1330,7 +1402,7 @@ function contester_show_problems_preview($instance, $sort, $tag)
     {
     	echo '<tr>';
     	echo '<td>'.$line->dbid.'</td>';
-    	echo "<td><a href=$CFG->dirroot/mod/contester/problem_preview.php?a=$instance&pid=".$line->pr_id.">".$line->name."</a></td>";
+    	echo "<td><a href=problem_preview.php?a=$instance&pid=".$line->pr_id.">".$line->name."</a></td>";
 
    		echo "<td><span id=taglist>";
    		contester_show_problem_tags($line->pr_id);
@@ -1346,8 +1418,37 @@ function contester_get_problems_preview_all($instance, $sort, $tag)
 	unset($res);
     unset($order);
     unset($whtag);
-   	if ($sort == 1) {$order = "mdl_contester_problems.name";}
-   	else {$order = "mdl_contester_problems.dbid";}
+    unset($data);
+    
+    $sql = "SELECT  mdl_contester_problems.id as id,
+	   							    mdl_contester_problems.name as name,
+   								    mdl_contester_problems.dbid as dbid,
+   								    mdl_contester_problems.description as description,
+   								    mdl_contester_problems.input_format as input,
+   								    mdl_contester_problems.output_format as output
+   							    FROM     mdl_contester_problems";
+   	if ($tag != 0)
+   	{
+   		$sql .= " WHERE EXISTS (SELECT mdl_contester_tagmap.id
+   											 FROM   mdl_contester_tagmap
+   											 WHERE  mdl_contester_tagmap.problemid=mdl_contester_problems.id
+   											      AND
+   											        mdl_contester_tagmap.tagid=?)";
+   											        
+		$data []= $tag;
+   	}
+   	
+   	$sql .= " ORDER BY ";
+   	
+   	if ($sort == 1)
+   		$sql .= "mdl_contester_problems.name";
+   	else
+   		$sql .= "mdl_contester_problems.dbid";
+   		
+   	$res = $DB->get_records_sql($sql, $data);
+   	
+   	/*if ($sort == 1) {$order = "contester_problems.name";}
+   	else {$order = "contester_problems.dbid";}
    	if ($tag != 0) {$whtag = " WHERE EXISTS (SELECT mdl_contester_tagmap.id
    											 FROM   mdl_contester_tagmap
    											 WHERE  mdl_contester_tagmap.problemid=mdl_contester_problems.id
@@ -1362,53 +1463,63 @@ function contester_get_problems_preview_all($instance, $sort, $tag)
    								    mdl_contester_problems.input_format as input,
    								    mdl_contester_problems.output_format as output
    							    FROM     mdl_contester_problems".$whtag."
-   							    ORDER BY ".$order);
+   							    ORDER BY ".$order);*/
  	return $res;
 }
 
 function contester_print_link_to_problem($instance, $pid)
 {
-	echo "<a href=$CFG->dirroot/mod/contester/problem.php?a=$instance&pid=$pid>".
+	echo "<a href=problem.php?a=$instance&pid=$pid>".
    		get_string('problemstatement', 'contester')."</a>";
 }
 
 function contester_print_link_to_problem_details($instance, $pid, $dbid)
 {
-   	if (isadmin())
-   		echo "<a href=$CFG->dirroot/mod/contester/problem_details.php?a=$instance&pid=$pid>".
+	$context = context_module::instance($instance);
+    $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
+    $is_admin = has_capability('moodle/site:config', $context);	
+
+   	if ($is_admin)
+   		echo "<a href=problem_details.php?a=$instance&pid=$pid>".
 	   		get_string('problemdetails', 'contester')." (".$dbid.")</a>";
 }
 
 function contester_print_link_to_problem_tags_details($instance, $pid)
 {
-   	if (isadmin())
-   		echo "<a href=$CFG->dirroot/mod/contester/problem_tags_details.php?a=$instance&pid=$pid>".
+	$context = context_module::instance($instance);
+    $is_admin = has_capability('moodle/site:config', $context);	
+
+   	if ($is_admin)
+   		echo "<a href=problem_tags_details.php?a=$instance&pid=$pid>".
 	   		get_string('tagsdetails', 'contester')."</a>";
 }
 
 function contester_print_link_to_upload()
 {
-	if (isadmin())
-		echo "<a href=$CFG->dirroot/mod/contester/upload_problem_form.php>".get_string('uploadtask', 'contester')."</a>";
+	echo "<a href=upload_problem_form.php>".get_string('uploadtask', 'contester')."</a>";
 }
 
 function contester_print_link_to_problems_preview($instance)
 {
 	global $DB;
-	if (! $contester = $DB->get_record("contester", "id", $instance)) {
-    	error("Course module is incorrect");
+	if (! $contester = $DB->get_record("contester", array("id" => $instance))) {
+    	print_error("Course module is incorrect");
  	}
-    if (! $course = $DB->get_record("course", "id", $contester->course)) {
-    	error("Course is misconfigured");
+    if (! $course = $DB->get_record("course", array("id" => $contester->course))) {
+    	print_error("Course is misconfigured");
     }
     if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
-    	error("Course Module ID was incorrect");
+    	print_error("Course Module ID was incorrect");
     }
-	$context = get_context_instance(CONTEXT_MODULE, $cm->id);
-	$is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
+	//$context = get_context_instance(CONTEXT_MODULE, $cm->id);
+	//$is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
+	$context = context_module::instance($instance);
+    $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
+    $is_admin = has_capability('moodle/site:config', $context);
+
 //	echo "<p>is_teacher".$is_teacher."</p>";
-	if (isadmin() || $is_teacher)
-		echo "<p><a href=$CFG->dirroot/mod/contester/problems_preview.php?a=$instance>".get_string('problemspreview', 'contester')."</a></p>";
+	if ($is_admin || $is_teacher)
+		echo "<p><a href=problems_preview.php?a=$instance>".get_string('problemspreview', 'contester')."</a></p>";
 }
 
 /**
@@ -1422,6 +1533,7 @@ function contester_show_problemadd()
     echo '<tr valign="top">';
 	echo '<td align="right"><b>'.get_string('addproblem', 'contester').':</b></td>';
 	echo '<td>';
+	
     unset($choices);
     unset($res);
     $res = $DB->get_records_sql("SELECT   mdl_contester_problems.id as pr_id,
@@ -1467,7 +1579,7 @@ function contester_process_options($data)
  */
 function contester_parse_task($text, $dbid)
 {
-	dlobal $DB;
+	global $DB;
 	//convert_cyr_string()
 	$text = iconv("windows-1251", "UTF-8", $text);
 	//echo $text;
@@ -1536,9 +1648,10 @@ function contester_show_problem_details($pid)
 {
 	global $DB;
 	//echo $usehtmleditor='Gecko';
-	$usehtmleditor = can_use_html_editor();
-	if (!$problem = $DB->get_record('contester_problems', 'id', $pid)) {
-		error(get_string('noproblem'));
+	//$usehtmleditor = can_use_html_editor();
+	$usehtmleditor = true;
+	if (!$problem = $DB->get_record('contester_problems', array('id' => $pid))) {
+		print_error(get_string('noproblem'));
 		return false;
 	}
 ?>
@@ -1586,7 +1699,7 @@ function contester_show_problem_details($pid)
 		$table->head = array(get_string('input', 'contester'), get_string('output', 'contester'));
 		$sql = "SELECT concat('<textarea name=samplein', CAST(samples.id AS CHAR), '>',
 		samples.input, '</textarea>') as samplein, concat('<textarea name=sampleout', CAST(samples.id AS CHAR), '>',
-		samples.output, '</textarea>') as sampleout FROM mdl_contester_samples as samples WHERE samples.problem_id=$problem->id
+		samples.output, '</textarea>') as sampleout FROM contester_samples as samples WHERE samples.problem_id=$problem->id
 		";
 		//print $sql;
 
@@ -1612,8 +1725,8 @@ function contester_show_problem_details($pid)
 function contester_show_problem_tags_to_delete($pid)
 {
 	global $DB;
-	if (!$problem = $DB->get_record('contester_problems', 'id', $pid)) {
-		error(get_string('noproblem'));
+	if (!$problem = $DB->get_record('contester_problems', array('id' => $pid))) {
+		print_error(get_string('noproblem'));
 		return false;
 	}
 	unset($tags);
@@ -1625,10 +1738,76 @@ function contester_show_problem_tags_to_delete($pid)
     return 0;
 }
 
+function contester_show_problems_to_delete($a)
+{
+	global $DB;
+	if (!$contester = $DB->get_record('contester', array('id' => $a))) {
+		print_error(get_string('nocontester'));
+		return false;
+	}
+	
+	unset($problems);
+    
+    $problems = $DB->get_records_sql("SELECT mdl_contester_problems.name as name,
+				 mdl_contester_problemmap.id as id,
+				 mdl_contester_problems.id as pid,
+				 mdl_contester_problems.dbid as dbid
+		FROM	 mdl_contester_problems, mdl_contester_problemmap
+		WHERE	 mdl_contester_problemmap.problemid=mdl_contester_problems.id
+		AND		 mdl_contester_problemmap.contesterid=?
+		ORDER BY mdl_contester_problemmap.id", array($a));
+
+	echo '<td align="right"><b>'.get_string('availableproblems', 'contester').':</br></b></td>';
+    echo '<tr><td>'.get_string('problemstodelete', 'contester').'</br></br></td></tr>';
+    foreach ($problems as $problem)
+    {
+    	echo "<nobr><input type=\"checkbox\" name=\"probsdel[]\" value=".$problem->pid.">".$problem->name;
+  		echo "<td size=40%><nobr>
+  			<a href=problem_details.php?a=".$a."&pid=".$problem->pid.">".
+  			get_string('problemdetails', 'contester')." (".$problem->dbid.")</a></nobr></td>";
+    	echo "</nobr>&nbsp;";
+    	echo "</br>";
+    }
+    echo '</td></tr>';    
+    return 0;
+}
+
+function contester_show_problems_to_add($a)
+{
+	global $DB;
+	
+	if (!$problem = $DB->get_record('contester', array('id' => $a))) {
+		print_error(get_string('nocontester'));
+		return false;
+	}
+	
+    unset($res);
+    $res = $DB->get_records_sql("SELECT   mdl_contester_problems.id as pr_id,
+    								 mdl_contester_problems.dbid as dbid,
+    							     mdl_contester_problems.name as name
+    						FROM     mdl_contester_problems
+    						ORDER BY mdl_contester_problems.dbid");
+
+    unset($choices);  
+    foreach ($res as $line){
+    	$choices[$line->pr_id] = $line->dbid." ".$line->name;
+    }
+
+    echo '<tr valign="top">';
+	echo '<td align="center"><b>'.get_string('addproblem', 'contester').':   </b></td>';
+	echo '<td align="center">';
+    contester_choose_from_list($choices, 'probsadd[]', true, 20); //multiple + 20 rows
+    echo '</td></tr>';	    
+    
+    return 0;
+}
+
 function contester_show_problem_tags_to_add($pid)
 {
-	if (!$problem = get_record('contester_problems', 'id', $pid)) {
-		error(get_string('noproblem'));
+	global $DB;
+	
+	if (!$problem = $DB->get_record('contester_problems', array('id' => $pid))) {
+		print_error(get_string('noproblem'));
 		return false;
 	}
 	unset($tags);
@@ -1647,24 +1826,32 @@ function contester_show_problem_tags_to_add($pid)
 */
 function contester_show_nav_bar($instance) {
 	global $DB;
-    if (! $contester = $DB->get_record("contester", "id", $instance)) {
-    	error("Course module is incorrect");
+    if (! $contester = $DB->get_record('contester', array('id'=>$instance))) {
+    	print_error("Course module is incorrect");
     }
-	if (! $course = $DB->get_record("course", "id", $contester->course)) {
-		error("Course is misconfigured");
+	if (! $course = $DB->get_record('course', array('id'=>$contester->course))) {
+		print_error("Course is misconfigured");
 	}
     if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
-    	error("Course Module ID was incorrect");
+    	print_error("Course Module ID was incorrect");
     }
-	$context = get_context_instance(CONTEXT_MODULE, $cm->id);
-	$is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
 
-	echo "<nobr><a href=view.php?a=$instance>".get_string('problemlist', 'contester')."</a></nobr><br>";
-	echo "<nobr><a href=submit_form.php?a=$instance>".get_string('submit', 'contester')."</a></nobr><br>";
+	$context = context_module::instance($cm->id);
+    $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
+    $is_admin = has_capability('moodle/site:config', $context);
+
+	echo "<nobr><a href=view.php?a=$instance>".get_string('problemlist','contester')."</a></nobr><br>";
+	echo "<nobr><a href=submit_form.php?a=$instance>".get_string('submit','contester')."</a></nobr><br>";
 	echo "<nobr><a href=status.php?a=$instance>".get_string('status', 'contester')."</a></nobr><br>";
-	if (get_field('contester', 'viewown', 'id', $instance)) echo "<nobr><a href=my_solutions.php?a=$instance>".get_string('mysolutions', 'contester')."</a></nobr><br>";
-	//if ($is_teacher) раньше журнал был только для учителей
+	
+	//Start new code
+	if ($DB->get_field('contester', 'viewown', array('id'=>$instance))) echo "<nobr><a href=my_solutions.php?a=$instance>".get_string('mysolutions', 'contester')."</a></nobr><br>";
+	//End new code
+	
 	echo "<nobr><a href=journal.php?a=$instance>".get_string('journal', 'contester')."</a></nobr><br>";
+	
+	if ($is_admin || $is_teacher)
+		echo "<nobr><a href=problems_details.php?a=$instance>".get_string('contesterupdate', 'contester')."</a></nobr><br>";		
 }
 
 /**
@@ -1690,31 +1877,38 @@ function contester_print_end() {
 function contester_get_special_submit_info($submitid, $cget_problem_name = true, $cget_langinfo = true, $cget_status = true, $cget_points = true)
 {
 	global $DB;
-	$submit = $DB->get_record("contester_submits", "id", $submitid);
-	$tmp = $DB->get_record_sql("SELECT  COUNT(1) as cnt
+	$submit = $DB->get_record('contester_submits', array('id' => $submitid));
+	$fields = array("compiled", "taken", "passed");
+	foreach($fields as $field)
+	{
+		$submit->$field = 0;
+	}
+	$tmp = $DB->get_record_sql('SELECT  COUNT(1) as cnt
 						   FROM    mdl_contester_submits
-						   WHERE   (contester = {$submit->contester})
-						   AND     (student = {$submit->student})
-						   AND     (problem = {$submit->problem})
-						   AND     (submitted < '{$submit->submitted}')");
+						   WHERE   (contester = ?)
+						   AND     (student = ?)
+						   AND     (problem = ?)
+						   AND     (submitted < ?)', array($submit->contester, $submit->student, $submit->problem, $submit->submitted));
 
 	$attempts = 0 + $tmp->cnt;
 
-	if (!$testing = $DB->get_record_sql("SELECT   *
+	if (!$testing = $DB->get_record_sql('SELECT   *
 	                                FROM     mdl_contester_testings
-	                                WHERE    (submitid = {$submitid})
+	                                WHERE    (submitid = ?)
 	                                ORDER BY id
-	                                DESC"))
+	                                DESC', array($submitid)))
 		$queued = true;
 	else
 	{
 		$queued = false;
-		$fields = array("compiled", "taken", "passed");
+		//$fields = array("compiled", "taken", "passed");
 		foreach($fields as $field)
 		{
 			$submit->$field = $testing->$field;
 		}
 	}
+	
+	//print_r($submit);
 
 	if ($submit->taken)
 		$submit->points = contester_get_rounded_points($attempts, $submit->passed, $submit->taken);
@@ -1723,7 +1917,7 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 
 	$submit->attempt = $attempts + 1;
 	//$mapping = $DB->get_record("contester_problemmap", "id", $submit->problem, "contesterid", $submit->contester);
-	$problem = $DB->get_record("contester_problems", "dbid", $submit->problem);
+	$problem = $DB->get_record('contester_problems', array('dbid' => $submit->problem));
 	$res = null;
 	if ($cget_problem_name == true) {
 		$res->problem = $problem->name;
@@ -1732,7 +1926,7 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 		$res->problem = "";
 	}
 	if ($cget_langinfo == true) {
-		$lang = $DB->get_record("contester_languages", "id", $submit->lang);
+		$lang = $DB->get_record('contester_languages', array('id' => $submit->lang));
 		$res->prlanguage = $lang->name;
 	}
 	else {
@@ -1747,19 +1941,20 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 			else
 			{
 				$res_id = 2;
-				$res_desc = $DB->get_record("contester_resultdesc", "id", $res_id, 'language', 2);
+				$res_desc = $DB->get_record('contester_resultdesc', array('id' => $res_id, 'language' => 2));
 				$res->status = $res_desc->description;
 			}
 		} else {
 			if (!$queued){
-				$result = $DB->get_record_sql("SELECT    *
+				$result = $DB->get_records_sql('SELECT    *
 							  FROM      mdl_contester_results
-							  WHERE    (testingid = {$testing->id})
-							  ORDER BY  testingid DESC");
+							  WHERE    (testingid = ?)
+							  ORDER BY  testingid DESC', array($testing->id));
+				//print_r($result);
 				//$res_id = $result->result;
 				$res_id = 1;
 			} else $res_id = 0;
-			$res_desc = $DB->get_record("contester_resultdesc", "id", $res_id, 'language', 2);
+			$res_desc = $DB->get_record('contester_resultdesc', array('id' => $res_id, 'language' => 2));
 			$res->status = $res_desc->description;
 		}
 	}
@@ -1775,8 +1970,4 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 	}
 	return $res;
 }
-
-/* end test code */
-
-?>
-
+//End new code

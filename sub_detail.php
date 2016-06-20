@@ -12,26 +12,26 @@
 
     if ($id) {
         if (! $cm = get_record("course_modules", "id", $id)) {
-            error("Course Module ID was incorrect");
+            print_error("Course Module ID was incorrect");
         }
     
         if (! $course = get_record("course", "id", $cm->course)) {
-            error("Course is misconfigured");
+            print_error("Course is misconfigured");
         }
     
         if (! $contester = get_record("contester", "id", $cm->instance)) {
-            error("Course module is incorrect");
+            print_error("Course module is incorrect");
         }
 
     } else {
         if (! $contester = get_record("contester", "id", $a)) {
-            error("Course module is incorrect");
+            print_error("Course module is incorrect");
         }
         if (! $course = get_record("course", "id", $contester->course)) {
-            error("Course is misconfigured");
+            print_error("Course is misconfigured");
         }
         if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
-            error("Course Module ID was incorrect");
+            print_error("Course Module ID was incorrect");
         }
     }
 
@@ -57,14 +57,14 @@
 
 	if ($USER->student[1])
 	{
-		$query = "select id, processed, test, timex, memory, success, description from mdl_contester_results Join mdl_contester_resultdesc On (result = mdl_contester_resultdesc.id) and (success =  mdl_contester_resultdesc.success) where (id = $subid) and (language = 1)";
-		$query .= " Union select mdl_contester_submits.id, submitted, 0, 0, 0, 0, description from mdl_contester_submits Join mdl_contester_resultdesc On ( mdl_contester_resultdesc.id = 0) and ( mdl_contester_resultdesc.success = 0) where ( mdl_contester_submits.id = $subid) and (language = 1)";
+		$query = "select id, processed, test, timex, memory, success, description from contester_results Join contester_resultdesc On (result = contester_resultdesc.id) and (success =  contester_resultdesc.success) where (id = $subid) and (language = 1)";
+		$query .= " Union select contester_submits.id, submitted, 0, 0, 0, 0, description from contester_submits Join contester_resultdesc On ( contester_resultdesc.id = 0) and ( contester_resultdesc.success = 0) where ( contester_submits.id = $subid) and (language = 1)";
 		$query .= " Order by 2, 3";
 	}
 	else
 	{
-		$query = "select id, processed, test, timex, memory, testeroutput, testererror, testerexitcode, success, description from mdl_contester_results Join mdl_contester_resultdesc On (result = mdl_contester_resultdesc.id) and (success =  mdl_contester_resultdesc.success) where (id = $subid) and (language = 1)";
-                $query .= " Union select mdl_contester_submits.id, submitted, 0, 0, 0, '', 0, 0, 0, description from mdl_contester_submits Join mdl_contester_resultdesc On ( mdl_contester_resultdesc.id = 0) and ( mdl_contester_resultdesc.success = 0) where ( mdl_contester_submits.id = $subid) and (language = 1)";
+		$query = "select id, processed, test, timex, memory, testeroutput, testererror, testerexitcode, success, description from contester_results Join contester_resultdesc On (result = contester_resultdesc.id) and (success =  contester_resultdesc.success) where (id = $subid) and (language = 1)";
+                $query .= " Union select contester_submits.id, submitted, 0, 0, 0, '', 0, 0, 0, description from contester_submits Join contester_resultdesc On ( contester_resultdesc.id = 0) and ( contester_resultdesc.success = 0) where ( contester_submits.id = $subid) and (language = 1)";
                 $query .= " Order by 2, 3";
 
 	}

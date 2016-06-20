@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -15,23 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-
 /**
- * Defines the version of contester
+ * Defines the version and other meta-info about the plugin
  *
- * This code fragment is called by moodle_needs_upgrading() and
- * /admin/index.php
+ * Setting the $plugin->version to 0 prevents the plugin from being installed.
+ * See https://docs.moodle.org/dev/version.php for more info.
  *
  * @package    mod_contester
- * @copyright  2011 Your Name
+ * @copyright  2015 Your Name <your@email.address>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$module->version   = 0;               // If version == 0 then module will not be installed
-//$module->version   = 2010032200;      // The current module version (Date: YYYYMMDDXX)
-$module->requires  = 2010031900;      // Requires this Moodle version
-$module->cron      = 0;               // Period for cron to check this module (secs)
-$module->component = 'mod_contester'; // To check on upgrade, that module sits in correct place
-
+$plugin->component = 'mod_contester';
+$plugin->version = 1;
+$plugin->release = 'v0.1';
+$plugin->requires = 2015041200;
+$plugin->maturity = MATURITY_ALPHA;
+$plugin->cron = 0;
+$plugin->dependencies = array();
