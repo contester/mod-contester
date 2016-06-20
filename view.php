@@ -27,79 +27,80 @@
 
 // Replace contester with the name of your module and remove this line.
 
-require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
-require_once(dirname(__FILE__).'/lib.php');
-//require_once(dirname(__FILE__).'/classes/simplehtml_form.php');
-require_once("$CFG->libdir/formslib.php");
+    require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
+    require_once(dirname(__FILE__).'/lib.php');
+    //require_once(dirname(__FILE__).'/classes/simplehtml_form.php');
+    require_once("$CFG->libdir/formslib.php");
 
-$id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
-$a  = optional_param('a', 0, PARAM_INT);  // ... contester instance ID - it should be named as the first character of the module.
+    $id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
+    $a  = optional_param('a', 0, PARAM_INT);  // ... contester instance ID - it should be named as the first character of the module.
 
-if ($id) {
-    if(! $cm = get_coursemodule_from_id('contester', $id))
-	{
-		print_error("Course Module ID was incorrect");
-	}
-    if(! $course = $DB->get_record('course', array('id' => $cm->course)))
-	{
-		print_error("Course is misconfigured");
-	}
-    if(! $contester = $DB->get_record('contester', array('id' => $cm->instance)))
-	{
-		print_error("Course module is incorrect");
-	}
-} 
-else 
-{
-    if(! $contester = $DB->get_record('contester', array('id' => $a)))
-	{
-		print_error("Course module is incorrect");
-	}
-    if(! $course = $DB->get_record('course', array('id' => $contester->course)))
-	{
-		print_error("Course is misconfigured");
-	}
-    if(! $cm = get_coursemodule_from_instance('contester', $contester->id, $course->id))
-	{
-		 print_error("Course Module ID was incorrect");
-	}
-}
+    if ($id) {
+        if(! $cm = get_coursemodule_from_id('contester', $id))
+    	{
+    		print_error("Course Module ID was incorrect");
+    	}
+        if(! $course = $DB->get_record('course', array('id' => $cm->course)))
+    	{
+    		print_error("Course is misconfigured");
+    	}
+        if(! $contester = $DB->get_record('contester', array('id' => $cm->instance)))
+    	{
+    		print_error("Course module is incorrect");
+    	}
+    } 
+    else 
+    {
+        if(! $contester = $DB->get_record('contester', array('id' => $a)))
+    	{
+    		print_error("Course module is incorrect");
+    	}
+        if(! $course = $DB->get_record('course', array('id' => $contester->course)))
+    	{
+    		print_error("Course is misconfigured");
+    	}
+        if(! $cm = get_coursemodule_from_instance('contester', $contester->id, $course->id))
+    	{
+    		 print_error("Course Module ID was incorrect");
+    	}
+    }
 
-require_login($course, true, $cm);
+    require_login($course->id);
+    //require_login($course, true, $cm);
 
-$event = \mod_contester\event\course_module_viewed::create(array(
-    'objectid' => $PAGE->cm->instance,
-    'context' => $PAGE->context,
-));
-$event->add_record_snapshot('course', $PAGE->course);
-$event->add_record_snapshot($PAGE->cm->modname, $contester);
-$event->trigger();
+    /*$event = \mod_contester\event\course_module_viewed::create(array(
+        'objectid' => $PAGE->cm->instance,
+        'context' => $PAGE->context,
+    ));
+    $event->add_record_snapshot('course', $PAGE->course);
+    $event->add_record_snapshot($PAGE->cm->modname, $contester);
+    $event->trigger();*/
 
-// Print the page header.
+    // Print the page header.
 
-$PAGE->set_url('/mod/contester/view.php', array('id' => $cm->id));
-$PAGE->set_title(format_string($contester->name));
-$PAGE->set_heading(format_string($course->fullname));
-$PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));
+    $PAGE->set_url('/mod/contester/view.php', array('id' => $cm->id));
+    $PAGE->set_title(format_string($contester->name));
+    $PAGE->set_heading(format_string($course->fullname));
+    $PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));
 
-/*
- * Other things you may want to set - remove if not needed.
- * $PAGE->set_cacheable(false);
- * $PAGE->set_focuscontrol('some-html-id');
- * $PAGE->add_body_class('contester-'.$somevar);
- */
+    /*
+     * Other things you may want to set - remove if not needed.
+     * $PAGE->set_cacheable(false);
+     * $PAGE->set_focuscontrol('some-html-id');
+     * $PAGE->add_body_class('contester-'.$somevar);
+     */
 
-// Output starts here.
-echo $OUTPUT->header();
-// Conditions to show the intro can change to look for own settings or whatever.
-if ($contester->intro) {
-    echo $OUTPUT->box(format_module_intro('contester', $contester, $cm->id), 'generalbox mod_introbox', 'contesterintro');
-}
+    // Output starts here.
+    echo $OUTPUT->header();
+    // Conditions to show the intro can change to look for own settings or whatever.
+    if ($contester->intro) {
+        echo $OUTPUT->box(format_module_intro('contester', $contester, $cm->id), 'generalbox mod_introbox', 'contesterintro');
+    }
 
-// Replace the following lines with you own code.
+	// Replace the following lines with you own code.
 
-//Start new code
-echo "<br><br>";
+	//Start new code
+	echo "<br><br>";
 	echo $contester->description;
 	echo "<br><br>";
 	contester_print_begin($contester->id);
