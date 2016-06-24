@@ -1475,7 +1475,18 @@ function contester_print_link_to_problem($instance, $pid)
 
 function contester_print_link_to_problem_details($instance, $pid, $dbid)
 {
-	$context = context_module::instance($instance);
+    global $DB;
+    if (! $contester = $DB->get_record("contester", array("id" => $instance))) {
+	print_error("Course module is incorrect");
+    }
+    if (! $course = $DB->get_record("course", array("id" => $contester->course))) {
+	print_error("Course is misconfigured");
+    }
+    if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
+	print_error("Course Module ID was incorrect");
+    }
+
+    $context = context_module::instance($cm->id);
     $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
     $is_admin = has_capability('moodle/site:config', $context);	
 
@@ -1486,7 +1497,18 @@ function contester_print_link_to_problem_details($instance, $pid, $dbid)
 
 function contester_print_link_to_problem_tags_details($instance, $pid)
 {
-	$context = context_module::instance($instance);
+    global $DB;
+    if (! $contester = $DB->get_record("contester", array("id" => $instance))) {
+	print_error("Course module is incorrect");
+    }
+    if (! $course = $DB->get_record("course", array("id" => $contester->course))) {
+	print_error("Course is misconfigured");
+    }
+    if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
+	print_error("Course Module ID was incorrect");
+    }
+
+    $context = context_module::instance($cm->id);
     $is_admin = has_capability('moodle/site:config', $context);	
 
    	if ($is_admin)
@@ -1513,7 +1535,7 @@ function contester_print_link_to_problems_preview($instance)
     }
 	//$context = get_context_instance(CONTEXT_MODULE, $cm->id);
 	//$is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
-	$context = context_module::instance($instance);
+	$context = context_module::instance($cm->id);
     $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
     $is_admin = has_capability('moodle/site:config', $context);
 
