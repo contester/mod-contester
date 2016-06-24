@@ -11,10 +11,10 @@
     $group_value  = optional_param('group', -1, PARAM_INT);
     $MIN_year = 2000;
     $MAX_year = date('Y');
-	$year_from_value  = optional_param('year_from', -1, PARAM_INT);
-	$month_from_value  = optional_param('month_from', -1, PARAM_INT);
-	$day_from_value  = optional_param('day_from', -1, PARAM_INT);
-	$time_from_value  = optional_param('time_from', -1, PARAM_TEXT);
+	$year_from_value  = optional_param('year_from', 2015, PARAM_INT);
+	$month_from_value  = optional_param('month_from', 1, PARAM_INT);
+	$day_from_value  = optional_param('day_from', 1, PARAM_INT);
+	$time_from_value  = optional_param('time_from', '00:00:00', PARAM_TEXT);
 
 	$year_to_value  = optional_param('year_to', -1, PARAM_INT);
 	$month_to_value  = optional_param('month_to', -1, PARAM_INT);
@@ -88,8 +88,8 @@
 	foreach($groups as $group)
 	{
 		$gr = null;
-		$gr->name = $DB->get_field('groups', 'name', array('id'=>$group['id']));
-		$gr->id = $group['id'];
+		$gr->name = $DB->get_field('groups', 'name', array('id'=>$group->id));
+		$gr->id = $group->id;
 		$grps []= $gr;
 	}
 

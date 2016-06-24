@@ -28,7 +28,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_contester';
-$plugin->version = 1;
+$plugin->version = 2006042900;
 $plugin->release = 'v0.1';
 $plugin->requires = 2015041200;
 $plugin->maturity = MATURITY_ALPHA;
