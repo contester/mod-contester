@@ -48,6 +48,16 @@ defined('MOODLE_INTERNAL') || die();
 
 // Modify capabilities as needed and remove this comment.
 $capabilities = array(
+    'mod/contester:myaddinstance' => array(
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => array(
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW
+        ),
+        'clonepermissionsfrom' => 'moodle/my:manageactivities'
+    ),
+    
     'mod/contester:addinstance' => array(
         'riskbitmask' => RISK_XSS,
         'captype' => 'write',
