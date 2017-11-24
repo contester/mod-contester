@@ -114,9 +114,8 @@
     	}
     	echo "</select></td></tr>";
     }
-
-	//Нужно обдумать второй параметр true
-    if ($r = $DB->get_records_select("contester_languages", "display is not null"))
+	
+    if ($r = $DB->get_records_select("contester_languages", "display is not null", array(), "display"))
     {
     	$m = $DB->get_recordset("contester_language_map", array('contester_id'=>$contester->id));
     	$langs = array();
