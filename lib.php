@@ -1917,6 +1917,7 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 	if (!$testing = $DB->get_record_sql('SELECT   *
 	                                FROM     mdl_contester_testings
 	                                WHERE    (submitid = ?)
+					AND      (compiled = 1)
 	                                ORDER BY id
 	                                DESC', array($submitid)))
 		$queued = true;
