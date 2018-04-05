@@ -1917,7 +1917,7 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 	if (!$testing = $DB->get_record_sql('SELECT   *
 	                                FROM     mdl_contester_testings
 	                                WHERE    (submitid = ?)
-					AND      (compiled = 1)
+					AND      (compiled is not null)
 	                                ORDER BY id
 	                                DESC', array($submitid)))
 		$queued = true;
@@ -1957,7 +1957,7 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 	}
 	if ($cget_status == true) {
 		if ($submit->processed == 255) {
-			if ($submit->compiled)
+			if ($submit->compiled == '1')
 				$res->status = "<a href=details.php?sid=$submit->id&a=$submit->contester>".
 					get_string('passed', 'contester')." $testing->passed ".
 					get_string('outof', 'contester')." $testing->taken.</a>";
