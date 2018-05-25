@@ -58,11 +58,11 @@ function mutate($s)
         }
     }
 
-	$context = context_module::instance($cm->id);
+    $context = context_module::instance($cm->id);
     $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
     $is_admin = has_capability('moodle/site:config', $context);
 
-    require_login($cm->id);
+    require_login($course->id);
 
 //    add_to_log($course->id, "contester", "preview_all", "problems_preview_all.php?a=$contester->id", "$contester->id");
 
@@ -127,9 +127,9 @@ function mutate($s)
 		"</div>";
 
 		/*$text = str_replace("\n", "<br />", $text);
-		$text = preg_replace('/<[bB][rR]>(\n<[bB][rR]>|é|ö|ó|ê|å|í|ã|ø|ù|ç|õ|ú|ô|û|â|à|ï|ð|î|ë|ä|æ|ý|ÿ|÷|ñ|ì|è|ò|ü|á|þ|¸{1})/' ,'\1',$text);
-		$text = str_replace("\"å", "¸", $text);
-		$text = str_replace("\"e", "¸", $text);
+		$text = preg_replace('/<[bB][rR]>(\n<[bB][rR]>|Ã©|Ã¶|Ã³|Ãª|Ã¥|Ã­|Ã£|Ã¸|Ã¹|Ã§|Ãµ|Ãº|Ã´|Ã»|Ã¢|Ã |Ã¯|Ã°|Ã®|Ã«|Ã¤|Ã¦|Ã½|Ã¿|Ã·|Ã±|Ã¬|Ã¨|Ã²|Ã¼|Ã¡|Ã¾|Â¸{1})/' ,'\1',$text);
+		$text = str_replace("\"Ã¥", "Â¸", $text);
+		$text = str_replace("\"e", "Â¸", $text);
 		$text = str_replace("$$", "$", $text);
 
 		while (strpos($text, "$") !== false) {
