@@ -81,6 +81,7 @@ function contester_add_instance(stdClass $contester, mod_contester_mod_form $mfo
 
     // You may have to add extra stuff in here.
 
+    $contester->intro = "";
     $contester->id = $DB->insert_record('contester', $contester);
 
     contester_grade_item_update($contester);
@@ -864,10 +865,12 @@ function contester_get_detailed_info($submitid)
 		$res->status = $res_desc->description;
 		$result []= $res;
 		return $result;
-	}
-	$results = $DB->get_records_sql("SELECT * FROM mdl_contester_results WHERE testingid=? and not (test = 0)", array($testing->id));
+	};
+	//$results = $DB->get_records_sql("SELECT * FROM mdl_contester_results WHERE testingid=? and not (test = 0)", array($testing->id));
+	$results = $DB->get_records_list("contester_results", "testingid", array($testing->id), null, 'test,timex,memory,result');
 	foreach($results as $r)
 	{
+		if ($r->test == 0) continue;
 		$res = new stdClass();
 		//print_r($results);
 		$res->number = $r->test;
@@ -1639,7 +1642,7 @@ function contester_parse_task($text, $dbid)
 	//print_r($problem);
 	echo "<br/>";
 	//p($pid);
-	p(mysql_error());
+	//p(mysql_error());
 	// разбор сэмплов
 	// может быть ботва если вместо example будет че-то типа examplerich...
 	$text = substr_replace($text, "", 0, strpos($text, "\\Example") + 8);
@@ -1864,7 +1867,8 @@ function contester_show_nav_bar($instance) {
 
 	echo "<nobr><a href=view.php?a=$instance>".get_string('problemlist','contester')."</a></nobr><br>";
 	echo "<nobr><a href=submit_form.php?a=$instance>".get_string('submit','contester')."</a></nobr><br>";
-	echo "<nobr><a href=status.php?a=$instance>".get_string('status', 'contester')."</a></nobr><br>";
+	if ($is_admin)
+	    echo "<nobr><a href=status.php?a=$instance>".get_string('status', 'contester')."</a></nobr><br>";
 	
 	//Start new code
 	if ($DB->get_field('contester', 'viewown', array('id'=>$instance))) echo "<nobr><a href=my_solutions.php?a=$instance>".get_string('mysolutions', 'contester')."</a></nobr><br>";
@@ -1917,6 +1921,7 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 	if (!$testing = $DB->get_record_sql('SELECT   *
 	                                FROM     mdl_contester_testings
 	                                WHERE    (submitid = ?)
+					AND      (compiled is not null)
 	                                ORDER BY id
 	                                DESC', array($submitid)))
 		$queued = true;
@@ -1956,7 +1961,7 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 	}
 	if ($cget_status == true) {
 		if ($submit->processed == 255) {
-			if ($submit->compiled)
+			if ($submit->compiled == '1')
 				$res->status = "<a href=details.php?sid=$submit->id&a=$submit->contester>".
 					get_string('passed', 'contester')." $testing->passed ".
 					get_string('outof', 'contester')." $testing->taken.</a>";

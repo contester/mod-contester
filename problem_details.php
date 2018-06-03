@@ -40,6 +40,7 @@
     //add_to_log($course->id, "contester", "details", "details.php?id=$cm->id", "$contester->id");
     $context = context_module::instance($cm->id);
     $is_admin = has_capability('moodle/site:config', $context);
+    //$is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
 
     if (!$is_admin) print_error(get_string('accessdenied', 'contester'));
 	$pid = required_param('pid', PARAM_INT);

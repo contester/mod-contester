@@ -114,13 +114,12 @@
     	}
     	echo "</select></td></tr>";
     }
-
-	//Нужно обдумать второй параметр true
-    if ($r = $DB->get_records_select("contester_languages", true))
+	
+    if ($r = $DB->get_records_select("contester_languages", "display is not null", array(), "display"))
     {
     	$m = $DB->get_recordset("contester_language_map", array('contester_id'=>$contester->id));
     	$langs = array();
-    	foreach ($m as $lang) $langs[$lang['language_id']] = 1;
+    	foreach ($m as $lang) $langs[$lang->language_id] = 1;
     	echo '<tr><td align="right">'.get_string('prlanguage', 'contester').":</td>";
     	echo "<td><select name=\"lang\" id=\"langselect\">";
     	echo "<option value=\"-1\"";

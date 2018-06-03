@@ -4,11 +4,11 @@
     require_once("../../config.php");
     require_once("lib.php");
 
-    require_login(2);
+    require_login(181);
 
     //add_to_log(0, "contester", "upload", "upload_problem_form.php", "$contester->id");
     
-	$context = context_module::instance(2);
+	$context = context_module::instance(8986);
     $is_admin = has_capability('moodle/site:config', $context);    
     
     if (!$is_admin) {
