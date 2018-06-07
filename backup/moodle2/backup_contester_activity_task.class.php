@@ -13,32 +13,45 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+
 /**
  * Defines backup_contester_activity_task class
  *
- * @package     mod_contester
- * @category    backup
- * @copyright   2010 onwards Eloy Lafuente (stronk7) {@link http://stronk7.com}
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   mod_contester
+ * @category  backup
+ * @copyright 2015 Your Name <your@email.adress>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
+
+defined('MOODLE_INTERNAL') || die;
+
 require_once($CFG->dirroot . '/mod/contester/backup/moodle2/backup_contester_stepslib.php');
 require_once($CFG->dirroot . '/mod/contester/backup/moodle2/backup_contester_settingslib.php');
+  
 /**
  * Provides the steps to perform one complete backup of the contester instance
+ *
+ * @package   mod_contester
+ * @category  backup
+ * @copyright 2015 Your Name <your@email.adress>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class backup_contester_activity_task extends backup_activity_task {
+
     /**
      * No specific settings for this activity
      */
     protected function define_my_settings() {
     }
+
     /**
      * Defines a backup step to store the instance data in the contester.xml file
      */
     protected function define_my_steps() {
         $this->add_step(new backup_contester_activity_structure_step('contester_structure', 'contester.xml'));
     }
+
     /**
      * Encodes URLs to the index.php and view.php scripts
      *
@@ -47,13 +60,17 @@ class backup_contester_activity_task extends backup_activity_task {
      */
     static public function encode_content_links($content) {
         global $CFG;
-        $base = preg_quote($CFG->wwwroot,"/");
-        // Link to the list of contesters
-        $search="/(".$base."\/mod\/contester\/index.php\?id\=)([0-9]+)/";
-        $content= preg_replace($search, '$@CONTESTERINDEX*$2@$', $content);
-        // Link to contester view by moduleid
-        $search="/(".$base."\/mod\/contester\/view.php\?id\=)([0-9]+)/";
-        $content= preg_replace($search, '$@CONTESTERVIEWBYID*$2@$', $content);
+
+        $base = preg_quote($CFG->wwwroot, '/');
+
+        // Link to the list of contesters.
+        $search = '/('.$base.'\/mod\/contester\/index.php\?id\=)([0-9]+)/';
+        $content = preg_replace($search, '$@CONTESTERINDEX*$2@$', $content);
+
+        // Link to contester view by moduleid.
+        $search = '/('.$base.'\/mod\/contester\/view.php\?id\=)([0-9]+)/';
+        $content = preg_replace($search, '$@CONTESTERVIEWBYID*$2@$', $content);
+
         return $content;
     }
 }

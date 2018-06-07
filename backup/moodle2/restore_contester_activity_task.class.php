@@ -13,51 +13,75 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
- * @package    mod_contester
- * @subpackage backup-moodle2
- * @copyright 2010 onwards Eloy Lafuente (stronk7) {@link http://stronk7.com}
+ * Provides the restore activity task class
+ *
+ * @package   mod_contester
+ * @category  backup
+ * @copyright 2015 Your Name <your@email.adress>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 defined('MOODLE_INTERNAL') || die();
+
 require_once($CFG->dirroot . '/mod/contester/backup/moodle2/restore_contester_stepslib.php'); // Because it exists (must)
+
 /**
- * contester restore task that provides all the settings and steps to perform one
- * complete restore of the activity
+ * Restore task for the contester activity module
+ *
+ * Provides all the settings and steps to perform complete restore of the activity.
+ *
+ * @package   mod_contester
+ * @category  backup
+ * @copyright 2015 Your Name <your@email.adress>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class restore_contester_activity_task extends restore_activity_task {
+
     /**
      * Define (add) particular settings this activity can have
      */
     protected function define_my_settings() {
-        // No particular settings for this activity
+
+        // No particular settings for this activity.
     }
+
     /**
      * Define (add) particular steps this activity can have
      */
     protected function define_my_steps() {
-        // contester only has one structure step
+
+        // We have just one structure step here.
         $this->add_step(new restore_contester_activity_structure_step('contester_structure', 'contester.xml'));
     }
+
     /**
      * Define the contents in the activity that must be
      * processed by the link decoder
      */
     static public function define_decode_contents() {
         $contents = array();
+
         $contents[] = new restore_decode_content('contester', array('intro'), 'contester');
+
         return $contents;
     }
+
     /**
      * Define the decoding rules for links belonging
      * to the activity to be executed by the link decoder
      */
     static public function define_decode_rules() {
         $rules = array();
+
         $rules[] = new restore_decode_rule('CONTESTERVIEWBYID', '/mod/contester/view.php?id=$1', 'course_module');
         $rules[] = new restore_decode_rule('CONTESTERINDEX', '/mod/contester/index.php?id=$1', 'course');
+
         return $rules;
+
     }
+
     /**
      * Define the restore log rules that will be applied
      * by the {@link restore_logs_processor} when restoring
@@ -74,6 +98,7 @@ class restore_contester_activity_task extends restore_activity_task {
         $rules[] = new restore_log_rule('contester', 'report', 'report.php?id={course_module}', '{contester}');
         return $rules;
     }
+
     /**
      * Define the restore log rules that will be applied
      * by the {@link restore_logs_processor} when restoring
@@ -86,10 +111,9 @@ class restore_contester_activity_task extends restore_activity_task {
      */
     static public function define_restore_log_rules_for_course() {
         $rules = array();
-        // Fix old wrong uses (missing extension)
-        $rules[] = new restore_log_rule('contester', 'view all', 'index?id={course}', null,
-                                        null, null, 'index.php?id={course}');
+
         $rules[] = new restore_log_rule('contester', 'view all', 'index.php?id={course}', null);
+
         return $rules;
     }
 }

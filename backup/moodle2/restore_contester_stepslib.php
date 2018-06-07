@@ -13,20 +13,33 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-/**
- * @package    mod_contester
- * @subpackage backup-moodle2
- * @copyright 2010 onwards Eloy Lafuente (stronk7) {@link http://stronk7.com}
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+
 /**
  * Define all the restore steps that will be used by the restore_contester_activity_task
+ *
+ * @package   mod_contester
+ * @category  backup
+ * @copyright 2015 Your Name <your@email.adress>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 /**
  * Structure step to restore one contester activity
+ *
+ * @package   mod_contester
+ * @category  backup
+ * @copyright 2015 Your Name <your@email.adress>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class restore_contester_activity_structure_step extends restore_activity_structure_step {
+
+    /**
+     * Defines structure of path elements to be processed during the restore
+     *
+     * @return array of {@link restore_path_element}
+     */
     protected function define_structure() {
+
         $paths = array();
         $userinfo = $this->get_setting_value('userinfo');
         $paths[] = new restore_path_element('contester', '/activity/contester');
@@ -34,22 +47,39 @@ class restore_contester_activity_structure_step extends restore_activity_structu
         if ($userinfo) {
             $paths[] = new restore_path_element('contester_answer', '/activity/contester/answers/answer');
         }
-        // Return the paths wrapped into standard activity structure
+
+        // Return the paths wrapped into standard activity structure.
         return $this->prepare_activity_structure($paths);
     }
+
+    /**
+     * Process the given restore path element data
+     *
+     * @param array $data parsed element data
+     */
     protected function process_contester($data) {
         global $DB;
+
         $data = (object)$data;
         $oldid = $data->id;
         $data->course = $this->get_courseid();
         $data->timeopen = $this->apply_date_offset($data->timeopen);
         $data->timeclose = $this->apply_date_offset($data->timeclose);
         $data->timemodified = $this->apply_date_offset($data->timemodified);
-        // insert the contester record
+      
+        if (empty($data->timecreated)) {
+            $data->timecreated = time();
+        }
+
+        if (empty($data->timemodified)) {
+            $data->timemodified = time();
+        }
+
+        // Create the contester instance.
         $newitemid = $DB->insert_record('contester', $data);
-        // immediately after inserting "activity" record, call this
         $this->apply_activity_instance($newitemid);
     }
+
     protected function process_contester_option($data) {
         global $DB;
         $data = (object)$data;
@@ -59,6 +89,7 @@ class restore_contester_activity_structure_step extends restore_activity_structu
         $newitemid = $DB->insert_record('contester_options', $data);
         $this->set_mapping('contester_option', $oldid, $newitemid);
     }
+  
     protected function process_contester_answer($data) {
         global $DB;
         $data = (object)$data;
@@ -70,8 +101,12 @@ class restore_contester_activity_structure_step extends restore_activity_structu
         // No need to save this mapping as far as nothing depend on it
         // (child paths, file areas nor links decoder)
     }
+  
+    /**
+     * Post-execution actions
+     */
     protected function after_execute() {
-        // Add contester related files, no need to match by itemname (just internally handled context)
+        // Add contester related files, no need to match by itemname (just internally handled context).
         $this->add_related_files('mod_contester', 'intro', null);
     }
 }

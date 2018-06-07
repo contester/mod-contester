@@ -27,5 +27,5 @@
 	$text = file_get_contents($temp_name);
 	$dbid = required_param('dbid', PARAM_INT);
 	contester_parse_task($text, $dbid);
-	echo 'Все пучком';
+	echo "<a href=\"upload_problem_form.php\">".get_string("uploadanothertask", 'contester')."</a><br>";
 ?>
