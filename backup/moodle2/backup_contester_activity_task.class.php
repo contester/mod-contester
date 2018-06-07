@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+
 /**
  * Defines backup_contester_activity_task class
  *
@@ -26,7 +27,8 @@
 defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->dirroot . '/mod/contester/backup/moodle2/backup_contester_stepslib.php');
-
+require_once($CFG->dirroot . '/mod/contester/backup/moodle2/backup_contester_settingslib.php');
+  
 /**
  * Provides the steps to perform one complete backup of the contester instance
  *
@@ -63,11 +65,11 @@ class backup_contester_activity_task extends backup_activity_task {
 
         // Link to the list of contesters.
         $search = '/('.$base.'\/mod\/contester\/index.php\?id\=)([0-9]+)/';
-        $content = preg_replace($search, '$@contesterINDEX*$2@$', $content);
+        $content = preg_replace($search, '$@CONTESTERINDEX*$2@$', $content);
 
         // Link to contester view by moduleid.
         $search = '/('.$base.'\/mod\/contester\/view.php\?id\=)([0-9]+)/';
-        $content = preg_replace($search, '$@contesterVIEWBYID*$2@$', $content);
+        $content = preg_replace($search, '$@CONTESTERVIEWBYID*$2@$', $content);
 
         return $content;
     }

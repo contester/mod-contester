@@ -64,9 +64,10 @@
 	$submit->contester = $contester->id;
 	$submit->student = $USER->id;
 	$submit->problem = required_param("problem", PARAM_INT); 
-	if ($submit->problem == -1) print_error(get_string("shudchuzprob", 'contester'), "submit_form.php?a=$contester->id");
+	$return = $CFG->wwwroot.'/mod/contester/submit_form.php?a='.$contester->id;
+	if ($submit->problem == -1) print_error(get_string("shudchuzprob", 'contester'), "", $return);
 	$submit->lang = $_POST["lang"];
-	if ($submit->lang == -1) print_error(get_string("shudchuzlang", 'contester'), "submit_form.php?a=$contester->id");
+	if ($submit->lang == -1) print_error(get_string("shudchuzlang", 'contester'), "", $return);
 	//$submit->solution = required_param("code");
 	$submit->solution = trim($_POST['code']);
     if ($submit->solution == "")
@@ -74,7 +75,7 @@
     	$temp_name = $_FILES["solution"]["tmp_name"];
     	if (!is_uploaded_file($temp_name))
     	{
-    		print_error(get_string("shudchuzcode", 'contester'), "submit_form.php?a=$contester->id");
+    		print_error(get_string("shudchuzcode", 'contester'), "", $return);
     	}
     	else
     	{
@@ -106,7 +107,7 @@
     $DB->insert_record("contester_submits", $submit);
     print_string("successsubmit", "contester");
     
-    echo "<br><a href=\"status.php?id=$id&a=$a\">".get_string("status", 'contester')."</a><br>";
+    echo "<br><a href=\"my_solutions.php?id=$id&a=$a\">".get_string("mysolutions", 'contester')."</a><br>";
 
 
 /// Finish the page

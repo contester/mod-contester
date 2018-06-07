@@ -87,7 +87,7 @@
 	$grps = array();
 	foreach($groups as $group)
 	{
-		$gr = null;
+		$gr = new stdClass();
 		$gr->name = $DB->get_field('groups', 'name', array('id'=>$group->id));
 		$gr->id = $group->id;
 		$grps []= $gr;

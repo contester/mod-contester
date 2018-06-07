@@ -47,17 +47,41 @@ class backup_contester_activity_structure_step extends backup_activity_structure
 
         // Define the root element describing the contester instance.
         $contester = new backup_nested_element('contester', array('id'), array(
-            'name', 'intro', 'introformat', 'grade'));
+            'name', 'intro', 'introformat', 'publish',
+            'showresults', 'display', 'allowupdate', 'showunanswered',
+            'limitanswers', 'timeopen', 'timeclose', 'timemodified',
+            'completionsubmit', 'showpreview', 'includeinactive'));
 
         // If we had more elements, we would build the tree here.
+      
+        //$options = new backup_nested_element('options');
+        //$option = new backup_nested_element('option', array('id'), array(
+        //    'text', 'maxanswers', 'timemodified'));
+        //$answers = new backup_nested_element('answers');
+        //$answer = new backup_nested_element('answer', array('id'), array(
+        //    'userid', 'optionid', 'timemodified'));
+        // Build the tree
+        //$contester->add_child($options);
+        //$options->add_child($option);
+        //$contester->add_child($answers);
+        //$answers->add_child($answer);
 
         // Define data sources.
         $contester->set_source_table('contester', array('id' => backup::VAR_ACTIVITYID));
+            
+        //$option->set_source_table('contester_options', array('contesterid' => backup::VAR_PARENTID), 'id ASC');
+        // All the rest of elements only happen if we are including user info
+        //if ($userinfo) {
+        //    $answer->set_source_table('contester_answers', array('contesterid' => '../../id'));
+        //}
+        
+        // Define id annotations
+        //$answer->annotate_ids('user', 'userid');             
 
         // If we were referring to other tables, we would annotate the relation
         // with the element's annotate_ids() method.
 
-        // Define file annotations (we do not use itemid in this example).
+        // Define file annotations (we do not use itemid).
         $contester->annotate_files('mod_contester', 'intro', null);
 
         // Return the root element (contester), wrapped into standard activity structure.

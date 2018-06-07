@@ -41,7 +41,12 @@ class restore_contester_activity_structure_step extends restore_activity_structu
     protected function define_structure() {
 
         $paths = array();
+        $userinfo = $this->get_setting_value('userinfo');
         $paths[] = new restore_path_element('contester', '/activity/contester');
+        $paths[] = new restore_path_element('contester_option', '/activity/contester/options/option');
+        if ($userinfo) {
+            $paths[] = new restore_path_element('contester_answer', '/activity/contester/answers/answer');
+        }
 
         // Return the paths wrapped into standard activity structure.
         return $this->prepare_activity_structure($paths);
@@ -58,7 +63,10 @@ class restore_contester_activity_structure_step extends restore_activity_structu
         $data = (object)$data;
         $oldid = $data->id;
         $data->course = $this->get_courseid();
-
+        $data->timeopen = $this->apply_date_offset($data->timeopen);
+        $data->timeclose = $this->apply_date_offset($data->timeclose);
+        $data->timemodified = $this->apply_date_offset($data->timemodified);
+      
         if (empty($data->timecreated)) {
             $data->timecreated = time();
         }
@@ -67,16 +75,33 @@ class restore_contester_activity_structure_step extends restore_activity_structu
             $data->timemodified = time();
         }
 
-        if ($data->grade < 0) {
-            // Scale found, get mapping.
-            $data->grade = -($this->get_mappingid('scale', abs($data->grade)));
-        }
-
         // Create the contester instance.
         $newitemid = $DB->insert_record('contester', $data);
         $this->apply_activity_instance($newitemid);
     }
 
+    protected function process_contester_option($data) {
+        global $DB;
+        $data = (object)$data;
+        $oldid = $data->id;
+        $data->contesterid = $this->get_new_parentid('contester');
+        $data->timemodified = $this->apply_date_offset($data->timemodified);
+        $newitemid = $DB->insert_record('contester_options', $data);
+        $this->set_mapping('contester_option', $oldid, $newitemid);
+    }
+  
+    protected function process_contester_answer($data) {
+        global $DB;
+        $data = (object)$data;
+        $data->contesterid = $this->get_new_parentid('contester');
+        $data->optionid = $this->get_mappingid('contester_option', $data->optionid);
+        $data->userid = $this->get_mappingid('user', $data->userid);
+        $data->timemodified = $this->apply_date_offset($data->timemodified);
+        $newitemid = $DB->insert_record('contester_answers', $data);
+        // No need to save this mapping as far as nothing depend on it
+        // (child paths, file areas nor links decoder)
+    }
+  
     /**
      * Post-execution actions
      */

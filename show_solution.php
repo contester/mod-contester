@@ -46,7 +46,7 @@
     $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
     $is_admin = has_capability('moodle/site:config', $context);
     //echo "#".$is_teacher;
-    if ((!$is_admin) && (!$is_teacher) && (!get_field('contester', 'freeview', 'id', $contester->id))) {
+    if ((!$is_admin) && (!$is_teacher) && (!$DB->get_field('contester', 'freeview', array('id' => $contester->id)))) {
     	//echo "botva";
         if (!$userid)
         {
@@ -56,7 +56,7 @@
         	}
         	$userid = $USER->id;
     	}
-    	$user = get_field_sql("SELECT user.id FROM mdl_user as user, mdl_contester_submits as submits
+    	$user = $DB->get_field_sql("SELECT user.id FROM mdl_user as user, mdl_contester_submits as submits
     	WHERE submits.id=$sid AND user.id=submits.student");
     	if ($userid != $user) print_error('accessdenied', 'contester');
     }

@@ -81,7 +81,7 @@
 	$context = context_module::instance($cm->id);
     $is_admin = has_capability('moodle/site:config', $context);
 	
-	if ($is_admin || get_field('contester', 'freeview', 'id', $contester->id)) $size = 
+	if ($is_admin || $DB->get_field('contester', 'freeview', array('id' => $contester->id))) $size = 
 	"concat('<a href=show_solution.php?a=$contester->id&sid=', CAST(submits.id AS CHAR), '>', CAST($size AS CHAR), '</a>')";
 	
 	$realpid = $DB->get_record('contester_problemmap', array('id' => $pid));
@@ -110,7 +110,7 @@
 		$length = $DB->get_record_sql("SELECT CHAR_LENGTH(solution) as len from mdl_contester_submits
 		WHERE id=?", array($solution->id));
 		$len = $length->len;
-		if ($is_admin || $DB->get_field('contester', 'freeview', 'id', $contester->id)) 
+		if ($is_admin || $DB->get_field('contester', 'freeview', array('id' => $contester->id))) 
 			$len = "<a href=show_solution.php?a=$contester->id&sid={$solution->id}>".$len."</a>";
 		$row[]= $len;
 		$table->data []= $row;
