@@ -82,7 +82,9 @@ function mutate($s)
     $PAGE->set_url('/mod/contester/problem.php', array('a' => $a, 'pid' => $id));
     $PAGE->set_title("$course->shortname: $contester->name");
     $PAGE->set_heading("$course->fullname");
-    $PAGE->navbar->add("$contester->name");
+
+    $contester_url = new moodle_url('/mod/contester/view.php', array('id' => $id));
+    $PAGE->navbar->add("$contester->name", $contester_url);
     $PAGE->set_focuscontrol("");
     $PAGE->set_cacheable(true);
     $PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));
@@ -106,10 +108,19 @@ function mutate($s)
 		    AND	   mdl_contester_problemmap.id=?", array($pid))) 
 		    	print_error('No such problem!');
 	
-	$text = "<div id=problemname>".$problem->name."</div><div id=description>".$problem->description.
-	"</div><div id=textheader>".get_string('inputformat', 'contester')."</div><div id=inoutformat>".$problem->input.
-	"</div><div id=textheader>".get_string('outputformat', 'contester')."</div><div id=inoutformat>".$problem->output.
-	"</div>";
+	$text = "<div id=problemname>".$problem->name."</div>";
+	echo format_text($text);
+	$text =	"<div id=description>".$problem->description."</div>";
+	echo format_text($text);
+	$text =	"<div id=textheader>".get_string('inputformat', 'contester')."</div>";
+	echo format_text($text);
+	$text =	"<div id=inoutformat>".$problem->input."</div>";
+	echo format_text($text);
+	$text = "<div id=textheader>".get_string('outputformat', 'contester')."</div>";
+	echo format_text($text);
+        $text = "<div id=inoutformat>".$problem->output."</div>";
+	echo format_text($text);
+
 	/*$text = str_replace("\n", "<br />", $text);
 	//$text = iconv("CP-1251", "UTF-8", $text);
 	$text = preg_replace('/<[bB][rR]>(\n<[bB][rR]>|й|ц|у|к|е|н|г|ш|щ|з|х|ъ|ф|ы|в|а|п|р|о|л|д|ж|э|я|ч|с|м|и|т|ь|б|ю|ё{1})/' ,'\1',$text);
@@ -129,7 +140,7 @@ function mutate($s)
 	/*
 	echo $text;*/
 
-	echo format_text($text);
+	
 	// дальше сэмплы выводятся
 	$sql = "select samples.input as input, samples.output as output
 	from mdl_contester_samples samples
