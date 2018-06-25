@@ -81,6 +81,7 @@
     $PAGE->set_url('/mod/contester/view.php', array('id' => $cm->id));
     $PAGE->set_title(format_string($contester->name));
     $PAGE->set_heading(format_string($course->fullname));
+    $PAGE->navbar->add("$contester->name");
     $PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));
 
     /*
@@ -103,11 +104,7 @@
 	echo "<br><br>";
 	//echo $contester->description;
 	echo "Входные данные должны считываться из файла <b>input.txt</b><br>
-		Выходные данные выводятся в файл <b>output.txt</b><br>
-		Для передачи на тестирование программа должна иметь вид текстового файла.<br><br>
-		Будьте внимательны при отправке задания на тестирование, проверьте номер задачи и язык программирования.<br>
-		Чтобы посмотреть результаты тестирования, нажмите ссылку <b>Статус</b>.<br>
-		Тестирования Вашего решения может занять некоторое время. Тестирование закончено, когда Вам сообщат сколько тестов пройдено.<br>";
+		Выходные данные выводятся в файл <b>output.txt</b><br>";
 
 	echo "<br><br>";
 	contester_print_begin($contester->id);
