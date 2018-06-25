@@ -42,7 +42,7 @@
 	//add_to_log($course->id, "contester", "show_solution", "show_solution.php?a=$contester->id&sid=$sid", "$contester->id");	
 	//echo "botva";
 	//$context = get_context_instance(CONTEXT_MODULE, $cm->id);
-	$context = context_module::instance($cm->id);
+    $context = context_module::instance($cm->id);
     $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
     $is_admin = has_capability('moodle/site:config', $context);
     //echo "#".$is_teacher;
@@ -79,7 +79,9 @@
     $PAGE->set_url('/mod/contester/show_solution.php', array('a' => $a, 'sid' => $id));
     $PAGE->set_title("$course->shortname: $contester->name");
     $PAGE->set_heading("$course->fullname");
-    $PAGE->navbar->add("$contester->name");
+    
+    $contester_url = new moodle_url('/mod/contester/view.php', array('a' => $a));
+    $PAGE->navbar->add("$contester->name", $contester_url);  
     $PAGE->set_focuscontrol("");
     $PAGE->set_cacheable(true);
     $PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));

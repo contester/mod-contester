@@ -75,18 +75,21 @@
                   navmenu($course, $cm)); */
 	//Start new code
 	
-	$PAGE->set_url('/mod/contester/submit_form.php', array('id' => $cm->id));
-	$PAGE->set_title(format_string($contester->name));
-	$PAGE->set_heading(format_string($course->fullname));
-	$PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));
+    $PAGE->set_url('/mod/contester/submit_form.php', array('id' => $cm->id));
+    $PAGE->set_title(format_string($contester->name));
+    $PAGE->set_heading(format_string($course->fullname));
+
+    $contester_url = new moodle_url('/mod/contester/view.php', array('a' => $a));
+    $PAGE->navbar->add("$contester->name", $contester_url); 
+    $PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));
 
 	//End new code
 	
 /// Print the main part of the page
 	
-	echo $OUTPUT->header();
+    echo $OUTPUT->header();
 
-	contester_print_begin($contester->id);
+    contester_print_begin($contester->id);
 
     echo "<form enctype=\"multipart/form-data\" method=\"post\" action=\"submit.php?a={$contester->id}\">";
 	echo '<table cellpadding="5"><tbody>';

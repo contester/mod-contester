@@ -52,24 +52,27 @@
                   "", "", true, update_module_button($cm->id, $course->id, $strcontester),
                   navmenu($course, $cm)); */	
 				  
-	$PAGE->set_url('/mod/contester/submit.php', array('id' => $cm->id));
-	$PAGE->set_title(format_string($contester->name));
-	$PAGE->set_heading(format_string($course->fullname));
+    $PAGE->set_url('/mod/contester/submit.php', array('id' => $cm->id));
+    $PAGE->set_title(format_string($contester->name));
+    $PAGE->set_heading(format_string($course->fullname));
+
+    $contester_url = new moodle_url('/mod/contester/view.php', array('a' => $a));
+    $PAGE->navbar->add("$contester->name", $contester_url);
 
 /// Print the main part of the page
-	echo $OUTPUT->header();
-	contester_print_begin($contester->id);
+    echo $OUTPUT->header();
+    contester_print_begin($contester->id);
 
-	$submit = new stdClass();
-	$submit->contester = $contester->id;
-	$submit->student = $USER->id;
-	$submit->problem = required_param("problem", PARAM_INT); 
-	$return = $CFG->wwwroot.'/mod/contester/submit_form.php?a='.$contester->id;
-	if ($submit->problem == -1) print_error(get_string("shudchuzprob", 'contester'), "", $return);
-	$submit->lang = $_POST["lang"];
-	if ($submit->lang == -1) print_error(get_string("shudchuzlang", 'contester'), "", $return);
-	//$submit->solution = required_param("code");
-	$submit->solution = trim($_POST['code']);
+    $submit = new stdClass();
+    $submit->contester = $contester->id;
+    $submit->student = $USER->id;
+    $submit->problem = required_param("problem", PARAM_INT); 
+    $return = $CFG->wwwroot.'/mod/contester/submit_form.php?a='.$contester->id;
+    if ($submit->problem == -1) print_error(get_string("shudchuzprob", 'contester'), "", $return);
+    $submit->lang = $_POST["lang"];
+    if ($submit->lang == -1) print_error(get_string("shudchuzlang", 'contester'), "", $return);
+    //$submit->solution = required_param("code");
+    $submit->solution = trim($_POST['code']);
     if ($submit->solution == "")
     {
     	$temp_name = $_FILES["solution"]["tmp_name"];
@@ -83,7 +86,7 @@
     	}
     }
     
-	$context = context_module::instance($cm->id);
+    $context = context_module::instance($cm->id);
     $is_admin = has_capability('moodle/site:config', $context);    
 
     if ($is_admin)
@@ -113,6 +116,6 @@
 /// Finish the page
     contester_print_end();
 //    print_footer($course);
-	echo $OUTPUT->footer();
+    echo $OUTPUT->footer();
 
 ?>

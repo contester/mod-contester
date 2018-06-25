@@ -1867,8 +1867,7 @@ function contester_show_nav_bar($instance) {
 
 	echo "<nobr><a href=view.php?a=$instance>".get_string('problemlist','contester')."</a></nobr><br>";
 	echo "<nobr><a href=submit_form.php?a=$instance>".get_string('submit','contester')."</a></nobr><br>";
-	if ($is_admin)
-	    echo "<nobr><a href=status.php?a=$instance>".get_string('status', 'contester')."</a></nobr><br>";
+	
 	
 	//Start new code
 	if ($DB->get_field('contester', 'viewown', array('id'=>$instance))) echo "<nobr><a href=my_solutions.php?a=$instance>".get_string('mysolutions', 'contester')."</a></nobr><br>";

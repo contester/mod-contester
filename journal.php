@@ -66,9 +66,11 @@
                   navmenu($course, $cm));
 	*/
 	
-	$PAGE->set_url('/mod/contester/journal.php', array('id' => $cm->id));
-	$PAGE->set_title(format_string($contester->name));
-	$PAGE->set_heading(format_string($course->fullname));
+    $PAGE->set_url('/mod/contester/journal.php', array('id' => $cm->id));
+    $PAGE->set_title(format_string($contester->name));
+    $PAGE->set_heading(format_string($course->fullname));
+    $contester_url = new moodle_url('/mod/contester/view.php', array('a' => $a));
+    $PAGE->navbar->add("$contester->name", $contester_url);  
 	
 /// Print the main part of the page
 	echo $OUTPUT->header();
