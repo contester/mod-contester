@@ -66,10 +66,21 @@
     $PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));	
 
 /// Print the main part of the page
-	echo $OUTPUT->header();
-	contester_print_begin($contester->id);
-	// header
-	echo "<br />";
+
+    echo $OUTPUT->header();
+    contester_print_begin($contester->id);
+    // header
+    echo "<br />";
+
+    // print the number of solutions in queue
+    $qnum = $DB->get_record_sql("SELECT  COUNT(1) as cnt
+                                 FROM    mdl_contester_submits
+                                 WHERE   ((processed is NULL) or (processed = 1))");
+    $cnum = $DB->get_record_sql("SELECT  COUNT(1) as cnt
+                                 FROM    mdl_contester_submits
+                                 WHERE   (processed = 255)");
+    echo "<p>".get_string("numinqueue", "contester").": ".$qnum->cnt.
+          " (".get_string("numchecked", "contester")." ". $cnum->cnt.")</p>";
 
 	$thisc = get_string('thiscontester', 'contester');
 	$allc = get_string('all', 'contester');
