@@ -80,7 +80,10 @@
                                  FROM    mdl_contester_submits
                                  WHERE   (processed = 255)");
     echo "<p>".get_string("numinqueue", "contester").": ".$qnum->cnt.
-          " (".get_string("numchecked", "contester")." ". $cnum->cnt.")</p>";
+          " (".get_string("numchecked", "contester")." ". $cnum->cnt.")";
+    if ($is_admin)
+        echo "<a href=status.php?a=$instance>".get_string('status', 'contester')."</a>";
+    echo "</p>";
 
 	$thisc = get_string('thiscontester', 'contester');
 	$allc = get_string('all', 'contester');
