@@ -1850,7 +1850,7 @@ function contester_show_problem_tags_to_add($pid)
 * @param int $instance instance of the contester
 */
 function contester_show_nav_bar($instance) {
-	global $DB;
+    global $DB;
     if (! $contester = $DB->get_record('contester', array('id'=>$instance))) {
     	print_error("Course module is incorrect");
     }
@@ -1861,7 +1861,7 @@ function contester_show_nav_bar($instance) {
     	print_error("Course Module ID was incorrect");
     }
 
-	$context = context_module::instance($cm->id);
+    $context = context_module::instance($cm->id);
     $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
     $is_admin = has_capability('moodle/site:config', $context);
 
@@ -1884,8 +1884,14 @@ function contester_show_nav_bar($instance) {
 *
 * @param int $instance -instance of the contester
 */
-function contester_print_begin($instance) {
-	echo "<table width=95% height=95%><tr><td valign=top>";
+function contester_print_begin($instance, $contester_name = "") {	
+	$common_info = "Входные данные должны считываться из файла <b>input.txt</b><br>
+                        Выходные данные выводятся в файл <b>output.txt</b>";
+	echo "<table width=95% height=95%>
+	          <tr><td colspan="2" align=center>
+	              <div id=textheader>".$contester_name."</div>
+	              <div>".$common_info."</div></td></tr>
+	          <tr><td valign=top>";
 	contester_show_nav_bar($instance);
 	echo "</td><td align=center>";
 }
