@@ -110,15 +110,15 @@ function mutate($s)
 	
 	$text = "<div id=problemname>".$problem->name."</div>";
 	echo $text;
-	$text =	"<div id=description>".$problem->description."</div>";
+	$text =	"<div>".$problem->description."</div>";
 	echo format_text($text);
-	$text =	"<div id=textheader>".get_string('inputformat', 'contester')."</div>";
+	$text =	"<div class=textheader>".get_string('inputformat', 'contester')."</div>";
 	echo $text;
-	$text =	"<div id=inoutformat>".$problem->input."</div>";
+	$text =	"<div>".$problem->input."</div>";
 	echo format_text($text);
-	$text = "<div id=textheader>".get_string('outputformat', 'contester')."</div>";
+	$text = "<div class=textheader>".get_string('outputformat', 'contester')."</div>";
 	echo $text;
-        $text = "<div id=inoutformat>".$problem->output."</div>";
+        $text = "<div>".$problem->output."</div>";
 	echo format_text($text);
 
 	/*$text = str_replace("\n", "<br />", $text);
@@ -148,13 +148,13 @@ function mutate($s)
 	//error($sql);
 
 	$text = "";
-	$text .= "<div id=textheader>".get_string('samples', 'contester')."</div>";
+	$text .= "<div class=textheader>".get_string('samples', 'contester')."</div>";
 	$samples = $DB->get_recordset_sql($sql, array($problem->id));
 	foreach($samples as $sample)
 	{
-		$text .= "<div id=sample>".get_string('input', 'contester')."</div>
-		<div id=code align=left><pre>".$sample->input."</pre></div>"."<div id=sample>".
-		get_string('output', 'contester')."</div><div id=code align=left><pre>".$sample->output."</pre></div>";
+		$text .= "<div>".get_string('input', 'contester')."</div>
+		<div align=left><pre>".$sample->input."</pre></div>"."<div>".
+		get_string('output', 'contester')."</div><div align=left><pre>".$sample->output."</pre></div>";
 	}
 	echo $text;//format_text($text); в <pre></pre> после формата в хроме лишние переводы строк и в IE выглядит как 1,5 интервал
 
@@ -163,7 +163,7 @@ function mutate($s)
 
 
 /// Finish the page
-	contester_print_end();
+    contester_print_end();
     //print_footer($course);
     echo $OUTPUT->footer();
 
