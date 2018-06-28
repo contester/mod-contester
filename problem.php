@@ -93,9 +93,12 @@ function mutate($s)
 
 
 /// Print the main part of the page
-
-	contester_print_begin($contester->id);
-	echo "<table width = 70%><tr><td>";
+    $common_info = "Входные данные должны считываться из файла <b>input.txt</b><br>
+                    Выходные данные выводятся в файл <b>output.txt</b>";
+    echo "<div>".$common_info."</div>;
+    
+    contester_print_begin($contester->id);
+    echo "<table width = 70%><tr><td>";
 	
 	if (!$problem = $DB->get_record_sql("SELECT mdl_contester_problems.id as id,
 				   mdl_contester_problems.name as name,
