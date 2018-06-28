@@ -70,7 +70,9 @@
     $PAGE->set_url('/mod/contester/problem_details.php', array('a' => $a, 'pid' => $pid));
     $PAGE->set_title("$course->shortname: $contester->name");
     $PAGE->set_heading("$course->fullname");
-    $PAGE->navbar->add("$contester->name");
+
+    $contester_url = new moodle_url('/mod/contester/view.php', array('a' => $a));
+    $PAGE->navbar->add("$contester->name", $contester_url);
     $PAGE->set_focuscontrol("");
     $PAGE->set_cacheable(true);
     $PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));                  
