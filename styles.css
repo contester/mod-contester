@@ -4,7 +4,7 @@
 	font-weight : bold;
 	display : block;
 }
-#textheader{
+.textheader{
 	font-size: large;
 	text-align: left;
 	font-weight: bold;
