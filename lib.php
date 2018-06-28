@@ -1884,13 +1884,9 @@ function contester_show_nav_bar($instance) {
 *
 * @param int $instance -instance of the contester
 */
-function contester_print_begin($instance, $contester_name = "") {	
-	$common_info = "Входные данные должны считываться из файла <b>input.txt</b><br>
-                        Выходные данные выводятся в файл <b>output.txt</b>";
+function contester_print_begin($instance, $contester_name = "") {
 	echo "<table width=95% height=95%>
-	          <tr><td colspan="2" align=center>
-	              <div id=textheader>".$contester_name."</div>
-	              <div>".$common_info."</div></td></tr>
+	          <tr><td colspan="2" align=center><div id=textheader>".$contester_name."</div></td></tr>
 	          <tr><td valign=top>";
 	contester_show_nav_bar($instance);
 	echo "</td><td align=center>";
