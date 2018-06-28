@@ -98,16 +98,7 @@
         echo $OUTPUT->box(format_module_intro('contester', $contester, $cm->id), 'generalbox mod_introbox', 'contesterintro');
     }
 
-	// Replace the following lines with you own code.
-
-	//Start new code
-	echo "<br><br>";
-	//echo $contester->description;
-	echo "Входные данные должны считываться из файла <b>input.txt</b><br>
-		Выходные данные выводятся в файл <b>output.txt</b><br>";
-
-	echo "<br><br>";
-	contester_print_begin($contester->id);
+    contester_print_begin($contester->id, $contester->name);
     //$sql = "";
     $problem_list = $DB->get_recordset_sql('SELECT mdl_contester_problemmap.id as id, mdl_contester_problems.name as name from mdl_contester_problems, mdl_contester_problemmap
 			WHERE  mdl_contester_problemmap.problemid=mdl_contester_problems.id and
