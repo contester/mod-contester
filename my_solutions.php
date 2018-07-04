@@ -162,7 +162,8 @@
 	{
 		$tmpsubmitinfo = contester_get_special_submit_info($row->p4, false, false); //do not return problem name & language info
 		$table->data []= array($row->p1,$row->p2,$row->p3,$tmpsubmitinfo->status,
-			'<a href=show_solution.php?a='.$contester->id.'&sid='.$row->p4.'>'.$tmpsubmitinfo->points.'</a>',$row->p5);
+			'<a href=show_solution.php?a='.$contester->id.'&sid='.$row->p4.'>'.$tmpsubmitinfo->points.'</a>',
+				       '<a href=view.php?a='.$contester->id.'>'.$row->p5.'</a>');
 	}
 
 	//print_r($table->data);
