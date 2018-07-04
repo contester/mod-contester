@@ -112,17 +112,17 @@ function mutate($s)
 		    	print_error('No such problem!');
 	
 	$text = "<div id=problemname>".$problem->name."</div>";
-	echo $text;
+	echo $text + <br />;
 	$text =	"<div>".$problem->description."</div>";
-	echo format_text($text);
+	echo format_text($text) + <br />;
 	$text =	"<div class=textheader>".get_string('inputformat', 'contester')."</div>";
 	echo $text;
 	$text =	"<div>".$problem->input."</div>";
-	echo format_text($text);
+	echo format_text($text) + <br />;
 	$text = "<div class=textheader>".get_string('outputformat', 'contester')."</div>";
 	echo $text;
         $text = "<div>".$problem->output."</div>";
-	echo format_text($text);
+	echo format_text($text) + <br />;
 
 	/*$text = str_replace("\n", "<br />", $text);
 	//$text = iconv("CP-1251", "UTF-8", $text);
@@ -162,6 +162,12 @@ function mutate($s)
 	echo $text;//format_text($text); в <pre></pre> после формата в хроме лишние переводы строк и в IE выглядит как 1,5 интервал
 
 	echo "</td></tr></table>";
+
+        echo "<form enctype=\"multipart/form-data\" method=\"post\" action=\"submit_form.php?pid={$problem->id}&a={$contester->id}\">";
+        echo '<table cellpadding="5"><tbody>';
+        echo '<tr><td colspan="2" align="center"><input type="submit" value="'.get_string('submit', 'contester').'"></input></td></tr>';
+        echo '</tbody></table></form>';
+
 	echo "<a href='problem_solutions.php?a=$contester->id&pid=$pid'>".get_string("solutionlist", "contester")."</a>";
 
 
