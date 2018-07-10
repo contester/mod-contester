@@ -94,7 +94,7 @@
 
  	if ($is_admin) {
  		echo '<p>';
- 		contester_print_link_to_upload();
+ 		contester_print_link_to_upload($a);
  		echo '</p>';
  	}
  	
