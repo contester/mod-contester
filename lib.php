@@ -1519,32 +1519,46 @@ function contester_print_link_to_problem_tags_details($instance, $pid)
 	   		get_string('tagsdetails', 'contester')."</a>";
 }
 
-function contester_print_link_to_upload()
+function contester_print_link_to_upload($instance)
 {
-	echo "<a href=upload_problem_form.php>".get_string('uploadtask', 'contester')."</a>";
+    global $DB;
+    if (! $contester = $DB->get_record("contester", array("id" => $instance))) {
+        print_error("Course module is incorrect");
+    }
+    if (! $course = $DB->get_record("course", array("id" => $contester->course))) {
+        print_error("Course is misconfigured");
+    }
+    if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
+        print_error("Course Module ID was incorrect");
+    }
+
+    $context = context_module::instance($cm->id);    
+    $is_admin = has_capability('moodle/site:config', $context);
+    if ($is_admin)
+    {
+        echo "<p><a href=upload_problem_form.php?a=$instance>".get_string('uploadtask', 'contester')."</a></p>";
+    }
 }
 
 function contester_print_link_to_problems_preview($instance)
 {
-	global $DB;
-	if (! $contester = $DB->get_record("contester", array("id" => $instance))) {
-    	print_error("Course module is incorrect");
- 	}
+    global $DB;
+    if (! $contester = $DB->get_record("contester", array("id" => $instance))) {
+        print_error("Course module is incorrect");
+    }
     if (! $course = $DB->get_record("course", array("id" => $contester->course))) {
-    	print_error("Course is misconfigured");
+        print_error("Course is misconfigured");
     }
     if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
-    	print_error("Course Module ID was incorrect");
+        print_error("Course Module ID was incorrect");
     }
-	//$context = get_context_instance(CONTEXT_MODULE, $cm->id);
-	//$is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
-	$context = context_module::instance($cm->id);
+    //$context = get_context_instance(CONTEXT_MODULE, $cm->id);    
+    $context = context_module::instance($cm->id);
     $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
     $is_admin = has_capability('moodle/site:config', $context);
 
-//	echo "<p>is_teacher".$is_teacher."</p>";
-	if ($is_admin || $is_teacher)
-		echo "<p><a href=problems_preview.php?a=$instance>".get_string('problemspreview', 'contester')."</a></p>";
+    if ($is_admin || $is_teacher)
+        echo "<p><a href=problems_preview.php?a=$instance>".get_string('problemspreview', 'contester')."</a></p>";
 }
 
 /**
@@ -1865,18 +1879,16 @@ function contester_show_nav_bar($instance) {
     $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
     $is_admin = has_capability('moodle/site:config', $context);
 
-	echo "<nobr><a href=view.php?a=$instance>".get_string('problemlist','contester')."</a></nobr><br>";
-	echo "<nobr><a href=submit_form.php?a=$instance>".get_string('submit','contester')."</a></nobr><br>";
+    echo "<nobr><a href=view.php?a=$instance>".get_string('problemlist','contester')."</a></nobr><br>";
+    echo "<nobr><a href=submit_form.php?a=$instance>".get_string('submit','contester')."</a></nobr><br>";
+
+    if ($DB->get_field('contester', 'viewown', array('id'=>$instance))) 
+        echo "<nobr><a href=my_solutions.php?a=$instance>".get_string('mysolutions', 'contester')."</a></nobr><br>";
 	
+    echo "<nobr><a href=journal.php?a=$instance>".get_string('journal', 'contester')."</a></nobr><br>";
 	
-	//Start new code
-	if ($DB->get_field('contester', 'viewown', array('id'=>$instance))) echo "<nobr><a href=my_solutions.php?a=$instance>".get_string('mysolutions', 'contester')."</a></nobr><br>";
-	//End new code
-	
-	echo "<nobr><a href=journal.php?a=$instance>".get_string('journal', 'contester')."</a></nobr><br>";
-	
-	if ($is_admin || $is_teacher)
-		echo "<nobr><a href=problems_details.php?a=$instance>".get_string('contesterupdate', 'contester')."</a></nobr><br>";		
+    if ($is_admin || $is_teacher)
+        echo "<nobr><a href=problems_details.php?a=$instance>".get_string('contesterupdate', 'contester')."</a></nobr><br>";		
 }
 
 /**
