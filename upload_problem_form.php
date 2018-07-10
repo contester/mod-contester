@@ -53,7 +53,7 @@
 /// Print the main part of the page
 
     echo "
-	<form enctype=\"multipart/form-data\" method=\"post\" action=\"upload_problem.php\">".
+	<form enctype=\"multipart/form-data\" method=\"post\" action=\"upload_problem.php?a=".$a."\">".
 	get_string('dbid', 'contester')." <input type=text name='dbid' value=''><br/>".
 	get_string('defintoupload', 'contester')." <input type=\"file\" name=\"definition\"><br/><input type=\"submit\" value=\"".get_string('submit', 'contester')."\"></form>
 	";
