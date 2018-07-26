@@ -95,7 +95,7 @@ function mutate($s)
 /// Print the main part of the page
     $common_info = "Входные данные должны считываться из файла <b>input.txt</b><br>
                     Выходные данные выводятся в файл <b>output.txt</b>";
-    echo "<div>".$common_info."</div>;
+    echo "<div>".$common_info."</div>";
     
     contester_print_begin($contester->id);
     echo "<table width = 70%><tr><td>";
