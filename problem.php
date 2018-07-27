@@ -167,7 +167,7 @@ function mutate($s)
 
 	echo "</td></tr></table>";
 
-        echo "<form enctype=\"multipart/form-data\" method=\"post\" action=\"submit_form.php?pid={$problem->id}&a={$contester->id}\">";
+        echo "<form enctype=\"multipart/form-data\" method=\"post\" action=\"submit_form.php?pid={$pid}&a={$contester->id}\">";
         echo '<table cellpadding="5"><tbody>';
         echo '<tr><td colspan="2" align="center"><input type="submit" value="'.get_string('submit', 'contester').'"></input></td></tr>';
         echo '</tbody></table></form>';
