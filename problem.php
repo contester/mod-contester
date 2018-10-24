@@ -95,7 +95,7 @@ function mutate($s)
 /// Print the main part of the page
     $common_info = "Входные данные должны считываться из файла <b>input.txt</b><br>
                     Выходные данные выводятся в файл <b>output.txt</b>";
-    echo "<div>".$common_info."</div>;
+    echo "<div>".$common_info."</div>";
     
     contester_print_begin($contester->id);
     echo "<table width = 70%><tr><td>";
@@ -112,17 +112,21 @@ function mutate($s)
 		    	print_error('No such problem!');
 	
 	$text = "<div id=problemname>".$problem->name."</div>";
-	echo $text + <br />;
+	echo $text;
+	echo "<br />";
 	$text =	"<div>".$problem->description."</div>";
-	echo format_text($text) + <br />;
+	echo format_text($text);
+	echo "<br />";
 	$text =	"<div class=textheader>".get_string('inputformat', 'contester')."</div>";
 	echo $text;
 	$text =	"<div>".$problem->input."</div>";
-	echo format_text($text) + <br />;
+	echo format_text($text);
+	echo "<br />";
 	$text = "<div class=textheader>".get_string('outputformat', 'contester')."</div>";
 	echo $text;
         $text = "<div>".$problem->output."</div>";
-	echo format_text($text) + <br />;
+	echo format_text($text);
+	echo "<br />";
 
 	/*$text = str_replace("\n", "<br />", $text);
 	//$text = iconv("CP-1251", "UTF-8", $text);
@@ -163,7 +167,7 @@ function mutate($s)
 
 	echo "</td></tr></table>";
 
-        echo "<form enctype=\"multipart/form-data\" method=\"post\" action=\"submit_form.php?pid={$problem->id}&a={$contester->id}\">";
+        echo "<form enctype=\"multipart/form-data\" method=\"post\" action=\"submit_form.php?pid={$pid}&a={$contester->id}\">";
         echo '<table cellpadding="5"><tbody>';
         echo '<tr><td colspan="2" align="center"><input type="submit" value="'.get_string('submit', 'contester').'"></input></td></tr>';
         echo '</tbody></table></form>';
