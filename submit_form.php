@@ -36,6 +36,10 @@
 
     require_login($course->id);
 
+    $context = context_module::instance($cm->id);
+    $is_admin = has_capability('moodle/site:config', $context);
+    $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);  
+
     //add_to_log($course->id, "contester", "view", "view.php?id=$cm->id", "$contester->id");
 	
 	/*$event = \mod_contester\event\course_module_viewed::create(array(
@@ -137,19 +141,25 @@
 		echo "</select></td></tr>";
     }
 
+    if ($is_admin) {
+        $tmp_name = 'stdin/stdout';
+        echo '<tr><td align="right">'.$tmp_name.":</td>";
+        echo '<td><input type="checkbox" name="iomethod" value="0"</td></tr>';
+    }
+
     echo '<tr><td colspan="2" align="center">'.get_string('solution', 'contester').":</td>";
-    //echo "<td><input type=\"file\" name=\"solution\"></td></tr>";
+    // echo "<td><input type=\"file\" name=\"solution\"></td></tr>";
 
     echo '<tr><td colspan="2"><textarea rows="20" cols="60" id="code" name="code"
 		placeholder="'.get_string('solution', 'contester').'"></textarea></td><tr>';
 
     echo '<tr><td colspan="2" align="center"><input type="submit" value="'.get_string('submit', 'contester').'"></input></td></tr>';
 
-	echo '</tbody></table></form>';
+    echo '</tbody></table></form>';
 
 /// Finish the page
-	contester_print_end();
-    //print_footer($course); Olf
-	echo $OUTPUT->footer();
+    contester_print_end();
+    // print_footer($course); Olf
+    echo $OUTPUT->footer();
 
 ?>
