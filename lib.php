@@ -713,38 +713,36 @@ function contester_reset_userdata($data)
 function contester_get_submit($submitid)
 {
     global $DB;
+    
+    $submit = $DB->get_record("contester_submits", array("id" => $submitid));
+    $tmp = $DB->get_record_sql("SELECT    COUNT(1) as cnt
+                                  FROM    mdl_contester_submits
+                                  WHERE       (contester = {$submit->contester})
+                                          AND (student = {$submit->student})
+                                          AND (problem = {$submit->problem})
+                                          AND (submitted < '{$submit->submitted}')");
+    $attempts = 0 + $tmp->cnt;
 
-	$submit = $DB->get_record("contester_submits", array("id" => $submitid));
-	$tmp = $DB->get_record_sql("SELECT  COUNT(1) as cnt
-						   FROM    mdl_contester_submits
-						   WHERE   (contester = {$submit->contester})
-						   AND     (student = {$submit->student})
-						   AND     (problem = {$submit->problem})
-						   AND     (submitted < '{$submit->submitted}')");
-	$attempts = 0 + $tmp->cnt;
+    $result = $DB->get_record_sql("SELECT      *
+                                      FROM      mdl_contester_testings
+                                     WHERE     (submitid = {$submitid})
+                                  ORDER BY     id
+                                      DESC
+                                     LIMIT     1");
 
-	$result = $DB->get_records_sql("SELECT    *
-							  FROM      mdl_contester_testings
-							  WHERE     (submitid = {$submitid})
-							  ORDER BY  id
-							  DESC");
-
-	$fields = array("compiled", "taken", "passed");
-	foreach($result as $res)
-	{
-    	foreach($fields as $field)
-    	{
-    		$submit->$field = $res->$field;
-    	}
+    $fields = array("compiled", "taken", "passed");
+    foreach($fields as $field)
+    {
+        $submit->$field = $result->$field;    	
     }
 
-	if ($submit->compiled && $submit->taken)
-		$submit->points = contester_get_rounded_points($attempts, $submit->passed, $submit->taken);
-	else
-		$submit->points = 0;
-	$submit->attempt = $attempts + 1;
+    if ($submit->compiled && $submit->taken)
+        $submit->points = contester_get_rounded_points($attempts, $submit->passed, $submit->taken);
+    else
+        $submit->points = 0;
+    $submit->attempt = $attempts + 1;
 
-	return $submit;
+    return $submit;
 }
 
 /**
