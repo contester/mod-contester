@@ -11,15 +11,15 @@
     $group_value  = optional_param('group', -1, PARAM_INT);
     $MIN_year = 2000;
     $MAX_year = date('Y');
-	$year_from_value  = optional_param('year_from', 2015, PARAM_INT);
-	$month_from_value  = optional_param('month_from', 1, PARAM_INT);
+	$year_from_value  = optional_param('year_from', date('Y') - 1, PARAM_INT);
+	$month_from_value  = optional_param('month_from', 9, PARAM_INT);
 	$day_from_value  = optional_param('day_from', 1, PARAM_INT);
 	$time_from_value  = optional_param('time_from', '00:00:00', PARAM_TEXT);
 
 	$year_to_value  = optional_param('year_to', -1, PARAM_INT);
-	$month_to_value  = optional_param('month_to', -1, PARAM_INT);
+	$month_to_value  = optional_param('month_to', 9, PARAM_INT);
 	$day_to_value  = optional_param('day_to', -1, PARAM_INT);
-	$time_to_value  = optional_param('time_to', -1, PARAM_TEXT);
+	$time_to_value  = optional_param('time_to', '23:59:59', PARAM_TEXT);
 
 
 	if ($id) {
