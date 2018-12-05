@@ -280,12 +280,7 @@
 			{
 				$tmp = contester_get_result_without_reference($contester->id, $st->id, $pr->id, $datefrom, $dateto);
 			}
-            if ($is_admin)
-            {
-                echo "<td>".$tmp.$st->id." ".$userid."</td>";
-            }
-            else
-			    echo "<td>".$tmp."</td>";
+            echo "<td>".$tmp."</td>";
 			if (strpos($tmp, '+') !== FALSE) ++$cnt;
 		}
 		echo "<td>$cnt</td>";
