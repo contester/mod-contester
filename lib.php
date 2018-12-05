@@ -196,7 +196,7 @@ function contester_user_outline($course, $user, $mod, $contester) {
 //Start new code
 global $DB;
 	unset($return);
-	$submits = contester_get_last_submits($contester->id, 65536, $user->id);
+	$submits = contester_get_last_submits($contester->id, -1, $user->id);
 	if ($submits && count($submits) > 0)
 	{
 		$submit = $submits[0];
@@ -229,7 +229,7 @@ function contester_user_complete($course, $user, $mod, $contester) {
 //Start new code	
 	global $DB;
 	unset($submits);
-	$submits = contester_get_last_submits($contester->id, 65536, $user->id);
+	$submits = contester_get_last_submits($contester->id, -1, $user->id);
       print_string("total", "contester");
 	if ($submits && (count($submits) > 0))
 	{
@@ -788,6 +788,9 @@ function contester_obj2assoc($obj)
 }
 function contester_get_last_submits($contesterid, $cnt = 1, $user = NULL, $problem = NULL, $datefrom = NULL, $dateto = NULL)
 {
+    if ($cnt == -1)
+        $cnt = 1048576;
+	
     global $DB;
     $qarr = array();
 	$query = "SELECT id FROM mdl_contester_submits WHERE (contester = ?) ";
@@ -831,7 +834,7 @@ function contester_get_best_submit($contesterid, $user, $problem)
 {
 	//error($user);
 //	var_dump($contesterid." ".$user." ".$problem); 	echo "<br>";
-	$submits = contester_get_last_submits($contesterid, 65536, $user, $problem);
+	$submits = contester_get_last_submits($contesterid, -1, $user, $problem);
 	$result = 0;
 	$correct = false;
 	foreach($submits as $line)
@@ -846,7 +849,7 @@ function contester_get_best_submit($contesterid, $user, $problem)
 }
 function contester_get_best_submit_reference($contesterid, $user, $problem, $datefrom, $dateto)
 {
-	$submits = contester_get_last_submits($contesterid, 65536, $user, $problem, $datefrom, $dateto);
+	$submits = contester_get_last_submits($contesterid, -1, $user, $problem, $datefrom, $dateto);
 	$result = -5;
 	$sid = -1;
 	$correct = false;
@@ -877,7 +880,7 @@ function contester_get_best_submit_reference($contesterid, $user, $problem, $dat
 // как contester_get_best_submit_reference, но ещё last среди best
 function contester_get_last_best_submit_reference($contesterid, $user, $problem, $datefrom, $dateto)
 {
-	$submits = contester_get_last_submits($contesterid, 65536, $user, $problem, $datefrom, $dateto);
+	$submits = contester_get_last_submits($contesterid, -1, $user, $problem, $datefrom, $dateto);
 	$result = -5;
 	$mincorrectresult = -5;
 	$sid = -1;
@@ -928,7 +931,7 @@ function contester_get_last_best_submit_reference($contesterid, $user, $problem,
 // берём последнее из правильных или последнее из неправильных, если правильных не было
 function contester_get_last_or_last_correct_submit_reference($contesterid, $user, $problem, $datefrom, $dateto)
 {
-	$submits = contester_get_last_submits($contesterid, 65536, $user, $problem, $datefrom, $dateto);
+	$submits = contester_get_last_submits($contesterid, -1, $user, $problem, $datefrom, $dateto);
 	// ^ sorted by submitted DESC
 	$sid = -1;
 	$points = -5;
@@ -985,7 +988,7 @@ function contester_get_last_or_last_correct_submit_reference($contesterid, $user
 // Like contester_get_last_best_submit_reference. Only result without reference
 function contester_get_result_without_reference($contesterid, $user, $problem, $datefrom, $dateto)
 {
-	$submits = contester_get_last_submits($contesterid, 65536, $user, $problem, $datefrom, $dateto);
+	$submits = contester_get_last_submits($contesterid, -1, $user, $problem, $datefrom, $dateto);
 	$result = -5;
 	$mincorrectresult = -5;
 	$sid = -1;
