@@ -727,13 +727,15 @@ function contester_get_submit($submitid)
                                       FROM      mdl_contester_testings
                                      WHERE     (submitid = {$submitid})
                                   ORDER BY     id
-                                      DESC
-                                     LIMIT     1");
+                                      DESC");
 
     $fields = array("compiled", "taken", "passed");
-    foreach($fields as $field)
+    foreach($result as $res)
     {
-        $submit->$field = $result->$field;    	
+        foreach($fields as $field)
+        {
+            $submit->$field = $res->$field;
+        }
     }
 
     if ($submit->compiled && $submit->taken)
