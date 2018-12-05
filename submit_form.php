@@ -144,7 +144,7 @@
     if ($is_admin) {
         $tmp_name = 'stdin/stdout';
         echo '<tr><td align="right">'.$tmp_name.":</td>";
-        echo '<td><input type="checkbox" name="iomethod" value="0"</td></tr>';
+        echo '<td><input type="checkbox" name="iomethod" value="1"</td></tr>';
     }
 
     echo '<tr><td colspan="2" align="center">'.get_string('solution', 'contester').":</td>";
