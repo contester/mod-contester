@@ -282,7 +282,7 @@
 			}
             if ($is_admin)
             {
-                echo "<td>".$tmp.$st->id." ".$userid"</td>";
+                echo "<td>".$tmp.$st->id." ".$userid."</td>";
             }
             else
 			    echo "<td>".$tmp."</td>";
