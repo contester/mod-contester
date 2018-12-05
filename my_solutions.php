@@ -127,11 +127,11 @@
     if ($thisorall != 1)	
     {
         $tmp = $DB->get_records_sql('SELECT submits.id as p4,
+	                                    submits.contester as p6,
 	                                    problems.name as p1,
 					    languages.name as p2,
 					    submits.submitted as p3,
-    		                            contester.name as p5,
-					    contester.id as contesterID
+    		                            contester.name as p5
                                      FROM   mdl_contester_problems as problems,
                                             mdl_contester_submits as submits,
                                             mdl_contester_languages as languages,
