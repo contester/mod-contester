@@ -167,11 +167,6 @@
 	echo '</td></tr></table>';
 	echo '</form>';
 /////////////////////////D.r.
-	$query = "SELECT DISTINCT mdl_contester_submits.student
-		FROM mdl_contester_submits JOIN mdl_user ON mdl_user.id=
-		mdl_contester_submits.student
-		WHERE
-		(contester = $contester->id) ORDER BY mdl_user.lastname";
 	//echo $query."<BR>";
 	//echo $group_value.' '.$year_value.' '.date(m, mktime(0, 0, 0, $month_value, 1, 2000)).' '.$month_value.
 	//date(d, mktime(0, 0, 0, 1, $day_value, 2000)).' '.$time_value.mktime(0, 0, 0, 3, 1, 2000);
@@ -200,6 +195,15 @@
 	$dateto = $year_to_param.'-'.$month_to_param.'-'.$day_to_param.' '.$time_to_param;
 
 	$contester_str = '(contester ='.$contester->id.') and';
+
+	$query = "SELECT DISTINCT mdl_contester_submits.student
+		FROM mdl_contester_submits JOIN mdl_user ON mdl_user.id=
+		mdl_contester_submits.student
+		WHERE
+		    ".$contester_str." mdl_contester_submits.submitted >= \"".$datefrom."\"
+            AND mdl_contester_submits.submitted <= \"".$dateto. "\"
+        ORDER BY mdl_user.lastname, mdl_user.firstname";
+
 	$query2 = "SELECT DISTINCT mdl_groups_members.userid AS student FROM
 			(mdl_groups_members JOIN mdl_user ON mdl_user.id=mdl_groups_members.userid) JOIN
 			mdl_contester_submits ON mdl_groups_members.userid=mdl_contester_submits.student
@@ -207,6 +211,7 @@
 			$contester_str." mdl_contester_submits.submitted >= \"".$datefrom.
 			"\" ". $groupquery ."AND mdl_contester_submits.submitted <= \"".$dateto. "\"
 			ORDER BY mdl_user.lastname, mdl_user.firstname";
+
 	//echo $query."<BR>";
 	if ($group_value == -1 || $group_value == 'none') {
 	    $students = $DB->get_recordset_sql($query);
@@ -268,14 +273,19 @@
 		foreach ($prs as $pr) {
 			if ($is_admin || $is_teacher || $st->id == $userid)
 			{
-				$tmp = contester_get_last_or_last_correct_submit_reference($contester->id, $st->id, $pr->id, $datefrom, $dateto);
+				$tmp = contester_get_last_or_last_correct_submit_reference($contester->id, $st->id, $pr->id, $datefrom, $dateto);                
 				//contester_get_last_best_submit_reference($contester->id, $st->id, $pr->id, $datefrom, $dateto);
 			}
 			else
 			{
 				$tmp = contester_get_result_without_reference($contester->id, $st->id, $pr->id, $datefrom, $dateto);
 			}
-			echo "<td>".$tmp."</td>";
+            if ($is_admin)
+            {
+                echo "<td>".$tmp.$st->id." ".$userid"</td>";
+            }
+            else
+			    echo "<td>".$tmp."</td>";
 			if (strpos($tmp, '+') !== FALSE) ++$cnt;
 		}
 		echo "<td>$cnt</td>";
