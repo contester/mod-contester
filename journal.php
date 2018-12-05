@@ -17,7 +17,7 @@
 	$time_from_value  = optional_param('time_from', '00:00:00', PARAM_TEXT);
 
 	$year_to_value  = optional_param('year_to', -1, PARAM_INT);
-	$month_to_value  = optional_param('month_to', 9, PARAM_INT);
+	$month_to_value  = optional_param('month_to', 12, PARAM_INT);
 	$day_to_value  = optional_param('day_to', -1, PARAM_INT);
 	$time_to_value  = optional_param('time_to', '23:59:59', PARAM_TEXT);
 
