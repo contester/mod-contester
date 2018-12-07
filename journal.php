@@ -264,14 +264,12 @@
 	echo '<td>'.get_string('total', 'contester').'</td>';
 	echo "</tr>\n";
 
-	$userid = new stdClass();
-	if (!$userid) $userid = $USER->id;
 	foreach ($sts as $st)
 	{
 		echo "<tr><td><a href=\"../../user/view.php?id=$st->id&course=$course->id\">$st->name</a></td>";
 		$cnt = 0;
 		foreach ($prs as $pr) {
-			if ($is_admin || $is_teacher || $st->id == $userid)
+			if ($is_admin || $is_teacher || $st->id == $USER->id)
 			{
 				$tmp = contester_get_last_or_last_correct_submit_reference($contester->id, $st->id, $pr->id, $datefrom, $dateto);                
 				//contester_get_last_best_submit_reference($contester->id, $st->id, $pr->id, $datefrom, $dateto);
