@@ -6,8 +6,9 @@
     require_once("../../config.php");
     require_once("lib.php");
 
-    $id = optional_param('id', 0, PARAM_INT); // Course Module ID, or
+    $id = optional_param('id', 0, PARAM_INT);  // Course Module ID, or
     $a  = optional_param('a', 0, PARAM_INT);  // contester ID
+    $sid = required_param('sid', PARAM_INT);  // submit ID
     
     global $DB;
 
@@ -42,17 +43,6 @@
 
 /// Print the page header
 
-    /*if ($course->category) {
-        $navigation = "<a href=\"../../course/view.php?id=$course->id\">$course->shortname</a> ->";
-    }
-
-    $strcontesters = get_string("modulenameplural", "contester");
-    $strcontester  = get_string("modulename", "contester");
-
-    print_header("$course->shortname: $contester->name", "$course->fullname",
-                 "$navigation <a href=index.php?id=$course->id>$strcontesters</a> -> $contester->name",
-                  "", "", true, update_module_button($cm->id, $course->id, $strcontester),
-                  navmenu($course, $cm));*/
     $PAGE->set_url('/mod/contester/details.php', array('a' => $a, 'sid' => $id));
     $PAGE->set_title("$course->shortname: $contester->name");
     $PAGE->set_heading("$course->fullname");
@@ -67,17 +57,31 @@
                   
 
 /// Print the main part of the page
-	contester_print_begin($contester->id);
+	contester_print_begin($contester->id);    
+    
+    // Heading
+    $r = $DB->get_records_sql('SELECT  problems.name
+                               FROM    mdl_contester_submits submits 
+                                   JOIN
+                                       mdl_contester_problems problems 
+                                     ON
+                                       submits.problem=problems.dbid
+                               WHERE   submits.id=?', array($sid));
+    $student = $DB->get_field('contester_submits', 'student', array('id' => $sid));
+    echo $DB->get_field('user', 'firstname', array('id' => $student))
+         .' '.$DB->get_field('user', 'lastname', array('id' => $student)).' ';
+    foreach($r as $curname)
+        echo $curname->name;
+    echo ' ';
+    echo $DB->get_field('contester_submits', 'submitted', array('id' => $sid)).'<br/><br/>';
 
-	$submitid = required_param('sid', PARAM_INT);
-	$result = contester_get_detailed_info($submitid);
-	//print_r($result);
+    // Table
+	$result = contester_get_detailed_info($sid);
 	echo "<p>";
 	contester_draw_assoc_table($result);
 	echo "</p>";
 
 /// Finish the page
 	contester_print_end();
-    //print_footer($course);
     echo $OUTPUT->footer();
 ?>
