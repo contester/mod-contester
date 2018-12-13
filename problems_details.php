@@ -90,6 +90,28 @@
  	
  	echo "</p>";
 
+/// iomethod mode
+    echo "<p>";
+    echo get_string('iomethod', 'contester')."<br />";
+    echo "<select name=\"iomethodmode\" id=\"iomodeselect\">";
+    echo "<option value=\"0\"";
+    if ($res->iomethodmode == 0)
+        echo " selected";
+    echo ">".get_string('mode_files', 'contester')."</option>";
+    echo "<option value=\"1\"";
+    if ($res->iomethodmode == 1)
+        echo " selected";
+    echo ">".get_string('mode_console', 'contester')."</option>";
+    /* // both mode
+    echo "<option value=\"2\"";
+    if ($res->iomethodmode == 1)
+        echo " selected";
+    echo ">".get_string('mode_both', 'contester')."</option>";
+    */
+    echo "</select>";
+    echo "</p>";
+
+
  	contester_print_link_to_problems_preview($a);
 
  	if ($is_admin) {

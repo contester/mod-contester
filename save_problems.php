@@ -82,10 +82,13 @@
 	
 	$freeview = optional_param('freeview', 0, PARAM_INT);
 	$viewown = optional_param('viewown', 0, PARAM_INT);	
-	
+
+    $iomethodmode = required_param("iomethodmode", PARAM_INT);
+
 	$contester = $DB->get_record('contester', array('id' => $a));
 	$contester->freeview = $freeview;
 	$contester->viewown = $viewown;
+    $contester->iomethodmode = $iomethodmode;
 	
 	$DB->update_record('contester', $contester);
 	
