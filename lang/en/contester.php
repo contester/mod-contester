@@ -119,6 +119,11 @@ $string['uploadtask']         = 'Загрузить новую задачу';
 $string['viewable']           = 'Все решения доступны для просмотра.';
 $string['viewown']            = 'Участники могут просматривать собственные решения.';
 
+$string['iomethod']           = 'Доступные варианты ввода/вывода:';
+$string['mode_files']         = 'Только файловый (input.txt и output.txt)';
+$string['mode_console']       = 'Только консольный (stdin/stdout)';
+$string['mode_both']          = 'Файловый или консольный';
+
 // месяцы
 $string['january']      = 'Январь';
 $string['february']     = 'Февраль';
