@@ -141,7 +141,8 @@
 		echo "</select></td></tr>";
     }
 
-    if ($is_admin) {
+    $iomethodmode = $DB->get_field('contester', 'iomethodmode', array('id' => $a))
+    if ($iomethodmode > 1) {
         $tmp_name = 'stdin/stdout';
         echo '<tr><td align="right">'.$tmp_name.":</td>";
         echo '<td><input type="checkbox" name="iomethod" value="1"</td></tr>';
