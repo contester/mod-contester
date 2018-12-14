@@ -123,6 +123,7 @@ $string['iomethod']           = 'Доступные варианты ввода/
 $string['mode_files']         = 'Только файловый (input.txt и output.txt)';
 $string['mode_console']       = 'Только консольный (stdin/stdout)';
 $string['mode_both']          = 'Файловый или консольный';
+$string['consoleio']          = 'stdin/stdout';
 
 // месяцы
 $string['january']      = 'Январь';
