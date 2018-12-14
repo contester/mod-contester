@@ -102,12 +102,10 @@
     if ($res->iomethodmode == 1)
         echo " selected";
     echo ">".get_string('mode_console', 'contester')."</option>";
-    /* // both mode
     echo "<option value=\"2\"";
     if ($res->iomethodmode == 1)
         echo " selected";
     echo ">".get_string('mode_both', 'contester')."</option>";
-    */
     echo "</select>";
     echo "</p>";
 
