@@ -141,7 +141,7 @@
 		echo "</select></td></tr>";
     }
 
-    $iomethodmode = $DB->get_field('contester', 'iomethodmode', array('id' => $a))
+    $iomethodmode = $DB->get_field('contester', 'iomethodmode', array('id' => $a));
     if ($iomethodmode > 1) {
         $tmp_name = 'stdin/stdout';
         echo '<tr><td align="right">'.$tmp_name.":</td>";
