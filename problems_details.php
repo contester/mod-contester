@@ -103,7 +103,7 @@
         echo " selected";
     echo ">".get_string('mode_console', 'contester')."</option>";
     echo "<option value=\"2\"";
-    if ($res->iomethodmode == 1)
+    if ($res->iomethodmode == 2)
         echo " selected";
     echo ">".get_string('mode_both', 'contester')."</option>";
     echo "</select>";
