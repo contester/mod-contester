@@ -143,8 +143,7 @@
 
     $iomethodmode = $DB->get_field('contester', 'iomethodmode', array('id' => $a));
     if ($iomethodmode > 1) {
-        $tmp_name = 'stdin/stdout';
-        echo '<tr><td align="right">'.$tmp_name.":</td>";
+        echo '<tr><td align="right">'.get_string('consoleio', 'contester').":</td>";
         echo '<td><input type="checkbox" name="iomethod" value="1"</td></tr>';
     }
 
