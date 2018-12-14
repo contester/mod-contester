@@ -76,7 +76,7 @@
     if ($submit->lang == -1) print_error(get_string("shudchuzlang", 'contester'), "", $return);
     //$submit->solution = required_param("code");
 
-    $iomethodmode = $DB->get_field('contester', 'iomethodmode', array('id' => $a))
+    $iomethodmode = $DB->get_field('contester', 'iomethodmode', array('id' => $a));
     if ($iomethodmode < 2) {
         $submit->iomethod = $iomethodmode;        
     }
