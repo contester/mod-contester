@@ -106,7 +106,10 @@
     }
     
     // c# problem (contester could not kill process which is waiting for console input)
-    $submit->solution = str_replace("Console.Read", '//Console.Read', $submit->solution);
+    if ($submit->iomethod == 0)
+    {
+        $submit->solution = str_replace("Console.Read", '//Console.Read', $submit->solution);
+    }
     
     // c++ problem (contester could not kill process which is using system("PAUSE"))
     // $submit->solution = str_replace('system', "//system", $submit->solution);
