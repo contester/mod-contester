@@ -3,40 +3,20 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
-  <!-- <TABLES>
-    <TABLE NAME="contester" COMMENT="Default comment for contester, please edit me">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true"/>
-        <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="Course contester activity belongs to"/>
-        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="name field for moodle instances"/>
-        <FIELD NAME="intro" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="General introduction of the contester activity"/>
-        <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="Format of the intro field (MOODLE, HTML, MARKDOWN...)"/>
-        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="grade" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="100" SEQUENCE="false" COMMENT="The maximum grade. Can be negative to indicate the use of a scale."/>
-      </FIELDS>
-      <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-      </KEYS>
-      <INDEXES>
-        <INDEX NAME="course" UNIQUE="false" FIELDS="course"/>
-      </INDEXES>
-    </TABLE>
-  </TABLES> -->
   <TABLES>
-    <TABLE NAME="contester" COMMENT="Defines contester">
+    <TABLE NAME="contester" COMMENT="Top level contester table to associate contests with courses">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true"/>
         <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="Course contester activity belongs to"/>
         <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="name field for moodle instances"/>
-		<FIELD NAME="intro" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="General introduction of the contester activity"/>
-		<FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="Format of the intro field (MOODLE, HTML, MARKDOWN...)"/>
+	<FIELD NAME="intro" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="General introduction of the contester activity"/>
+	<FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="Format of the intro field (MOODLE, HTML, MARKDOWN...)"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"/>		
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false"/>
-		<FIELD NAME="grade" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="100" SEQUENCE="false" COMMENT="The maximum grade. Can be negative to indicate the use of a scale."/>
         <FIELD NAME="description" TYPE="text" LENGTH="big" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="freeview" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="viewown" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" DEFAULT="1" SEQUENCE="false"/>
+	 <FIELD NAME="iomethodmode" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -46,11 +26,12 @@
       </INDEXES>
     </TABLE>
 
-    <TABLE NAME="contester_languages" COMMENT="Defines contester">
+    <TABLE NAME="contester_languages" COMMENT="Programming languages available to use">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="name"/>        
         <FIELD NAME="name" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="ext"/>
 	  <FIELD NAME="ext" TYPE="char" LENGTH="16" NOTNULL="true" SEQUENCE="false" PREVIOUS="name"/>
+        <FIELD NAME="display" TYPE="int" LENGTH="10"/>        
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -92,12 +73,13 @@
       </KEYS>
     </TABLE>
 
-    <TABLE NAME="contester_resultdesc" COMMENT="Defines contester">
+    <TABLE NAME="contester_resultdesc" COMMENT="Result descriptions in different languages">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" NEXT="success"/>        
         <FIELD NAME="success" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" SEQUENCE="false" PREVIOUS="id" NEXT="description"/>        
         <FIELD NAME="description" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" PREVIOUS="success" NEXT="language"/>
         <FIELD NAME="language" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" DEFAULT="1" SEQUENCE="false"  PREVIOUS="description"/>        
+	<FIELD NAME="uid" TYPE="int" LENGTH="11" NOTNULL="true" SEQUENCE="true"/>      
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -117,8 +99,8 @@
          <FIELD NAME="memory" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" PREVIOUS="timex" NEXT="info"/>
 <!--        <FIELD NAME="info" TYPE="bigint" LENGTH="20" NOTNULL="false" UNSIGNED="true" DEFAULT="NULL" PREVIOUS="memory" NEXT="testeroutput"/> -->
         <FIELD NAME="info" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" PREVIOUS="memory" NEXT="testeroutput"/>
-        <FIELD NAME="testeroutput" TYPE="text" LENGTH="big" NOTNULL="false"  DEFAULT="NULL" PREVIOUS="success" NEXT="testererror"/>
-        <FIELD NAME="testererror" TYPE="text" LENGTH="big" NOTNULL="false"  DEFAULT="NULL" PREVIOUS="testeroutput" NEXT="testerexitcode"/>
+        <FIELD NAME="testeroutput" TYPE="text" LENGTH="big" NOTNULL="false"  PREVIOUS="success" NEXT="testererror"/>
+        <FIELD NAME="testererror" TYPE="text" LENGTH="big" NOTNULL="false"  PREVIOUS="testeroutput" NEXT="testerexitcode"/>
         <FIELD NAME="testerexitcode" TYPE="int" LENGTH="10" UNSIGNED="true" NOTNULL="false" DEFAULT="0" PREVIOUS="testererror"/>        
       </FIELDS>
       <KEYS>
@@ -145,9 +127,10 @@
         <FIELD NAME="contester" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="id" NEXT="student"/>
         <FIELD NAME="student" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="contester" NEXT="problem"/>
         <FIELD NAME="problem" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="student" NEXT="lang"/>
-        <FIELD NAME="lang" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="problem" NEXT="solution"/>
+        <FIELD NAME="lang" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="problem" NEXT="iomethod"/>
+	 <FIELD NAME="iomethod" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" PREVIOUS="lang" NEXT="solution"/>
 <!--       <FIELD NAME="solution" TYPE="longblob" NOTNULL="true" PREVIOUS="lang" NEXT="submitted"/> -->
-        <FIELD NAME="solution" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" PREVIOUS="lang" NEXT="submitted"/>
+        <FIELD NAME="solution" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" PREVIOUS="iomethod" NEXT="submitted"/>
 <!--        <FIELD NAME="submitted" TYPE="timestamp" NOTNULL="true" DEFAULT="CURRENT_TIMESTAMP" PREVIOUS="solution" NEXT="processed"/> -->
         <FIELD NAME="submitted" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" PREVIOUS="solution" NEXT="processed"/>
         <FIELD NAME="processed" TYPE="int" LENGTH="10" UNSIGNED="true" NOTNULL="false" PREVIOUS="submitted"/>
