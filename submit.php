@@ -66,9 +66,12 @@
     echo $OUTPUT->header();
     contester_print_begin($contester->id);
 
+    $now = new DateTime("now", core_date::get_server_timezone_object());
+
     $submit = new stdClass();
     $submit->contester = $contester->id;
     $submit->student = $USER->id;
+    $submit->submitted_uts = $now->getTimestamp();
     $submit->problem = required_param("problem", PARAM_INT);
     $return = $CFG->wwwroot.'/mod/contester/submit_form.php?a='.$contester->id;
     if ($submit->problem == -1) print_error(get_string("shudchuzprob", 'contester'), "", $return);
