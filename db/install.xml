@@ -89,15 +89,12 @@
     <TABLE NAME="contester_results" COMMENT="Defines contester">
       <FIELDS>
         <FIELD NAME="testingid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" NEXT="processed"/>
-<!--        <FIELD NAME="processed" TYPE="timestamp" NOTNULL="true" DEFAULT="CURRENT_TIMESTAMP" ONUPDATE="CURRENT_TIMESTAMP" PREVIOUS="testingid" NEXT="result"/>        -->
-         <FIELD NAME="processed" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="testingid" NEXT="result"/>        
-        <FIELD NAME="result" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="processed" NEXT="test"/>        
+         <FIELD NAME="processed" TYPE="datetime" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="testingid" NEXT="processed_unixts"/>
+	 <FIELD NAME="processed_uts" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="processed" NEXT="result"/>
+        <FIELD NAME="result" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="processed_uts" NEXT="test"/>        
         <FIELD NAME="test" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="result" NEXT="timex"/>       
-<!--        <FIELD NAME="timex" TYPE="bigint" LENGTH="20" NOTNULL="false" UNSIGNED="true" DEFAULT="NULL" PREVIOUS="test" NEXT="memory"/> -->
          <FIELD NAME="timex" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" PREVIOUS="test" NEXT="memory"/>
- <!--       <FIELD NAME="memory" TYPE="bigint" LENGTH="20" NOTNULL="false" UNSIGNED="true" DEFAULT="NULL" PREVIOUS="timex" NEXT="info"/> -->
          <FIELD NAME="memory" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" PREVIOUS="timex" NEXT="info"/>
-<!--        <FIELD NAME="info" TYPE="bigint" LENGTH="20" NOTNULL="false" UNSIGNED="true" DEFAULT="NULL" PREVIOUS="memory" NEXT="testeroutput"/> -->
         <FIELD NAME="info" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" PREVIOUS="memory" NEXT="testeroutput"/>
         <FIELD NAME="testeroutput" TYPE="text" LENGTH="big" NOTNULL="false"  PREVIOUS="success" NEXT="testererror"/>
         <FIELD NAME="testererror" TYPE="text" LENGTH="big" NOTNULL="false"  PREVIOUS="testeroutput" NEXT="testerexitcode"/>
@@ -129,11 +126,10 @@
         <FIELD NAME="problem" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="student" NEXT="lang"/>
         <FIELD NAME="lang" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="problem" NEXT="iomethod"/>
 	 <FIELD NAME="iomethod" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" PREVIOUS="lang" NEXT="solution"/>
-<!--       <FIELD NAME="solution" TYPE="longblob" NOTNULL="true" PREVIOUS="lang" NEXT="submitted"/> -->
-        <FIELD NAME="solution" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" PREVIOUS="iomethod" NEXT="submitted"/>
-<!--        <FIELD NAME="submitted" TYPE="timestamp" NOTNULL="true" DEFAULT="CURRENT_TIMESTAMP" PREVIOUS="solution" NEXT="processed"/> -->
-        <FIELD NAME="submitted" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" PREVIOUS="solution" NEXT="processed"/>
-        <FIELD NAME="processed" TYPE="int" LENGTH="10" UNSIGNED="true" NOTNULL="false" PREVIOUS="submitted"/>
+        <FIELD NAME="solution" TYPE="binary" NOTNULL="false" PREVIOUS="iomethod" NEXT="submitted"/>
+        <FIELD NAME="submitted" TYPE="datetime" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="solution" NEXT="submitted_uts"/>
+        <FIELD NAME="submitted_uts" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="submitted" NEXT="processed"/>
+        <FIELD NAME="processed" TYPE="int" LENGTH="10" UNSIGNED="true" NOTNULL="false" PREVIOUS="submitted_uts"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -165,14 +161,13 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="submitid"/>
         <FIELD NAME="submitid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="id" NEXT="start"/>
-<!--        <FIELD NAME="start" TYPE="timestamp" NOTNULL="true" DEFAULT="CURRENT_TIMESTAMP" PREVIOUS="submitid" NEXT="finish"/> -->
-        <FIELD NAME="start" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" PREVIOUS="submitid" NEXT="finish"/>
-<!--        <FIELD NAME="finish" TYPE="timestamp" NOTNULL="false" DEFAULT="NULL" PREVIOUS="start" NEXT="compiled"/> -->
-        <FIELD NAME="finish" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" PREVIOUS="start" NEXT="compiled"/>
-<!--        <FIELD NAME="compiled" TYPE="enum('0', '1')" NOTNULL="false" DEFAULT="NULL" PREVIOUS="finish" NEXT="taken"/> -->
-        <FIELD NAME="compiled" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" PREVIOUS="finish" NEXT="taken"/>  
-        <FIELD NAME="taken" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" PREVIOUS="compiled" NEXT="passed"/>
-        <FIELD NAME="passed" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" PREVIOUS="taken"/>
+        <FIELD NAME="start" TYPE="datetime" NOTNULL="true" DEFAULT="CURRENT_TIMESTAMP" PREVIOUS="submitid" NEXT="start_uts"/>
+        <FIELD NAME="start_uts" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="start" NEXT="finish"/>
+        <FIELD NAME="finish" TYPE="datetime" NOTNULL="false" DEFAULT="NULL" PREVIOUS="start_uts" NEXT="finish_uts"/> -->
+        <FIELD NAME="finish_uts" TYPE="int" LENGTH="11" NOTNULL="false" UNSIGNED="true" PREVIOUS="finish_uts" NEXT="compiled"/>
+        <FIELD NAME="compiled" TYPE="int" LENGTH="1" NOTNULL="false" UNSIGNED="true"  PREVIOUS="finish_uts" NEXT="taken"/>  
+        <FIELD NAME="taken" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true"  PREVIOUS="compiled" NEXT="passed"/>
+        <FIELD NAME="passed" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" PREVIOUS="taken"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
