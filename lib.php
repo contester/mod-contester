@@ -111,17 +111,12 @@ function contester_update_instance(stdClass $contester, mod_contester_mod_form $
     if (!isset($contester->introformat))
     	$contester->introformat = 0;
     if (!isset($contester->description)) $contester->description = '';
-    $sql = "SELECT mdl_contester_problemmap.id as id
-    		FROM   mdl_contester_problemmap
-			WHERE  mdl_contester_problemmap.contesterid=$contester->id";
+    $res = $DB->get_records('contester_problemmap', array('contesterid' => $contester->id), 'id', 'id');
     
-    $res = $DB->get_records_sql($sql);
-    
-    print_r($res);
-	print_r($contester);
     foreach ($res as $line)
     {
     	$id = "pid".$line->id;
+	// Как тут вообще хоть что-то работает?
     	if (isset($contester->$id)) {
     		if ($contester->$id == "checked")
     			$DB->delete_records('contester_problemmap', 'id', $line->id);
