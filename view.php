@@ -100,9 +100,13 @@
 
     contester_print_begin($contester->id, $contester->name);
     //$sql = "";
-    $problem_list = $DB->get_recordset_sql('SELECT mdl_contester_problemmap.id as id, mdl_contester_problems.name as name from mdl_contester_problems, mdl_contester_problemmap
-			WHERE  mdl_contester_problemmap.problemid=mdl_contester_problems.id and
-				   mdl_contester_problemmap.contesterid=? order by mdl_contester_problemmap.id', array($contester->id));
+    $problem_list = $DB->get_recordset_sql("SELECT
+	problemmap.id as id,
+	problems.name as name
+        from {contester_problems} problems,
+	{contester_problemmap} problemmap
+	WHERE problemmap.problemid=problems.id and
+        problemmap.contesterid=? order by problemmap.id", array($contester->id));
     if ($problem_list->valid())
     {
     	echo "<table width = 90% border=1 bordercolor=black cellpadding=5><tr><td>".get_string('number', 'contester').
@@ -146,6 +150,7 @@
     	echo "</table>";
     } 
 	else print_string('noproblems', 'contester');
+    $problem_list->close();
 	contester_print_end();
 //End new code
 
