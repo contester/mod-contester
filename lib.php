@@ -144,8 +144,8 @@ function contester_delete_instance($id) {
     }
     // Delete any dependent records here.
     contester_grade_item_delete($contester);
-//Start new code
-$result = true;
+
+    $result = true;
     if (! $DB->delete_records("contester", array("id"=>$contester->id))) {   //$DB->delete_records('contester', array('id' => $contester->id));
         $result = false;
     }
@@ -153,13 +153,15 @@ $result = true;
     {
     	$result = false;
     }
-    // Deleting submits !!!
+    // Эти два запроса тут для красоты, а надо бы переделать весь этот метод под транзакцию,
+    // чтобы он тащил всё из базы и корректно удалял.
     "DELETE FROM contester_results
      WHERE testingid IN (SELECT DISTINCT id FROM contester_testings
                          WHERE submitid IN (SELECT DISTINCT id FROM contester_submits WHERE contester = {$contester->id}))";
     "DELETE FROM contester_testings
      WHERE submitid IN (SELECT DISTINCT id FROM contester_submits
                         WHERE contester = {$contester->id})";
+
     if (! $DB->delete_records("contester_submits", array("contester"=>$contester->id)))
     {
     	$result = false;
@@ -572,29 +574,7 @@ function contester_grades($contesterid) {
    return $return;
 }
 function contester_get_participants($contesterid) {
-//Must return an array of user records (all data) who are participants
-//for a given instance of contester. Must include every user involved
-//in the instance, independient of his role (student, teacher, admin...)
-//See other modules as example.
-	//echo $contesterid;
-	$sql = "SELECT DISTINCT student FROM contester_submits WHERE contester=$contesterid";
-	$students = mysql_query($sql);
-	$ret = null;
-	while ($student = mysql_fetch_assoc($students)) $ret []= $student;
-/*	echo "<br>$sql<br>";
-	print_r($students);
-	$return = array();
-	foreach ($students as $student)
-	{
-		$return[$student->student] = 1;
-	}
-	$students = array();
-	foreach($return as $key => $value)
-	{
-		$students[]=$key;
-	}
-	*/
-	return $ret;
+	return $DB->get_records_sql("SELECT DISTINCT student FROM {{contester_submits}} WHERE contester=?", array($contesterid));
 }
 /**
 * Called by course/reset.php
