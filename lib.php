@@ -640,13 +640,14 @@ function contester_get_submit_info($submitid)
 	//$submit = contester_get_submit($submitid);
 	
 	$submit = $DB->get_record("contester_submits", array("id" => $submitid));
-	$tmp = $DB->get_record_sql("SELECT COUNT(1) as cnt
-						   FROM            mdl_contester_submits
-						   WHERE           (contester = {$submit->contester})
-						   AND             (student = {$submit->student})
-						   AND             (problem = {$submit->problem})
-						   AND             (submitted < '{$submit->submitted}')");
-	$attempts = 0 + $tmp->cnt;
+
+        $attempts = $DB->count_records_select('contester_submits',
+		"(contester = :contester) AND (student = :student) AND (problem = :problem) and (submitted_uts < :submitted_uts)",
+		array(
+			'contester' => $submit->contester,
+			'student' => $submit->student,
+			'problem' => $submit->problem,
+			'submitted_uts' => $submit->submitted_uts));
 	if (!$testing = $DB->get_record_sql("SELECT   *
 									FROM     contester_testings
 									WHERE    (submitid = {$submitid})
