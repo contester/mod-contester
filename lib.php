@@ -1117,16 +1117,12 @@ function contester_get_all_tags()
 function contester_count_all_problems()
 {
 	global $DB;
-	unset($num);
 	return $DB->count_records("contester_problems");
 }
 function contester_count_all_tags()
 {
 	global $DB;
-	unset($num);
-	$num = $DB->get_records_sql("SELECT   COUNT(mdl_contester_tags.id) as n
-							FROM     mdl_contester_tags");
-    return array_shift($num)->n;
+	return $DB->count_records("contester_tags");
 }
 function contester_show_tags_ref($instance, $sort, $ifall="")
 {
