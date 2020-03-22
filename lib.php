@@ -649,9 +649,9 @@ function contester_get_submit_info($submitid)
 			'problem' => $submit->problem,
 			'submitted_uts' => $submit->submitted_uts));
 	if (!$testing = $DB->get_record_sql("SELECT   *
-									FROM     contester_testings
-									WHERE    (submitid = {$submitid})
-									ORDER BY id DESC"))
+									FROM     {contester_testings}
+									WHERE    (submitid = ?)
+									ORDER BY id DESC", array($submitid)))
 		$queued = true;
 	else
 	{
