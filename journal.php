@@ -80,20 +80,8 @@
 	$is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
 	$is_admin = has_capability('moodle/site:config', $context);
 
-//	if (!(isadmin() || $is_teacher)) error(get_string('accessdenied', 'contester'));
-//////////////////////D.r.
-///Select group number
-	$query = "SELECT mdl_groups.id FROM mdl_groups JOIN mdl_contester ON mdl_groups.courseid=mdl_contester.course
-	WHERE (mdl_contester.id = $contester->id)";
-	$groups = $DB->get_recordset_sql($query);
-	$grps = array();
-	foreach($groups as $group)
-	{
-		$gr = new stdClass();
-		$gr->name = $DB->get_field('groups', 'name', array('id'=>$group->id));
-		$gr->id = $group->id;
-		$grps []= $gr;
-	}
+	// contester id -> course
+	$grps = groups_get_all_groups($contester->course);
 
 	echo '<form name=options method="GET" action="journal.php">';
 	echo '<input type=hidden name="a" value="'. $a . '">';
