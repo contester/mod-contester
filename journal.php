@@ -80,7 +80,7 @@
 	$is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
 	$is_admin = has_capability('moodle/site:config', $context);
 
-	// contester id -> course
+	// TODO: maybe replace this selector with a call to groups_print_course_menu.
 	$grps = groups_get_all_groups($contester->course);
 
 	echo '<form name=options method="GET" action="journal.php">';
