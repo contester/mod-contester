@@ -1118,9 +1118,7 @@ function contester_count_all_problems()
 {
 	global $DB;
 	unset($num);
-	$num = $DB->get_records_sql("SELECT   COUNT(mdl_contester_problems.id) as n
-							FROM     mdl_contester_problems");
-    return array_shift($num)->n;
+	return $DB->count_records("contester_problems");
 }
 function contester_count_all_tags()
 {
