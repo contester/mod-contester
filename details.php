@@ -60,20 +60,18 @@
 	contester_print_begin($contester->id);    
     
     // Heading
-    $r = $DB->get_records_sql('SELECT  problems.name
-                               FROM    mdl_contester_submits submits 
-                                   JOIN
-                                       mdl_contester_problems problems 
-                                     ON
-                                       submits.problem=problems.dbid
-                               WHERE   submits.id=?', array($sid));
-    $student = $DB->get_field('contester_submits', 'student', array('id' => $sid));
-    echo $DB->get_field('user', 'firstname', array('id' => $student))
-         .' '.$DB->get_field('user', 'lastname', array('id' => $student)).' ';
-    foreach($r as $curname)
-        echo $curname->name;
-    echo ' ';
-    echo $DB->get_field('contester_submits', 'submitted', array('id' => $sid)).'<br/><br/>';
+    $sr = $DB->get_record_sql("SELECT  problems.name as problem_name,
+	                               user.firstname as firstname,
+				       user.lastname as lastname,
+				       submits.submitted_uts as submitted_uts
+                               FROM    {contester_submits} submits,
+				       {contester_problems} problems,
+				       {user} user
+                               WHERE
+				       submits.problem=problems.dbid AND
+                                       user.id = submits.student AND
+                                       submits.id=?", array($sid));
+    echo $sr->firstname . ' ' . $sr->lastname . ' ' . $sr ->problem_name . ' ' . userdate($sr->submitted_uts) . '<br/><br/>';
 
     // Table
 	$result = contester_get_detailed_info($sid);
