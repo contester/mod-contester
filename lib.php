@@ -769,7 +769,7 @@ function contester_get_last_submits($contesterid, $cnt = 1, $user = NULL, $probl
 	
     global $DB;
     $qarr = array();
-	$query = "SELECT id FROM mdl_contester_submits WHERE (contester = ?) ";
+	$query = "SELECT id FROM {contester_submits} WHERE (contester = ?) ";
 	$qarr []= $contesterid;
 	if ($user != NULL)
 	{
@@ -1011,7 +1011,7 @@ function contester_get_user_points($contesterid, $user)
 {
 	global $DB;
 //	var_dump($contesterid." ".$user); 	echo "<br>";
-	$problems = $DB->get_recordset_select("contester_problemmap", "contesterid = $contesterid", "problemid");
+	$problems = $DB->get_recordset_select("contester_problemmap", "contesterid = ?", array($contesterid), "problemid");
 	$result = 0;
 	//print_r($problems);
 	foreach($problems as $line)
@@ -1019,6 +1019,7 @@ function contester_get_user_points($contesterid, $user)
 		if ($line['problemid'] && $line['problemid'] != 0)
 			$result += contester_get_best_submit($contesterid, $user, $line['problemid']);
 	}
+	$problems->close();
 	return $result;
 }
 function contester_get_rounded_points($attempts, $passed, $taken)
@@ -1079,16 +1080,14 @@ function contester_show_problemlist($instance)
     echo '<table><tr><td colspan=3>'.get_string('problemstodelete', 'contester').'</td></tr>';
     
     unset($res);
-    $sql = "SELECT   mdl_contester_problems.name as name,
-    				 mdl_contester_problemmap.id as id,
-    				 mdl_contester_problems.id as pid,
-    				 mdl_contester_problems.dbid as dbid
-    		from	 mdl_contester_problems, mdl_contester_problemmap
-    		WHERE	 mdl_contester_problemmap.problemid=mdl_contester_problems.id
-    			and  mdl_contester_problemmap.contesterid=$instance
-    		order by mdl_contester_problemmap.id";
-    $res = $DB->get_recordset_sql($sql);
-    //print_r($res);
+    $res = $DB->get_recordset_sql("SELECT   problems.name as name,
+    				 problemmap.id as id,
+    				 problems.id as pid,
+    				 problems.dbid as dbid
+    		from	 {contester_problems} problems, {contester_problemmap} problemmap
+    		WHERE	 problemmap.problemid=problems.id
+    			and  problemmap.contesterid=?
+    		order by problemmap.id", array($instance));
     foreach ($res as $line)
     {
     	$name = $line['name'];
@@ -1099,6 +1098,7 @@ function contester_show_problemlist($instance)
     		get_string('problemdetails', 'contester')." (".$line['dbid'].")</a></nobr></td>";
     	echo "</tr>";
     }
+    $res->close();
     echo '</table></td></tr>';
 }
 function contester_get_all_tags()
