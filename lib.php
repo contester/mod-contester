@@ -1105,13 +1105,13 @@ function contester_get_all_tags()
 {
 	global $DB;
 	unset($res);
-	$res = $DB->get_records_sql("SELECT   mdl_contester_tags.id  as id,
-									 mdl_contester_tags.tag as tag,
-									 COUNT(mdl_contester_tagmap.tagid) as count
-							FROM     mdl_contester_tags LEFT JOIN mdl_contester_tagmap
-							ON       mdl_contester_tags.id=mdl_contester_tagmap.tagid
-							GROUP BY mdl_contester_tags.id
-							ORDER BY mdl_contester_tags.tag");
+	$res = $DB->get_records_sql("SELECT   tags.id  as id,
+									 tags.tag as tag,
+									 COUNT(tagmap.tagid) as count
+							FROM     {contester_tags} tags LEFT JOIN {contester_tagmap} tagmap
+							ON       tags.id=tagmap.tagid
+							GROUP BY tags.id
+							ORDER BY tags.tag");
     return $res;
 }
 function contester_count_all_problems()
