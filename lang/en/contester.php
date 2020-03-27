@@ -37,9 +37,12 @@ $string['taken']     = 'Тестов протестировано';
 
 $string['nocontesters'] = 'Нет контестеров';
 
-$string['modulename_help']      = 'Use the contester module for... | The contester module allows...';
-$string['pluginadministration'] = 'contester administration';
-$string['pluginname']           = 'contester';
+$string['modulename_help']        = 'Use the contester module for... | The contester module allows...';
+$string['pluginadministration']   = 'contester administration';
+$string['pluginname']             = 'contester';
+$string['incorrect_contester_id'] = "Неверный id контеста"
+$string['misconfigured_course']   = "Не найден курс, соответствующий контесту"
+$string['incorrect_cm_id']        = "Неверный id модуля"
 
 $string['contesterupdate']    = 'Обновить задачи контестера';
 $string['action']             = 'Действие';
