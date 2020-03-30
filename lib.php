@@ -169,6 +169,7 @@ function contester_delete_instance($id) {
     return $result;
 //End new code
 }
+
 /**
  * Returns a small object with summary information about what a
  * user has done with a given particular instance of this module
@@ -184,33 +185,23 @@ function contester_delete_instance($id) {
  * @return stdClass|null
  */
 function contester_user_outline($course, $user, $mod, $contester) {
-/* Comment code
+    global $DB;
     $return = new stdClass();
-    $return->time = 0;
-    $return->info = '';
+    $return->info = "";
+    $submits = contester_get_last_submits($contester->id, -1, $user->id);
+    if ($submits && count($submits) > 0) {
+        foreach ($submits as $submit) {
+            $now = new DateTime("now", core_date::get_server_timezone_object());
+            $return->time = $submit->submitted_uts;
+            $problem = $DB->get_record("contester_problems", array("dbid" => $submit->problem));
+            $return->info .= $problem->name." - ".
+		             get_string("points", "contester").": ".
+                             $submit->points."<br />";
+        }
+    }
     return $return;
-*/
-//Start new code
-global $DB;
-	unset($return);
-	$submits = contester_get_last_submits($contester->id, -1, $user->id);
-	if ($submits && count($submits) > 0)
-	{
-		$submit = $submits[0];
-		// yyyy-mm-dd hh:mm:ss
-	    $full = explode(" ", $submit->submitted);
-	    $date = explode("-", $full[0]);
-        $time = explode(":", $full[1]);
-        // int mktime(int hour, int minute, int second, int month, int day, int year [, int is_dst])
-        $return->time = mktime($time[0], $time[1], $time[2], $date[1], $date[2], $date[0]);
-		$res = $DB->get_record('contester_problems', 'dbid', $submit->problem);
-		$return->info = get_string("problem", "contester")." ".$submit->problem." (".$res->name.")<br />".
-			get_string("points", "contester").": ".$submit->points;
-			//. " After: " . $submit->attempt . " Total: " . contester_get_user_points($contester->id, $user->id);
-	}
-	return $return;
-//End new code
 }
+
 /**
  * Prints a detailed representation of what a user has done with
  * a given particular instance of this module, for user activity reports.
@@ -601,7 +592,7 @@ function contester_reset_userdata($data)
 function contester_get_submit($submitid)
 {
     global $DB;
-    
+
     $submit = $DB->get_record("contester_submits", array("id" => $submitid));
     $tmp = $DB->get_record_sql("SELECT    COUNT(1) as cnt
                                   FROM    mdl_contester_submits
@@ -766,7 +757,7 @@ function contester_get_last_submits($contesterid, $cnt = 1, $user = NULL, $probl
 {
     if ($cnt == -1)
         $cnt = 1048576;
-	
+
     global $DB;
     $qarr = array();
 	$query = "SELECT id FROM {contester_submits} WHERE (contester = ?) ";
@@ -779,7 +770,7 @@ function contester_get_last_submits($contesterid, $cnt = 1, $user = NULL, $probl
 	if ($datefrom != NULL)
 	{
 		$query .= " AND (submitted >= ?) ";
-		$qarr []= $datefrom;		
+		$qarr []= $datefrom;
 	}
 	if ($dateto != NULL)
 	{
