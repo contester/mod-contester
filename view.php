@@ -52,8 +52,9 @@
     // Print the page header.
 
     $PAGE->set_url('/mod/contester/view.php', array('a' => $contester->id));
-    $PAGE->set_title(format_string($contester->name));
-    $PAGE->set_heading(format_string($course->fullname));
+    $PAGE->set_title("$course->shortname: $contester->name");
+    $PAGE->set_heading($course->fullname);
+
     $PAGE->navbar->add("$contester->name");
     $PAGE->set_button(update_module_button($cm->id, $course->id,
                       get_string("modulename", "contester")));
