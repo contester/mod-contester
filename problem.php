@@ -45,10 +45,10 @@
     $iomethodmode = $DB->get_field('contester', 'iomethodmode', array('id' => $contester->id));
     echo "<p>" . get_string('iomethod', 'contester');
     if ($iomethodmode == 0 or $iomethodmode == 2) {
-        echo '<br />' . get_string('mode_console', 'contester');
+        echo '<br />' . get_string('mode_file', 'contester');
     }
     if ($iomethodmode == 1 or $iomethodmode == 2) {
-        echo '<br />' . get_string('mode_file', 'contester');
+        echo '<br />' . get_string('mode_console', 'contester');
     }
 
     echo "<table width = 70%><tr><td>";
