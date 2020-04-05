@@ -95,8 +95,9 @@
 
     $iomethodmode = $DB->get_field('contester', 'iomethodmode', array('id' => $contester->id));
     if ($iomethodmode > 1) {
-        echo '<tr><td align="right">'.get_string('consoleio', 'contester').":</td>";
-        echo '<td><input type="checkbox" name="iomethod" value="1"</td></tr>';
+        echo '<tr><td align="right">'.get_string('iomethodshort', 'contester').":</td>";
+        echo '<td>' . '<input type="radio" name="iomethod" value="1" checked />'.get_string('consoleioshort', 'contester').'<br />' .
+                      '<input type="radio" name="iomethod" value="0" />'.get_string('fileioshort', 'contester').'<br />' . '</td></tr>';
     }
 
     echo '<tr><td colspan="2" align="center">'.get_string('solution', 'contester').":</td>";
