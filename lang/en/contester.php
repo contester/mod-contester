@@ -126,8 +126,13 @@ $string['iomethod']           = 'Доступные варианты ввода/
 $string['mode_file']          = 'Файловый (из input.txt в output.txt)';
 $string['mode_console']       = 'Консольный (stdin/stdout)';
 $string['mode_both']          = 'Файловый или консольный (выбирается при отправке решения)';
+
 $string['consoleio']          = 'Консольный ввод/вывод (stdin/stdout)';
 $string['fileio']             = 'Файловый ввод/вывод (input.txt/output.txt)';
+
+$string['iomethodshort']      = 'Ввод/вывод:';
+$string['consoleioshort']     = 'консольный';
+$string['fileioshort']        = 'input.txt/output.txt';
 
 // месяцы
 $string['january']      = 'Январь';
