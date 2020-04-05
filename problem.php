@@ -50,6 +50,7 @@
     if ($iomethodmode == 1 or $iomethodmode == 2) {
         echo '<br />' . get_string('mode_file', 'contester');
     }
+
     echo "<table width = 70%><tr><td>";
     if (!$problem = $DB->get_record_sql("SELECT problems.id as id,
                                                 problems.name as name,
@@ -90,6 +91,8 @@
 
     $solutions_url = new moodle_url('/mod/contester/problem_solutions.php', array('a' => $contester->id, 'pid' => $pid));
     echo "<a href=$solutions_url>".get_string("solutionlist", "contester")."</a>";
+
+    $samples->close();
 
     contester_print_end();
 
