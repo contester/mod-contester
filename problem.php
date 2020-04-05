@@ -42,15 +42,24 @@
 
     contester_print_begin($contester->id);
 
+    $iomethodmode = $DB->get_field('contester', 'iomethodmode', array('id' => $contester->id));
+    echo "<p>" . get_string('iomethod', 'contester');
+    if ($iomethodmode == 0 or $iomethodmode == 2) {
+        echo '<br />' . get_string('mode_console', 'contester');
+    }
+    if ($iomethodmode == 1 or $iomethodmode == 2) {
+        echo '<br />' . get_string('mode_file', 'contester');
+    }
     echo "<table width = 70%><tr><td>";
-    if (!$problem = $DB->get_record_sql("SELECT mdl_contester_problems.id as id,
-                                                mdl_contester_problems.name as name,
-                                                mdl_contester_problems.description as description,
-                                                mdl_contester_problems.input_format as input,
-                                                mdl_contester_problems.output_format as output
-                                         FROM   mdl_contester_problems, mdl_contester_problemmap
-                                         WHERE  mdl_contester_problemmap.problemid=mdl_contester_problems.id
-                                         AND    mdl_contester_problemmap.id=?", array($pid)))
+    if (!$problem = $DB->get_record_sql("SELECT problems.id as id,
+                                                problems.name as name,
+                                                problems.description as description,
+                                                problems.input_format as input,
+                                                problems.output_format as output
+                                         FROM   {contester_problems} problems,
+                                                {contester_problemmap} problemmap
+                                         WHERE  problemmap.problemid=problems.id
+                                         AND    problemmap.id=?", array($pid)))
         print_error(get_string('noproblem', 'contester'));
 
     echo "<div id=problemname>".$problem->name."</div><br />";
@@ -61,10 +70,11 @@
     echo format_text("<div>".$problem->output."</div>")."<br />";
 
     $text = "<div class=textheader>".get_string('samples', 'contester')."</div>";
-    $samples = $DB->get_recordset_sql("select samples.input as input,
+    $samples = $DB->get_recordset_sql("SELECT samples.input as input,
                                               samples.output as output
-                                       from mdl_contester_samples samples
-                                       where samples.problem_id=? order by samples.number",
+                                       FROM   {contester_samples} samples
+                                       WHERE  samples.problem_id=?
+                                              order by samples.number",
                                       array($problem->id));
     foreach($samples as $sample) {
         $text .= "<div>".get_string('input', 'contester')."</div><div align=left><pre>".
@@ -78,7 +88,8 @@
     echo '<tr><td colspan="2" align="center"><input type="submit" value="'.get_string('submit', 'contester').'"></input></td></tr>';
     echo '</tbody></table></form>';
 
-    echo "<a href='problem_solutions.php?a=$contester->id&pid=$pid'>".get_string("solutionlist", "contester")."</a>";
+    $solutions_url = new moodle_url('/mod/contester/problem_solutions.php', array('a' => $contester->id, 'pid' => $pid));
+    echo "<a href=$solutions_url>".get_string("solutionlist", "contester")."</a>";
 
     contester_print_end();
 
