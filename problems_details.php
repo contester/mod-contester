@@ -97,7 +97,7 @@
     echo "<option value=\"0\"";
     if ($res->iomethodmode == 0)
         echo " selected";
-    echo ">".get_string('mode_files', 'contester')."</option>";
+    echo ">".get_string('mode_file', 'contester')."</option>";
     echo "<option value=\"1\"";
     if ($res->iomethodmode == 1)
         echo " selected";
