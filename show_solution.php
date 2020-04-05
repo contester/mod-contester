@@ -6,104 +6,84 @@
     require_once("../../config.php");
     require_once("lib.php");
 
-    $id = optional_param('id', 0, PARAM_INT); // Course Module ID, or
-    $a  = optional_param('a', 0, PARAM_INT);  // contester ID
-    $sid = required_param('sid', PARAM_INT);
-    
-    global $DB;
+    $a   = required_param('a', PARAM_INT);  // contester ID
+    $sid = required_param('sid', PARAM_INT);  // submit ID
 
-    if ($id) {
-        if (! $cm = $DB->get_record('course_modules', array('id' => $id))) {
-            print_error("Course Module ID was incorrect");
-        }
-
-        if (! $course = $DB->get_record('course', array('id' => $cm->course))) {
-            print_error("Course is misconfigured");
-        }
-
-        if (! $contester = $DB->get_record('contester', array('id' => $cm->instance))) {
-            print_error("Course module is incorrect");
-        }
-
-    } else {
-        if (! $contester = $DB->get_record('contester', array('id' => $a))) {
-            print_error("Course module is incorrect");
-        }
-        if (! $course = $DB->get_record('course', array('id' => $contester->course))) {
-            print_error("Course is misconfigured");
-        }
-        if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
-            print_error("Course Module ID was incorrect");
-        }
+    if(! $contester = $DB->get_record('contester', array('id' => $a))) {
+        print_error(get_string("incorrect_contester_id", "contester"));
     }
-	//echo "botva";
+    if(! $course = $DB->get_record('course', array('id' => $contester->course))) {
+        print_error(get_string("misconfigured_course", "contester"));
+    }
+    if(! $cm = get_coursemodule_from_instance('contester', $contester->id, $course->id)) {
+        print_error(get_string("incorrect_cm_id", "contester"));
+    }
+
     require_login($course->id);
-    //echo "botva";
-	//add_to_log($course->id, "contester", "show_solution", "show_solution.php?a=$contester->id&sid=$sid", "$contester->id");	
-	//echo "botva";
-	//$context = get_context_instance(CONTEXT_MODULE, $cm->id);
+
+    //add_to_log($course->id, "contester", "show_solution", "show_solution.php?a=$contester->id&sid=$sid", "$contester->id");
+
     $context = context_module::instance($cm->id);
     $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
     $is_admin = has_capability('moodle/site:config', $context);
-    //echo "#".$is_teacher;
+
     if ((!$is_admin) && (!$is_teacher) && (!$DB->get_field('contester', 'freeview', array('id' => $contester->id)))) {
-    	//echo "botva";
-        if (!$userid)
-        {
-        	//echo "botva";
-	       	if (empty($USER->id)) {
-    	        print_error('accessdenied', 'contester');
-        	}
-        	$userid = $USER->id;
+        if (!$userid) {
+            if (empty($USER->id)) {
+                print_error('accessdenied', 'contester');
+            }
+            $userid = $USER->id;
     	}
-    	$user = $DB->get_field_sql("SELECT user.id FROM mdl_user as user, mdl_contester_submits as submits
-    	WHERE submits.id=$sid AND user.id=submits.student");
+        $user = $DB->get_field_sql("SELECT user.id
+                                    FROM   user,
+                                           {contester_submits} submits
+                                    WHERE  submits.id=?
+                                           AND
+                                           user.id=submits.student",
+                                   array($pid));
     	if ($userid != $user) print_error('accessdenied', 'contester');
     }
-    //echo "botva";
 
 /// Print the page header
 
-    /*if ($course->category) {
-        $navigation = "<a href=\"../../course/view.php?id=$course->id\">$course->shortname</a> ->";
-    }
-
-    $strcontesters = get_string("modulenameplural", "contester");
-    $strcontester  = get_string("modulename", "contester");
-
-    print_header("$course->shortname: $contester->name", "$course->fullname",
-                 "$navigation <a href=index.php?id=$course->id>$strcontesters</a> -> $contester->name",
-                  "", "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.css\" />", true, update_module_button($cm->id, $course->id, $strcontester)),
-                  navmenu($course, $cm));*/
-                  
-    $PAGE->set_url('/mod/contester/show_solution.php', array('a' => $a, 'sid' => $id));
+    $PAGE->set_url('/mod/contester/show_solution.php', array('a' => $contester->id,
+                                                             'sid' => $sid));
     $PAGE->set_title("$course->shortname: $contester->name");
     $PAGE->set_heading("$course->fullname");
-    
-    $contester_url = new moodle_url('/mod/contester/view.php', array('a' => $a));
-    $PAGE->navbar->add("$contester->name", $contester_url);  
-    $PAGE->set_focuscontrol("");
-    $PAGE->set_cacheable(true);
-    $PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));
-    
+
+    $contester_url = new moodle_url('/mod/contester/view.php', array('a' => $contester->id));
+    $PAGE->navbar->add("$contester->name", $contester_url);
+    $PAGE->set_button(update_module_button($cm->id, $course->id,
+                      get_string("modulename", "contester")));
+
     echo $OUTPUT->header();
 
+
 /// Print the main part of the page
-	contester_print_begin($contester->id);
 
-	$r = $DB->get_records_sql('SELECT mcp.name FROM mdl_contester_submits mcs JOIN mdl_contester_problems mcp ON mcs.problem=mcp.dbid WHERE mcs.id=?', array($sid));
+    contester_print_begin($contester->id);
 
-	$student = $DB->get_field('contester_submits', 'student', array('id' => $sid));
-	echo $DB->get_field('user', 'firstname', array('id' => $student)).' '.$DB->get_field('user', 'lastname', array('id' => $student)).' ';
-	foreach($r as $curname)
-		echo $curname->name;
-	echo ' ';
-	echo  $DB->get_field('contester_submits', 'submitted', array('id' => $sid)).'<br/><br/>';
-	echo "<textarea cols=70 rows = 30 readonly='yes'>".$DB->get_field('contester_submits', 'solution', array('id' => $sid))."</textarea>";
+    $sr = $DB->get_record_sql("SELECT  problems.name as problem_name,
+                                       user.firstname as firstname,
+                                       user.lastname as lastname,
+                                       submits.submitted_uts as submitted_uts
+                               FROM    {contester_submits} submits,
+                                       {contester_problems} problems,
+                                       {user} user
+                               WHERE
+                                       submits.problem=problems.dbid AND
+                                       user.id = submits.student AND
+                                       submits.id=?", array($sid));
+
+    echo $sr->firstname . ' ' . $sr->lastname . ' ' . $sr ->problem_name . ' ' .
+         '<br />' . userdate($sr->submitted_uts, get_string('strftimedatetime')) . '<br/><br/>';
+
+    echo "<textarea cols=85 rows = 30 readonly='yes'>".$DB->get_field('contester_submits', 'solution', array('id' => $sid))."</textarea>";
+
+    contester_print_end();
 
 /// Finish the page
-	contester_print_end();
-    //print_footer($course);
-   	echo $OUTPUT->footer();
+
+    echo $OUTPUT->footer();
 
 ?>
