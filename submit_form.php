@@ -3,35 +3,20 @@
 /// Отображает форму отправки решения с выбором задачи, языка программирования
 /// программирования, и файла с исходным текстом решения.
 
-    require_once("../../config.php");
-    require_once("lib.php");
+    require('../../config.php');
+    require_once('lib.php');
 
-    $id = optional_param('id', 0, PARAM_INT); // Course Module ID, or
-    $a  = optional_param('a', 0, PARAM_INT);  // contester ID
+    $a   = required_param('a', PARAM_INT);       // contester ID
+    $pid = optional_param('pid', -1, PARAM_INT); // problem ID
 
-    if ($id) {
-        if (! $cm = $DB->get_record("course_modules", array("id"=>$id))) {
-            print_error("Course Module ID was incorrect");
-        }
-
-        if (! $course = $DB->get_record("course", array("id"=>$cm->course))) {
-            print_error("Course is misconfigured");
-        }
-
-        if (! $contester = $DB->get_record("contester", array("id"=>$cm->instance))) {
-            print_error("Course module is incorrect");
-        }
-
-    } else {
-        if (! $contester = $DB->get_record("contester", array("id"=>$a))) {
-            print_error("Course module is incorrect");
-        }
-        if (! $course = $DB->get_record("course", array("id"=>$contester->course))) {
-            print_error("Course is misconfigured");
-        }
-        if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
-            print_error("Course Module ID was incorrect");
-        }
+    if(! $contester = $DB->get_record('contester', array('id' => $a))) {
+        print_error(get_string("incorrect_contester_id", "contester"));
+    }
+    if(! $course = $DB->get_record('course', array('id' => $contester->course))) {
+        print_error(get_string("misconfigured_course", "contester"));
+    }
+    if(! $cm = get_coursemodule_from_instance('contester', $contester->id, $course->id)) {
+        print_error(get_string("incorrect_cm_id", "contester"));
     }
 
     require_login($course->id);
@@ -41,125 +26,91 @@
     $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);  
 
     //add_to_log($course->id, "contester", "view", "view.php?id=$cm->id", "$contester->id");
-	
-	/*$event = \mod_contester\event\course_module_viewed::create(array(
-    'objectid' => $PAGE->cm->instance,
-    'context' => $PAGE->context,
-));
-	$event->add_record_snapshot('course', $PAGE->course);
-	$event->add_record_snapshot($PAGE->cm->modname, $contester);
-	$event->trigger(); */
-	
-	//Start new code
-	
-	/*
-	$event = \mod_contester\event\course_module_viewed::create(array(
-    'objectid' => $PAGE->cm->instance,
-    'context' => $PAGE->context,
-	));
-	$event->add_record_snapshot('course', $PAGE->course);
-	$event->add_record_snapshot($PAGE->cm->modname, $contester);
-	$event->trigger(); 
-	*/
-	
-	//End new code
+
 
 /// Print the page header
 
-    /* if ($course->category) {
-        $navigation = "<a href=\"../../course/view.php?id=$course->id\">$course->shortname</a> ->";
+    if ($pid == -1) {
+        $PAGE->set_url('/mod/contester/submit_form.php', array('a' => $contester->id));
     }
+    else {
+        $PAGE->set_url('/mod/contester/submit_form.php', array('a' => $contester->id,
+                                                               'pid' => $pid));
+    }
+    $PAGE->set_title("$course->shortname: $contester->name");
+    $PAGE->set_heading("$course->fullname");
 
-    $strcontesters = get_string("modulenameplural", "contester");
-    $strcontester  = get_string("modulename", "contester");
+    $contester_url = new moodle_url('/mod/contester/view.php', array('a' => $contester->id));
+    $PAGE->navbar->add("$contester->name", $contester_url);
+    $PAGE->set_button(update_module_button($cm->id, $course->id,
+                      get_string("modulename", "contester")));
 
-    print_header("$course->shortname: $contester->name", "$course->fullname",
-                 "$navigation <a href=index.php?id=$course->id>$strcontesters</a> -> $contester->name",
-                  "", "", true, update_module_button($cm->id, $course->id, $strcontester),
-                  navmenu($course, $cm)); */
-	//Start new code
-	
-    $PAGE->set_url('/mod/contester/submit_form.php', array('id' => $cm->id));
-    $PAGE->set_title(format_string($contester->name));
-    $PAGE->set_heading(format_string($course->fullname));
-
-    $contester_url = new moodle_url('/mod/contester/view.php', array('a' => $a));
-    $PAGE->navbar->add("$contester->name", $contester_url); 
-    $PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));
-
-	//End new code
-	
-/// Print the main part of the page
-	
     echo $OUTPUT->header();
+
+
+/// Print the main part of the page
+
 
     contester_print_begin($contester->id);
 
-    echo "<form enctype=\"multipart/form-data\" method=\"post\" action=\"submit.php?a={$contester->id}\">";
-	echo '<table cellpadding="5"><tbody>';
+    echo '<form enctype="multipart/form-data" method="post" action="submit.php?a=' . $contester->id . '">';
+    echo '<table cellpadding="5"><tbody>';
 
     if ($r = $DB->get_records_sql("
-    			SELECT   *
-    			FROM     mdl_contester_problems cp
-    			JOIN     mdl_contester_problemmap cpm
-    			ON       cpm.problemid = cp.id
-    			WHERE    cpm.contesterid = ?
-    			ORDER BY cpm.id", array($contester->id)))
-    {
+            SELECT   *
+            FROM     {contester_problems} problems,
+                     {contester_problemmap} problemmap
+            WHERE    problemmap.problemid = problems.id
+                     AND
+                     problemmap.contesterid = ?
+            ORDER BY problemmap.id",
+            array($contester->id))) {
     	echo '<tr><td align="right">'.get_string('problem', 'contester').":</td>";
-    	echo "<td><select name=\"problem\" id=\"problemselect\">";
-    	echo "<option value=\"-1\"";
-    	if (optional_param('pid', -1, PARAM_INT) == -1) echo " selected";
+    	echo '<td><select name="problem" id="problemselect">';
+    	echo '<option value="-1"';
+    	if ($pid == -1)
+            echo " selected";
     	echo ">" . get_string('chooseproblem', 'contester') . "</option>";
-    	//while ($r->valid())
-    	foreach($r as $rr)
-    	{
-    		echo "<option value=\"" . $rr->dbid . "\"";
-    		if (optional_param('pid', -1, PARAM_INT) == $rr->id) echo " selected";
-    		echo ">" . $rr->name . "</option>";
-    		//$r->MoveNext();
-    	}
-    	echo "</select></td></tr>";
-    }
-	
-    if ($r = $DB->get_records_select("contester_languages", "display is not null", array(), "display"))
-    {
-    	$m = $DB->get_recordset("contester_language_map", array('contester_id'=>$contester->id));
-    	$langs = array();
-    	foreach ($m as $lang) $langs[$lang->language_id] = 1;
-    	echo '<tr><td align="right">'.get_string('prlanguage', 'contester').":</td>";
-    	echo "<td><select name=\"lang\" id=\"langselect\">";
-    	echo "<option value=\"-1\"";
-    	echo " selected";
-    	echo ">" . get_string('chooselanguage', 'contester') . "</option>";
-    	foreach($r as $rr)
-    	{
-    		// if ($langs[$r->fields["id"]] == 1) {
-    		echo "<option value=\"" . $rr->id . "\">" . $rr->name . "</option>";
-    		// }
-		}
-		echo "</select></td></tr>";
+
+    	foreach($r as $rr) {
+            echo '<option value="' . $rr->dbid . '"';
+            if ($pid == $rr->id)
+                echo " selected";
+            echo '>' . $rr->name . '</option>';
+        }
+        echo "</select></td></tr>";
     }
 
-    $iomethodmode = $DB->get_field('contester', 'iomethodmode', array('id' => $a));
+    if ($r = $DB->get_records_select("contester_languages", "display is not null", array(), "display")) {
+        echo '<tr><td align="right">'.get_string('prlanguage', 'contester').":</td>";
+        echo '<td><select name="lang" id="langselect">';
+        echo '<option value="-1"';
+        echo ' selected';
+        echo '>' . get_string('chooselanguage', 'contester') . '</option>';
+        foreach($r as $rr) {
+            echo '<option value="' . $rr->id . '">' . $rr->name . '</option>';
+        }
+        echo '</select></td></tr>';
+    }
+
+    $iomethodmode = $DB->get_field('contester', 'iomethodmode', array('id' => $contester->id));
     if ($iomethodmode > 1) {
         echo '<tr><td align="right">'.get_string('consoleio', 'contester').":</td>";
         echo '<td><input type="checkbox" name="iomethod" value="1"</td></tr>';
     }
 
     echo '<tr><td colspan="2" align="center">'.get_string('solution', 'contester').":</td>";
-    // echo "<td><input type=\"file\" name=\"solution\"></td></tr>";
-
-    echo '<tr><td colspan="2"><textarea rows="20" cols="60" id="code" name="code"
-		placeholder="'.get_string('solution', 'contester').'"></textarea></td><tr>';
+    echo '<tr><td colspan="2"><textarea rows="20" cols="85" id="code" name="code" placeholder="' .
+         get_string('solution', 'contester').'"></textarea></td><tr>';
 
     echo '<tr><td colspan="2" align="center"><input type="submit" value="'.get_string('submit', 'contester').'"></input></td></tr>';
-
     echo '</tbody></table></form>';
 
-/// Finish the page
     contester_print_end();
-    // print_footer($course); Olf
+
+/// Finish the page
+
+
     echo $OUTPUT->footer();
 
 ?>
