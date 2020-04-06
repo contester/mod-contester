@@ -130,7 +130,7 @@ $string['mode_both']          = 'Файловый или консольный (�
 $string['consoleio']          = 'Консольный ввод/вывод (stdin/stdout)';
 $string['fileio']             = 'Файловый ввод/вывод (input.txt/output.txt)';
 
-$string['iomethodshort']      = 'Ввод/вывод:';
+$string['iomethodshort']      = 'Ввод/вывод';
 $string['consoleioshort']     = 'консольный';
 $string['fileioshort']        = 'input.txt/output.txt';
 
