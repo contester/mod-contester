@@ -1,7 +1,6 @@
 <?PHP  // $Id: view.php,v 1.2 2006/04/29 22:19:41 skodak Exp $
 
-/// This page prints a particular instance of contester
-/// (Replace contester with the name of your module)
+/// This page prints solution code
 
     require_once("../../config.php");
     require_once("lib.php");
@@ -35,13 +34,13 @@
             $userid = $USER->id;
     	}
         $user = $DB->get_field_sql("SELECT user.id
-                                    FROM   user,
+                                    FROM   mdl_user as user,
                                            {contester_submits} submits
                                     WHERE  submits.id=?
                                            AND
                                            user.id=submits.student",
-                                   array($pid));
-    	if ($userid != $user) print_error('accessdenied', 'contester');
+                                   array($sid));
+        if ($userid != $user) print_error('accessdenied', 'contester');
     }
 
 /// Print the page header
