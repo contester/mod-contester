@@ -105,14 +105,14 @@ function contester_update_instance(stdClass $contester, mod_contester_mod_form $
 		}
     	unset($map_inst);
     }
-    
+
     if (!isset($contester->intro))
     	$contester->intro = "Test";
     if (!isset($contester->introformat))
     	$contester->introformat = 0;
     if (!isset($contester->description)) $contester->description = '';
     $res = $DB->get_records('contester_problemmap', array('contesterid' => $contester->id), 'id', 'id');
-    
+
     foreach ($res as $line)
     {
     	$id = "pid".$line->id;
@@ -122,7 +122,7 @@ function contester_update_instance(stdClass $contester, mod_contester_mod_form $
     			$DB->delete_records('contester_problemmap', 'id', $line->id);
     	}
     }
-//End new code
+
     $result = $DB->update_record('contester', $contester);
     contester_grade_item_update($contester);
     return $result;
@@ -167,7 +167,6 @@ function contester_delete_instance($id) {
     	$result = false;
     }
     return $result;
-//End new code
 }
 
 /**
@@ -214,7 +213,6 @@ function contester_user_outline($course, $user, $mod, $contester) {
  * @param stdClass $contester the module instance record
  */
 function contester_user_complete($course, $user, $mod, $contester) {
-//Start new code	
 	global $DB;
 	unset($submits);
 	$submits = contester_get_last_submits($contester->id, -1, $user->id);
@@ -238,7 +236,6 @@ function contester_user_complete($course, $user, $mod, $contester) {
 		 echo ": 0.";
 	}
     return true;
-//End new code
 }
 /**
  * Given a course and a time, this module should find recent activity
@@ -482,7 +479,7 @@ function contester_extend_navigation(navigation_node $navref, stdClass $course, 
 function contester_extend_settings_navigation(settings_navigation $settingsnav, navigation_node $contesternode=null) {
     // TODO Delete this function and its docblock, or implement it.
 }
-//Start new code
+
 $contester_SAMPLES_PREFIX = '\\begin{example}';
 $contester_SAMPLES_SUFFIX = '\\end{example}';
 $contester_SAMPLE_PREFIX = '\\exmp';
@@ -492,7 +489,7 @@ $contester_SAMPLE_SUFFIX = '%';
 * function contester_choose_from_list is choose_from_menu with additional parameters
 *
 */
-function contester_choose_from_list ($options, $name, $multiple=false, $size=1, $selected='', $nothing='choose', $script='',
+function contester_choose_from_list($options, $name, $multiple=false, $size=1, $selected='', $nothing='choose', $script='',
                            $nothingvalue='0', $return=false, $disabled=false, $tabindex=0) {
     if ($nothing == 'choose') {
         $nothing = get_string('choose') .'...';
@@ -580,12 +577,13 @@ function contester_reset_course_form_definition(&$mform) {
 function contester_reset_course_form_defaults($course) {
    return array('reset_contester_all'=>1);
 }
-                 
+
 function contester_reset_userdata($data)
 {
     $status = array();
     return $status;
 }
+
 //////////////////////////////////////////////////////////////////////////////////////
 /// Any other contester functions go here.  Each of them must have a name that
 /// starts with contester_
@@ -599,7 +597,7 @@ function contester_get_submit($submitid)
                                   WHERE       (contester = {$submit->contester})
                                           AND (student = {$submit->student})
                                           AND (problem = {$submit->problem})
-                                          AND (submitted < '{$submit->submitted}')");
+                                          AND (submitted_uts < '{$submit->submitted_uts}')");
     $attempts = 0 + $tmp->cnt;
     $result = $DB->get_record_sql("SELECT      *
                                       FROM      mdl_contester_testings
@@ -610,7 +608,7 @@ function contester_get_submit($submitid)
     $fields = array("compiled", "taken", "passed");
     foreach($fields as $field)
     {
-        $submit->$field = $result->$field;    	
+        $submit->$field = $result->$field;
     }
     if ($submit->compiled && $submit->taken)
         $submit->points = contester_get_rounded_points($attempts, $submit->passed, $submit->taken);
@@ -629,7 +627,7 @@ function contester_get_submit_info($submitid)
 {
     global $DB;
 	//$submit = contester_get_submit($submitid);
-	
+
 	$submit = $DB->get_record("contester_submits", array("id" => $submitid));
 
         $attempts = $DB->count_records_select('contester_submits',
@@ -658,7 +656,7 @@ function contester_get_submit_info($submitid)
 	else
 		$submit->points = 0;
 	$submit->attempt = $attempts + 1;
-	
+
 	//$mapping = $DB->get_record("contester_problemmap", "id", $submit->problem, "contesterid", $submit->contester);
 	$problem = $DB->get_record("contester_problems", "dbid", $submit->problem);
 	$res = null;
@@ -753,7 +751,7 @@ function contester_obj2assoc($obj)
 		$result[$key] = $val;
 	return $result;
 }
-function contester_get_last_submits($contesterid, $cnt = 1, $user = NULL, $problem = NULL, $datefrom = NULL, $dateto = NULL)
+function contester_get_last_submits($contesterid, $cnt = 1, $user = NULL, $problem = NULL, $datefrom_uts = NULL, $dateto_uts = NULL)
 {
     if ($cnt == -1)
         $cnt = 1048576;
@@ -769,13 +767,13 @@ function contester_get_last_submits($contesterid, $cnt = 1, $user = NULL, $probl
 	}
 	if ($datefrom != NULL)
 	{
-		$query .= " AND (submitted >= ?) ";
-		$qarr []= $datefrom;
+		$query .= " AND (submitted_uts >= ?) ";
+		$qarr []= $datefrom_uts;
 	}
 	if ($dateto != NULL)
 	{
-		$query .= " AND (submitted <= ?) ";
-		$qarr []= $dateto;
+		$query .= " AND (submitted_uts <= ?) ";
+		$qarr []= $dateto_uts;
 	}
 	if ($problem != NULL)
 	{
@@ -784,19 +782,17 @@ function contester_get_last_submits($contesterid, $cnt = 1, $user = NULL, $probl
 		$query .= " AND (problem = ?) ";
 		$qarr []= $problem;
 	}
-	$query .= " ORDER BY submitted DESC";
-	//$qarr []= $cnt;
-	//echo "$query<br>";
+	$query .= " ORDER BY submitted_uts DESC";
+
 	$submits = $DB->get_records_sql($query, $qarr, 0, $cnt);
-	//var_dump($submits);
+
 	$result = array();
-	/*foreach($submits as $line)
-		$result []= contester_get_submit($line["id"]);*/
-	//while (!$submits->EOF)
+
 	foreach($submits as $submit)
 	    $result []= contester_get_submit($submit->id);
 	return $result;
 }
+/*
 function contester_get_best_submit($contesterid, $user, $problem)
 {
 	//error($user);
@@ -895,10 +891,11 @@ function contester_get_last_best_submit_reference($contesterid, $user, $problem,
 		return $s;
 	}
 }
+*/
 // берём последнее из правильных или последнее из неправильных, если правильных не было
-function contester_get_last_or_last_correct_submit_reference($contesterid, $user, $problem, $datefrom, $dateto)
+function contester_get_last_or_last_correct_submit_reference($contesterid, $user, $problem, $datefrom_uts, $dateto_uts)
 {
-	$submits = contester_get_last_submits($contesterid, -1, $user, $problem, $datefrom, $dateto);
+	$submits = contester_get_last_submits($contesterid, -1, $user, $problem, $datefrom_uts, $dateto_uts);
 	// ^ sorted by submitted DESC
 	$sid = -1;
 	$points = -5;
@@ -952,10 +949,10 @@ function contester_get_last_or_last_correct_submit_reference($contesterid, $user
 		return $s;
 	}
 }
-// Like contester_get_last_best_submit_reference. Only result without reference
-function contester_get_result_without_reference($contesterid, $user, $problem, $datefrom, $dateto)
+// Like contester_get_last_or_last_correct_submit_reference. Only result without reference
+function contester_get_result_without_reference($contesterid, $user, $problem, $datefrom_uts, $dateto_uts)
 {
-	$submits = contester_get_last_submits($contesterid, -1, $user, $problem, $datefrom, $dateto);
+	$submits = contester_get_last_submits($contesterid, -1, $user, $problem, $datefrom_uts, $dateto_uts);
 	$result = -5;
 	$mincorrectresult = -5;
 	$sid = -1;
@@ -1040,8 +1037,6 @@ function contester_draw_assoc_table($res)
         foreach($line as $key => $val)
         {
             echo "<td>&nbsp;";
-            /*echo substr($val, 0, min(strlen($val), 50));
-            if (strlen($val) > 50) echo '...';*/
             echo $val;
             echo "</td>";
         }
@@ -1069,7 +1064,7 @@ function contester_show_problemlist($instance)
 	echo '<td align="right"><b>'.get_string('availableproblems', 'contester').':</b></td>';
     echo '<td align="left">';
     echo '<table><tr><td colspan=3>'.get_string('problemstodelete', 'contester').'</td></tr>';
-    
+
     unset($res);
     $res = $DB->get_recordset_sql("SELECT   problems.name as name,
     				 problemmap.id as id,
@@ -1702,7 +1697,9 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 						   WHERE   (contester = ?)
 						   AND     (student = ?)
 						   AND     (problem = ?)
-						   AND     (submitted < ?)', array($submit->contester, $submit->student, $submit->problem, $submit->submitted));
+						   AND     (submitted_uts < ?)',
+                                   array($submit->contester, $submit->student,
+                                         $submit->problem, $submit->submitted_uts));
 	$attempts = 0 + $tmp->cnt;
 	if (!$testing = $DB->get_record_sql('SELECT   *
 	                                FROM     mdl_contester_testings

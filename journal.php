@@ -5,80 +5,64 @@
     require_once("../../config.php");
     require_once("lib.php");
 
-    $id = optional_param('id', 0, PARAM_INT); // Course Module ID, or
-    $a  = optional_param('a', 0, PARAM_INT);  // contester ID
+    $a   = required_param('a', PARAM_INT);  // contester ID
 
     $group_value  = optional_param('group', -1, PARAM_INT);
+
+
+
     $MIN_year = 2000;
     $MAX_year = date('Y');
-	$year_from_value  = optional_param('year_from', date('Y') - 1, PARAM_INT);
-	$month_from_value  = optional_param('month_from', 9, PARAM_INT);
-	$day_from_value  = optional_param('day_from', 1, PARAM_INT);
-	$time_from_value  = optional_param('time_from', '00:00:00', PARAM_TEXT);
+    $year_from_value  = optional_param('year_from', date('Y') - 1, PARAM_INT);
+    $month_from_value  = optional_param('month_from', 9, PARAM_INT);
+    $day_from_value  = optional_param('day_from', 1, PARAM_INT);
+    $time_from_value  = optional_param('time_from', '00:00:00', PARAM_TEXT);
 
-	$year_to_value  = optional_param('year_to', -1, PARAM_INT);
-	$month_to_value  = optional_param('month_to', 12, PARAM_INT);
-	$day_to_value  = optional_param('day_to', -1, PARAM_INT);
-	$time_to_value  = optional_param('time_to', '23:59:59', PARAM_TEXT);
+    $year_to_value  = optional_param('year_to', -1, PARAM_INT);
+    $month_to_value  = optional_param('month_to', 12, PARAM_INT);
+    $day_to_value  = optional_param('day_to', -1, PARAM_INT);
+    $time_to_value  = optional_param('time_to', '23:59:59', PARAM_TEXT);
 
 
-	if ($id) {
-        if (! $cm = $DB->get_record("course_modules", array("id"=>$id))) {
-            print_error("Course Module ID was incorrect");
-        }
-
-        if (! $course = $DB->get_record("course", array("id"=>$cm->course))) {
-            print_error("Course is misconfigured");
-        }
-
-        if (! $contester = $DB->get_record("contester", array("id"=>$cm->instance))) {
-            print_error("Course module is incorrect");
-        }
-
-    } else {
-        if (! $contester = $DB->get_record("contester", array("id"=>$a))) {
-            print_error("Course module is incorrect");
-        }
-        if (! $course = $DB->get_record("course", array("id"=>$contester->course))) {
-            print_error("Course is misconfigured");
-        }
-        if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
-            print_error("Course Module ID was incorrect");
-        }
+    if(! $contester = $DB->get_record('contester', array('id' => $a))) {
+        print_error(get_string("incorrect_contester_id", "contester"));
     }
+    if(! $course = $DB->get_record('course', array('id' => $contester->course))) {
+        print_error(get_string("misconfigured_course", "contester"));
+    }
+    if(! $cm = get_coursemodule_from_instance('contester', $contester->id, $course->id)) {
+        print_error(get_string("incorrect_cm_id", "contester"));
+    }
+
 
     require_login($course->id);
 
-    //add_to_log($course->id, "contester", "status", "status.php?id=$cm->id", "$contester->id");
+
+    // add_to_log($course->id, "contester", "status", "status.php?id=$cm->id", "$contester->id");
 
 /// Print the page header
-	/*
-    if ($course->category) {
-        $navigation = "<a href=\"../../course/view.php?id=$course->id\">$course->shortname</a> ->";
-    }
 
-    $strcontesters = get_string("modulenameplural", "contester");
-    $strcontester  = get_string("modulename", "contester");
+    $PAGE->set_url('/mod/contester/journal.php', array('a' => $contester->id));
+    $PAGE->set_title("$course->shortname: $contester->name");
+    $PAGE->set_heading($course->fullname);
 
-    print_header("$course->shortname: $contester->name", "$course->fullname",
-                 "$navigation <a href=index.php?id=$course->id>$strcontesters</a> -> $contester->name",
-                  "", "", true, update_module_button($cm->id, $course->id, $strcontester),
-                  navmenu($course, $cm));
-	*/
-	
-    $PAGE->set_url('/mod/contester/journal.php', array('id' => $cm->id));
-    $PAGE->set_title(format_string($contester->name));
-    $PAGE->set_heading(format_string($course->fullname));
-    $contester_url = new moodle_url('/mod/contester/view.php', array('a' => $a));
-    $PAGE->navbar->add("$contester->name", $contester_url);  
-	
+    $contester_url = new moodle_url('/mod/contester/view.php', array('a' => $contester->id));
+    $PAGE->navbar->add("$contester->name", $contester_url);
+    $PAGE->set_button(update_module_button($cm->id, $course->id,
+                      get_string("modulename", "contester")));
+
+    echo $OUTPUT->header();
+
 /// Print the main part of the page
-	echo $OUTPUT->header();
-	contester_print_begin($contester->id);
-	//$context = get_context_instance(CONTEXT_MODULE, $cm->id);
-	$context = context_module::instance($cm->id);	
-	$is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
-	$is_admin = has_capability('moodle/site:config', $context);
+
+    contester_print_begin($contester->id);
+
+    $context = context_module::instance($cm->id);
+    $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
+    $is_admin = has_capability('moodle/site:config', $context);
+
+
+
 
 	// TODO: maybe replace this selector with a call to groups_print_course_menu.
 	$grps = groups_get_all_groups($contester->course);
@@ -182,30 +166,47 @@
 		else $time_to_param = $time_to_value;
 	$dateto = $year_to_param.'-'.$month_to_param.'-'.$day_to_param.' '.$time_to_param;
 
-	$contester_str = '(contester ='.$contester->id.') and';
+	// $contester_str = '(contester ='.$contester->id.') and';
 
-	$query = "SELECT DISTINCT mdl_contester_submits.student
-		FROM mdl_contester_submits JOIN mdl_user ON mdl_user.id=
-		mdl_contester_submits.student
-		WHERE
-		    ".$contester_str." mdl_contester_submits.submitted >= \"".$datefrom."\"
-            AND mdl_contester_submits.submitted <= \"".$dateto. "\"
-        ORDER BY mdl_user.lastname, mdl_user.firstname";
+    $datetime_from = new DateTime($datefrom);
+    $datefrom_uts = $datetime_from->getTimestamp();
 
-	$query2 = "SELECT DISTINCT mdl_groups_members.userid AS student FROM
-			(mdl_groups_members JOIN mdl_user ON mdl_user.id=mdl_groups_members.userid) JOIN
-			mdl_contester_submits ON mdl_groups_members.userid=mdl_contester_submits.student
-			WHERE ".
-			$contester_str." mdl_contester_submits.submitted >= \"".$datefrom.
-			"\" ". $groupquery ."AND mdl_contester_submits.submitted <= \"".$dateto. "\"
-			ORDER BY mdl_user.lastname, mdl_user.firstname";
+    $datetime_to = new DateTime($dateto);
+    $dateto_uts = $datetime_to->getTimestamp();
 
-	//echo $query."<BR>";
-	if ($group_value == -1 || $group_value == 'none') {
-	    $students = $DB->get_recordset_sql($query);
-	} else {
-	    $students = $DB->get_recordset_sql($query2);
-	}
+    $query = "SELECT DISTINCT submits.student
+              FROM   {contester_submits} submits,
+                     mdl_user
+              WHERE  mdl_user.id=submits.student
+                     AND
+                     submits.contester = $contester->id
+                     AND
+                     submits.submitted_uts BETWEEN ? AND ?
+              ORDER  BY mdl_user.lastname, mdl_user.firstname";
+
+    $query2 = "SELECT DISTINCT mdl_groups_members.userid AS student
+               FROM   mdl_groups_members, mdl_user,
+                      {contester_submits} submits
+               WHERE  mdl_user.id = mdl_groups_members.userid
+                      AND
+                      mdl_groups_members.userid = submits.student
+                      AND
+                      submits.contester = $contester->id
+                      AND
+                      mdl_groups_members.groupid = ?
+                      AND
+                      submits.submitted_uts BETWEEN ? AND ?
+               ORDER BY mdl_user.lastname, mdl_user.firstname";
+
+    if ($group_value == -1 || $group_value == 'none') {
+        $students = $DB->get_recordset_sql($query,
+                     array($datefrom_uts, $dateto_uts));
+    }
+    else {
+        $students = $DB->get_recordset_sql($query2,
+                     array($group_value, $datefrom_uts, $dateto_uts));
+    }
+
 	$query =
 
 	"SELECT problemid, id as pid FROM mdl_contester_problemmap
@@ -263,12 +264,11 @@
 		foreach ($prs as $pr) {
 			if ($is_admin || $is_teacher || $st->id == $userid)
 			{
-				$tmp = contester_get_last_or_last_correct_submit_reference($contester->id, $st->id, $pr->id, $datefrom, $dateto);                
-				//contester_get_last_best_submit_reference($contester->id, $st->id, $pr->id, $datefrom, $dateto);
+				$tmp = contester_get_last_or_last_correct_submit_reference($contester->id, $st->id, $pr->id, $datefrom_uts, $dateto_uts);
 			}
 			else
 			{
-				$tmp = contester_get_result_without_reference($contester->id, $st->id, $pr->id, $datefrom, $dateto);
+				$tmp = contester_get_result_without_reference($contester->id, $st->id, $pr->id, $datefrom_uts, $dateto_uts);
 			}
             echo "<td>".$tmp."</td>";
 			if (strpos($tmp, '+') !== FALSE) ++$cnt;
@@ -277,24 +277,11 @@
 		echo "</tr>\n";
 	}
 	echo "</table>";
-	//var_dump($submits);
 
-	//$result = array();
 
-	/*foreach($submits as $line)
-		$result []= contester_get_submit($line["id"]);*/
-	/*while (!$submits->EOF)
-	{
-	    $result []= contester_get_submit_info($submits->fields["id"]);
-	    $submits->MoveNext();
-	}
+    contester_print_end();
 
-    //$submits = contester_get_last_submits($contester->id, 10, $USER->id);
-
-    contester_draw_assoc_table($result);
-    */
 /// Finish the page
-	contester_print_end();
-    //print_footer($course);
-	echo $OUTPUT->footer();
+
+    echo $OUTPUT->footer();
 ?>
