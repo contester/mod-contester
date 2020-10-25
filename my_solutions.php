@@ -68,50 +68,61 @@
                          get_string('date'), get_string('status', 'contester'), get_string('points', 'contester'),
                          get_string('modulename', 'contester'));
 
+
     if ($thisorall != 1) {
         $tmp = $DB->get_records_sql('SELECT submits.id as p4,
-	                                    submits.contester as p6,
+	                                    submits.contester as a,
 	                                    problems.name as p1,
 					    languages.name as p2,
 					    submits.submitted as p3,
-    		                            contester.name as p5
+    		                            contester.name as p5,
+                                            problemmap.id as pid
                                      FROM   mdl_contester_problems as problems,
                                             mdl_contester_submits as submits,
                                             mdl_contester_languages as languages,
-                                            mdl_contester as contester
+                                            mdl_contester as contester,
+                                            mdl_contester_problemmap as problemmap
+                                     WHERE
+                                            submits.student = ? AND
+                                            submits.lang = languages.id AND
+                                            submits.problem = problems.dbid AND
+                                            submits.contester = contester.id AND
+					    contester.id = ? AND
+                                            problemmap.contesterid = contester.id AND
+                                            problemmap.problemid = problems.id
+                                     ORDER BY submits.submitted DESC', array($userid, $contester->id));
+    }
+    else {
+        $tmp = $DB->get_records_sql('SELECT submits.id as p4,
+	                                    submits.contester as a,
+	                                    problems.name as p1,
+					    languages.name as p2,
+					    submits.submitted as p3,
+					    contester.name as p5,
+                                            problemmap.id as pid
+                                     FROM   mdl_contester_problems as problems,
+                                            mdl_contester_submits as submits,
+                                            mdl_contester_languages as languages,
+                                            mdl_contester as contester,
+                                            mdl_contester_problemmap as problemmap
                                      WHERE
                                             submits.student=? AND
                                             submits.lang=languages.id AND
                                             submits.problem = problems.dbid AND
                                             submits.contester = contester.id AND
-					    contester.id = ?
-                                     ORDER BY submits.submitted DESC', array($userid, $contester->id));
-    }
-    else {
-        $tmp = $DB->get_records_sql('SELECT submits.id as p4,
-	                                    submits.contester as p6,
-	                                    problems.name as p1,
-					    languages.name as p2,
-					    submits.submitted as p3,
-					    contester.name as p5
-                                     FROM   mdl_contester_problems as problems,
-                                            mdl_contester_submits as submits,
-                                            mdl_contester_languages as languages,
-                                            mdl_contester as contester
-                                     WHERE
-                                            submits.student=? AND
-                                            submits.lang=languages.id AND
-                                            submits.problem = problems.dbid AND
-                                            submits.contester = contester.id
-                                     ORDER BY submits.submitted DESC', array($userid));    
+                                            problemmap.contesterid = contester.id AND
+                                            problemmap.problemid = problems.id
+                                     ORDER BY submits.submitted DESC', array($userid));
     }
 
     foreach($tmp as $row)
     {
         $tmpsubmitinfo = contester_get_special_submit_info($row->p4, false, false); //do not return problem name & language info
-        $table->data []= array($row->p1,$row->p2,$row->p3,$tmpsubmitinfo->status,
+        $url_problem = new moodle_url('problem.php', ['a' => $row->a, 'pid' => $row->pid]);
+        $table->data []= array('<a href='.$url_problem.'>'.$row->p1.'</a>',
+                               $row->p2, $row->p3, $tmpsubmitinfo->status,
                                '<a href=show_solution.php?a='.$row->p6.'&sid='.$row->p4.'>'.$tmpsubmitinfo->points.'</a>',
-                               '<a href=view.php?a='.$row->p6.'>'.$row->p5.'</a>');
+                               '<a href=view.php?a='.$row->a.'>'.$row->p5.'</a>');
     }
 
     if ($table->data === false) {
