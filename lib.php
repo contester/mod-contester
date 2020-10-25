@@ -1717,7 +1717,7 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 			$submit->$field = $testing->$field;
 		}
 	}
-	
+
 	//print_r($submit);
 	if ($submit->taken)
 		$submit->points = contester_get_rounded_points($attempts, $submit->passed, $submit->taken);
@@ -1745,7 +1745,7 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 			if ($submit->compiled == '1')
 				$res->status = "<a href=details.php?sid=$submit->id&a=$submit->contester>".
 					get_string('passed', 'contester')." $testing->passed ".
-					get_string('outof', 'contester')." $testing->taken.</a>";
+					get_string('outof', 'contester')." $testing->taken</a>";
 			else
 			{
 				$res_id = 2;
