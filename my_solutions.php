@@ -121,7 +121,7 @@
         $url_problem = new moodle_url('problem.php', ['a' => $row->a, 'pid' => $row->pid]);
         $table->data []= array('<a href='.$url_problem.'>'.$row->p1.'</a>',
                                $row->p2, $row->p3, $tmpsubmitinfo->status,
-                               '<a href=show_solution.php?a='.$row->p6.'&sid='.$row->p4.'>'.$tmpsubmitinfo->points.'</a>',
+                               '<a href=show_solution.php?a='.$row->a.'&sid='.$row->p4.'>'.$tmpsubmitinfo->points.'</a>',
                                '<a href=view.php?a='.$row->a.'>'.$row->p5.'</a>');
     }
 
