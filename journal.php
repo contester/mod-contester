@@ -92,7 +92,7 @@
 
     if ($datetime_from_value == NULL) {
         $dt_from = new DateTime("now", $school_timezone);
-        $dt_from->modify('-1 year');
+        $dt_from->modify('-2 year');
     }
     else {
         $dt_from = new DateTime($datetime_from_value, $school_timezone);

@@ -754,144 +754,42 @@ function contester_obj2assoc($obj)
 function contester_get_last_submits($contesterid, $cnt = 1, $user = NULL, $problem = NULL, $datefrom_uts = NULL, $dateto_uts = NULL)
 {
     if ($cnt == -1)
-        $cnt = 1048576;
+        $cnt = 10000;
 
     global $DB;
     $qarr = array();
-	$query = "SELECT id FROM {contester_submits} WHERE (contester = ?) ";
-	$qarr []= $contesterid;
-	if ($user != NULL)
-	{
-		$query .= " AND (student = ?) ";
-		$qarr []= $user;
-	}
-	if ($datefrom != NULL)
-	{
-		$query .= " AND (submitted_uts >= ?) ";
-		$qarr []= $datefrom_uts;
-	}
-	if ($dateto != NULL)
-	{
-		$query .= " AND (submitted_uts <= ?) ";
-		$qarr []= $dateto_uts;
-	}
-	if ($problem != NULL)
-	{
-		$res = $DB->get_record('contester_problems', array('id' => $problem));
-		$problem = $res->dbid;
-		$query .= " AND (problem = ?) ";
-		$qarr []= $problem;
-	}
-	$query .= " ORDER BY submitted_uts DESC";
+    $query = "SELECT id FROM {contester_submits} WHERE (contester = ?) ";
+    $qarr []= $contesterid;
+    if ($user != NULL) {
+        $query .= " AND (student = ?) ";
+        $qarr []= $user;
+    }
+    if ($datefrom_uts != NULL) {
+        $query .= " AND (submitted_uts >= ?) ";
+        $qarr []= $datefrom_uts;
+    }
+    if ($dateto_uts != NULL) {
+        $query .= " AND (submitted_uts <= ?) ";
+        $qarr []= $dateto_uts;
+    }
+    if ($problem != NULL) {
+        $res = $DB->get_record('contester_problems', array('id' => $problem));
+        $problem = $res->dbid;
+        $query .= " AND (problem = ?) ";
+        $qarr []= $problem;
+    }
+    $query .= " ORDER BY submitted_uts DESC";
 
-	$submits = $DB->get_records_sql($query, $qarr, 0, $cnt);
+    $submits = $DB->get_records_sql($query, $qarr, 0, $cnt);
 
-	$result = array();
+    $result = array();
 
-	foreach($submits as $submit)
-	    $result []= contester_get_submit($submit->id);
-	return $result;
+    foreach($submits as $submit)
+        $result []= contester_get_submit($submit->id);
+
+    return $result;
 }
-/*
-function contester_get_best_submit($contesterid, $user, $problem)
-{
-	//error($user);
-//	var_dump($contesterid." ".$user." ".$problem); 	echo "<br>";
-	$submits = contester_get_last_submits($contesterid, -1, $user, $problem);
-	$result = 0;
-	$correct = false;
-	foreach($submits as $line)
-	{
-		$submit = contester_get_submit($line->id);
-//		if ($user == "332") {var_dump($submit);               	echo "<br>";}
-		if ($submit->taken == $submit->passed) $correct = true;
-		$result = max($result, $submit->points);
-	}
-//	if ($correct === true) $result = "<b>$result</b>";
-	return $result;
-}
-function contester_get_best_submit_reference($contesterid, $user, $problem, $datefrom, $dateto)
-{
-	$submits = contester_get_last_submits($contesterid, -1, $user, $problem, $datefrom, $dateto);
-	$result = -5;
-	$sid = -1;
-	$correct = false;
-	foreach($submits as $line)
-	{
-		$submit = contester_get_submit($line->id);
-//		if ($user == "332") {var_dump($submit);               	echo "<br>";}
-		if ($submit->taken == $submit->passed) $correct = true;
-		if ($result <= $submit->points)
-		{
-			$result = $submit->points;
-			$taken = $submit->taken;
-			$passed = $submit->passed;
-			$sid = $submit->id;
-		}
-	}
-	$points = $result;
-//	if ($correct === true) $result = "<b>$result</b>";
-	if ($sid == -1) return ""; else
-	{
-		$s = "";
-		if ($correct) $result = '+ ' . $points; else
-			$result = '- ('.$passed.'/'.$taken.')';
-		$s = sprintf("<a href=\"show_solution.php?a=%d&sid=%d\">%s</a>", $contesterid, $sid, $result);
-		return $s;
-	}
-}
-// как contester_get_best_submit_reference, но ещё last среди best
-function contester_get_last_best_submit_reference($contesterid, $user, $problem, $datefrom, $dateto)
-{
-	$submits = contester_get_last_submits($contesterid, -1, $user, $problem, $datefrom, $dateto);
-	$result = -5;
-	$mincorrectresult = -5;
-	$sid = -1;
-	$taken = 0;
-	$correct = false;
-	foreach($submits as $line)
-	{
-		$submit = contester_get_submit($line->id);
-		if ($submit->taken == 0) continue;
-		// another correct
-		if (($correct) && ($submit->taken == $submit->passed))
-		{
-			if ($mincorrectresult > $submit->points)
-			{
-				$mincorrectresult = $submit->points;
-				$sid = $submit->id;
-			}
-			if ($result < $submit->points)
-			{
-				$result = $submit->points;
-			}
-		}
-		// correct or better
-		if ((!$correct) && ($result <= $submit->points))
-		{
-			if ($submit->taken == $submit->passed)
-			{
-				$correct = true;
-				$mincorrectresult = $submit->points;
-			}
-			$result = $submit->points;
-			$taken = $submit->taken;
-			$passed = $submit->passed;
-			$sid = $submit->id;
-		}
-	}
-	$points = $result;
-	if ($sid == -1 || $taken == 0) return "";
-	else
-	{
-		$s = "";
-		if ($correct) $result = '+ ' . $points; else
-			$result = '- ('.$passed.'/'.$taken.')';
-		$s = sprintf("<a href=\"show_solution.php?a=%d&sid=%d\">%s</a>", $contesterid, $sid, $result);
-		return $s;
-	}
-}
-*/
+
 // берём последнее из правильных или последнее из неправильных, если правильных не было
 function contester_get_last_or_last_correct_submit_reference($contesterid, $user, $problem, $datefrom_uts, $dateto_uts)
 {
@@ -906,7 +804,6 @@ function contester_get_last_or_last_correct_submit_reference($contesterid, $user
 	foreach($submits as $line)
 	{
 		$submit = contester_get_submit($line->id);
-		//if ($submit->compiled) echo '!';
 		if ($submit->taken == 0) continue;
 		if ($sid == -1) // no one yet
 		{
@@ -998,10 +895,8 @@ function contester_get_result_without_reference($contesterid, $user, $problem, $
 function contester_get_user_points($contesterid, $user)
 {
 	global $DB;
-//	var_dump($contesterid." ".$user); 	echo "<br>";
 	$problems = $DB->get_recordset_select("contester_problemmap", "contesterid = ?", array($contesterid), "problemid");
 	$result = 0;
-	//print_r($problems);
 	foreach($problems as $line)
 	{
 		if ($line['problemid'] && $line['problemid'] != 0)
