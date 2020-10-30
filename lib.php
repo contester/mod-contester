@@ -1562,14 +1562,14 @@ function contester_show_problem_tags_to_delete($pid)
 }
 function contester_show_problems_to_delete($a)
 {
-	global $DB;
-	if (!$contester = $DB->get_record('contester', array('id' => $a))) {
-		print_error(get_string('nocontester'));
-		return false;
-	}
-	
-	unset($problems);
-    
+    global $DB;
+    if (!$contester = $DB->get_record('contester', array('id' => $a))) {
+        print_error(get_string('nocontester'));
+        return false;
+    }
+
+    unset($problems);
+
     $problems = $DB->get_records_sql("SELECT mdl_contester_problems.name as name,
 				 mdl_contester_problemmap.id as id,
 				 mdl_contester_problems.id as pid,
@@ -1578,51 +1578,50 @@ function contester_show_problems_to_delete($a)
 		WHERE	 mdl_contester_problemmap.problemid=mdl_contester_problems.id
 		AND		 mdl_contester_problemmap.contesterid=?
 		ORDER BY mdl_contester_problemmap.id", array($a));
-	echo '<td align="right"><b>'.get_string('availableproblems', 'contester').':</br></b></td>';
-    echo '<tr><td>'.get_string('problemstodelete', 'contester').'</br></br></td></tr>';
+    echo '<p><b>'.get_string('availableproblems', 'contester').':</b></p>';
+    echo '<p>'.get_string('problemstodelete', 'contester').'</p>';
+    echo "<table>";
     foreach ($problems as $problem)
     {
-    	echo "<nobr><input type=\"checkbox\" name=\"probsdel[]\" value=".$problem->pid.">".$problem->name;
-  		echo "<td size=40%><nobr>
-  			<a href=problem_details.php?a=".$a."&pid=".$problem->pid.">".
-  			get_string('problemdetails', 'contester')." (".$problem->dbid.")</a></nobr></td>";
-    	echo "</nobr>&nbsp;";
-    	echo "</br>";
+        echo "<tr>";
+        echo "<td><input type=\"checkbox\" name=\"probsdel[]\" value=".$problem->pid."></td>";
+        echo "<td>".$problem->name."</td>";
+        echo "<td size=40%><nobr><a href=problem_details.php?a=".$a."&pid=".$problem->pid.">".
+              get_string('problemdetails', 'contester')." (".$problem->dbid.")</a></nobr></td>";
+    	echo "</td>";
+    	echo "</tr>";
     }
-    echo '</td></tr>';    
+    echo '</table>';
     return 0;
 }
 function contester_show_problems_to_add($a)
 {
-	global $DB;
-	
-	if (!$problem = $DB->get_record('contester', array('id' => $a))) {
-		print_error(get_string('nocontester'));
-		return false;
-	}
-	
+    global $DB;
+
+    if (!$problem = $DB->get_record('contester', array('id' => $a))) {
+        print_error(get_string('nocontester'));
+        return false;
+    }
+
     unset($res);
     $res = $DB->get_records_sql("SELECT   mdl_contester_problems.id as pr_id,
     								 mdl_contester_problems.dbid as dbid,
     							     mdl_contester_problems.name as name
     						FROM     mdl_contester_problems
     						ORDER BY mdl_contester_problems.dbid");
-    unset($choices);  
+    unset($choices);
     foreach ($res as $line){
     	$choices[$line->pr_id] = $line->dbid." ".$line->name;
     }
-    echo '<tr valign="top">';
-	echo '<td align="center"><b>'.get_string('addproblem', 'contester').':   </b></td>';
-	echo '<td align="center">';
+    echo '<p><b>'.get_string('addproblem', 'contester').':   </b></p>';
     contester_choose_from_list($choices, 'probsadd[]', true, 20); //multiple + 20 rows
-    echo '</td></tr>';	    
-    
+
     return 0;
 }
 function contester_show_problem_tags_to_add($pid)
 {
 	global $DB;
-	
+
 	if (!$problem = $DB->get_record('contester_problems', array('id' => $pid))) {
 		print_error(get_string('noproblem'));
 		return false;
@@ -1658,9 +1657,9 @@ function contester_show_nav_bar($instance) {
     echo "<nobr><a href=submit_form.php?a=$instance>".get_string('submit','contester')."</a></nobr><br>";
     if ($DB->get_field('contester', 'viewown', array('id'=>$instance))) 
         echo "<nobr><a href=my_solutions.php?a=$instance>".get_string('mysolutions', 'contester')."</a></nobr><br>";
-	
+
     echo "<nobr><a href=journal.php?a=$instance>".get_string('journal', 'contester')."</a></nobr><br>";
-	
+
     if ($is_admin || $is_teacher)
         echo "<nobr><a href=problems_details.php?a=$instance>".get_string('contesterupdate', 'contester')."</a></nobr><br>";		
 }
@@ -1778,4 +1777,4 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 	}
 	return $res;
 }
-//End new code
+
