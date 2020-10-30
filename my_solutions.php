@@ -75,7 +75,7 @@
 	                                    submits.contester as a,
 	                                    problems.name as p1,
 					    languages.name as p2,
-					    submits.submitted as p3,
+					    submits.submitted_uts as submitted_uts,
     		                            contester.name as p5,
                                             problemmap.id as pid
                                      FROM   mdl_contester_problems as problems,
@@ -98,7 +98,7 @@
 	                                    submits.contester as a,
 	                                    problems.name as p1,
 					    languages.name as p2,
-					    submits.submitted as p3,
+					    submits.submitted_uts as submitted_uts,
 					    contester.name as p5,
                                             problemmap.id as pid
                                      FROM   mdl_contester_problems as problems,
@@ -121,7 +121,9 @@
         $tmpsubmitinfo = contester_get_special_submit_info($row->p4, false, false); //do not return problem name & language info
         $url_problem = new moodle_url('problem.php', ['a' => $row->a, 'pid' => $row->pid]);
         $table->data []= array('<a href='.$url_problem.'>'.$row->p1.'</a>',
-                               $row->p2, $row->p3, $tmpsubmitinfo->status,
+                               $row->p2,
+                               userdate($row->submitted_uts, get_string('strftimedatetime')),
+                               $tmpsubmitinfo->status,
                                '<a href=show_solution.php?a='.$row->a.'&sid='.$row->p4.'>'.$tmpsubmitinfo->points.'</a>',
                                '<a href=view.php?a='.$row->a.'>'.$row->p5.'</a>');
     }
