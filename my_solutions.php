@@ -18,6 +18,7 @@
         print_error(get_string("incorrect_cm_id", "contester"));
     }
 
+    require_login($course->id);
     //add_to_log($course->id, "contester", get_string('mysolutions', 'contester'), "my_solutions.php?a=$contester->id", "$contester->id");
 
 /// Print the page header
