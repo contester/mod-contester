@@ -82,15 +82,14 @@
 	<FIELD NAME="uid" TYPE="int" LENGTH="11" NOTNULL="true" SEQUENCE="true"/>      
       </FIELDS>
       <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="primary" TYPE="primary" FIELDS="uid"/>
       </KEYS>
     </TABLE>
 
-    <TABLE NAME="contester_results" COMMENT="Defines contester">
+    <TABLE NAME="contester_results" COMMENT="Individual test results">
       <FIELDS>
-        <FIELD NAME="testingid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" NEXT="processed"/>
-         <FIELD NAME="processed" TYPE="datetime" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="testingid" NEXT="processed_unixts"/>
-	 <FIELD NAME="processed_uts" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="processed" NEXT="result"/>
+        <FIELD NAME="testingid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" NEXT="processed_uts"/>
+	 <FIELD NAME="processed_uts" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="testingid" NEXT="result"/>
         <FIELD NAME="result" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="processed_uts" NEXT="test"/>        
         <FIELD NAME="test" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="result" NEXT="timex"/>       
          <FIELD NAME="timex" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" PREVIOUS="test" NEXT="memory"/>
