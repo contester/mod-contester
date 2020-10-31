@@ -70,17 +70,15 @@
     echo '</td><td align="right">';
     echo get_string('datefrom', 'contester');
     echo '</td><td><input type="datetime-local" id="datetime_from" name="datetime_from" value="'
-                 .$datetime_from_value.'"/>';
+                    .$datetime_from_value.'"/>';
 
 ///Select time to
     echo '</td><td align="right">';
     echo get_string('to', 'contester');
     echo '</td><td><input type="datetime-local" id="datetime_to" name="datetime_to" value="'
-          .$datetime_to_value.'"/>';
+                    .$datetime_to_value.'"/>';
 
     echo '</td><td>';
-
-
     echo '<input type=submit value="'.get_string('find', 'contester').'">';
     echo '</td></tr></table>';
     echo '</form>';
@@ -90,8 +88,18 @@
     else
         $groupquery = 'AND (mdl_groups_members.groupid ='.$group_value.')';
 
+
+    if ($datetime_to_value == NULL) {
+        $dt_to = new DateTime("now", $school_timezone);
+        $dt_to->modify('+1 hour');  // на всякий пожарный
+    }
+    else {
+        $dt_to = new DateTime($datetime_to_value, $school_timezone);
+    }
+    $dateto_uts = $dt_to->getTimestamp();
+
     if ($datetime_from_value == NULL) {
-        $dt_from = new DateTime("now", $school_timezone);
+        $dt_from = $dt_to;
         $dt_from->modify('-2 year');
     }
     else {
@@ -99,14 +107,6 @@
     }
     $datefrom_uts = $dt_from->getTimestamp();
 
-    if ($datetime_to_value == NULL) {
-        $dt_to = new DateTime("now", $school_timezone);
-        $dt_to->modify('+1 hours');
-    }
-    else {
-        $dt_to = new DateTime($datetime_to_value, $school_timezone);
-    }
-    $dateto_uts = $dt_to->getTimestamp();
 
 
     $query = "SELECT DISTINCT submits.student
@@ -142,69 +142,64 @@
                      array($group_value, $datefrom_uts, $dateto_uts));
     }
 
-	$query =
+
+    $query =
 
 	"SELECT problemid, id as pid FROM mdl_contester_problemmap
 		WHERE
 		(contesterid = $contester->id) ORDER BY id";
 
 
-	$problems = $DB->get_recordset_sql($query);
+    $problems = $DB->get_recordset_sql($query);
 
-	$table = array();
-	$sts = array();
-	foreach ($students as $student)
-	{
-		$st = new stdClass();
-		$st->name = $DB->get_field('user', 'lastname', array('id'=>$student->student)). ' '
-			.$DB->get_field('user', 'firstname', array('id'=>$student->student));
-		$st->id = $student->student;
-		$sts []= $st;
-	}
-	$prs = array();
-	foreach ($problems as $problem)
-	{
-		$pr = new stdClass();
-		$pr->id = $problem->problemid;
-		$pr->pid = $problem->pid;
-		$pr->name = $DB->get_field('contester_problems', 'name', array('id'=>$pr->id));
-		if ($pr->id != 0 && $pr->name != "")
-			$prs []= $pr;
-	}
+    $table = array();
+    $sts = array();
+    foreach ($students as $student) {
+        $st = new stdClass();
+        $st->name = $DB->get_field('user', 'lastname', array('id'=>$student->student)). ' '
+                    .$DB->get_field('user', 'firstname', array('id'=>$student->student));
+        $st->id = $student->student;
+        $sts []= $st;
+    }
+    $prs = array();
+    foreach ($problems as $problem) {
+        $pr = new stdClass();
+        $pr->id = $problem->problemid;
+        $pr->pid = $problem->pid;
+        $pr->name = $DB->get_field('contester_problems', 'name', array('id'=>$pr->id));
+        if ($pr->id != 0 && $pr->name != "")
+            $prs []= $pr;
+    }
 
-	echo '<p style="padding-top:20pt"><table align="left" border="1"><tr><td></td>';
-	foreach ($prs as $pr)
-	{
-		echo "<td><a href=problem.php?pid=".$pr->pid.
-			"&a=".$contester->id.">".$pr->name."</a></td>";
-	}
-	echo '<td>'.get_string('total', 'contester').'</td>';
-	echo "</tr>\n";
+    echo '<p style="padding-top:20pt"><table align="left" border="1"><tr><td></td>';
+    foreach ($prs as $pr) {
+        echo "<td><a href=problem.php?pid=".$pr->pid.
+              "&a=".$contester->id.">".$pr->name."</a></td>";
+    }
+    echo '<td>'.get_string('total', 'contester').'</td>';
+    echo "</tr>\n";
 
     if (empty($USER->id)) {
         print_error('accessdenied', 'contester');
     }
     $userid = $USER->id;
-	foreach ($sts as $st)
-	{
-		echo "<tr><td><a href=\"../../user/view.php?id=$st->id&course=$course->id\">$st->name</a></td>";
-		$cnt = 0;
-		foreach ($prs as $pr) {
-			if ($is_admin || $is_teacher || $st->id == $userid)
-			{
-				$tmp = contester_get_last_or_last_correct_submit_reference($contester->id, $st->id, $pr->id, $datefrom_uts, $dateto_uts);
-			}
-			else
-			{
-				$tmp = contester_get_result_without_reference($contester->id, $st->id, $pr->id, $datefrom_uts, $dateto_uts);
-			}
+    foreach ($sts as $st) {
+        echo "<tr><td><a href=\"../../user/view.php?id=$st->id&course=$course->id\">$st->name</a></td>";
+        $cnt = 0;
+        foreach ($prs as $pr) {
+            if ($is_admin || $is_teacher || $st->id == $userid) {
+                $tmp = contester_get_last_or_last_correct_submit_reference($contester->id, $st->id, $pr->id, $datefrom_uts, $dateto_uts);
+            }
+            else {
+                $tmp = contester_get_result_without_reference($contester->id, $st->id, $pr->id, $datefrom_uts, $dateto_uts);
+            }
             echo "<td>".$tmp."</td>";
-			if (strpos($tmp, '+') !== FALSE) ++$cnt;
-		}
-		echo "<td>$cnt</td>";
-		echo "</tr>\n";
-	}
-	echo "</table></p>";
+            if (strpos($tmp, '+') !== FALSE) ++$cnt;
+        }
+        echo "<td>$cnt</td>";
+        echo "</tr>\n";
+    }
+    echo "</table></p>";
 
 
     contester_print_end();
