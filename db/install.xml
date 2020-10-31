@@ -117,7 +117,7 @@
       </KEYS>
     </TABLE>
 
-    <TABLE NAME="contester_submits" COMMENT="Defines contester">
+    <TABLE NAME="contester_submits" COMMENT="Submitted solutions">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="contester"/>
         <FIELD NAME="contester" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="id" NEXT="student"/>
@@ -125,9 +125,8 @@
         <FIELD NAME="problem" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="student" NEXT="lang"/>
         <FIELD NAME="lang" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="problem" NEXT="iomethod"/>
 	 <FIELD NAME="iomethod" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" PREVIOUS="lang" NEXT="solution"/>
-        <FIELD NAME="solution" TYPE="binary" NOTNULL="false" PREVIOUS="iomethod" NEXT="submitted"/>
-        <FIELD NAME="submitted" TYPE="datetime" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="solution" NEXT="submitted_uts"/>
-        <FIELD NAME="submitted_uts" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="submitted" NEXT="processed"/>
+        <FIELD NAME="solution" TYPE="binary" NOTNULL="false" PREVIOUS="iomethod" NEXT="submitted_uts"/>
+        <FIELD NAME="submitted_uts" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="solution" NEXT="processed"/>
         <FIELD NAME="processed" TYPE="int" LENGTH="10" UNSIGNED="true" NOTNULL="false" PREVIOUS="submitted_uts"/>
       </FIELDS>
       <KEYS>
