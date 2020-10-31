@@ -91,7 +91,7 @@
 					    contester.id = ? AND
                                             problemmap.contesterid = contester.id AND
                                             problemmap.problemid = problems.id
-                                     ORDER BY submits.submitted DESC', array($userid, $contester->id));
+                                     ORDER BY submits.submitted_uts DESC', array($userid, $contester->id));
     }
     else {
         $tmp = $DB->get_records_sql('SELECT submits.id as p4,
@@ -113,7 +113,7 @@
                                             submits.contester = contester.id AND
                                             problemmap.contesterid = contester.id AND
                                             problemmap.problemid = problems.id
-                                     ORDER BY submits.submitted DESC', array($userid));
+                                     ORDER BY submits.submitted_uts DESC', array($userid));
     }
 
     foreach($tmp as $row)
