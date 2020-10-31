@@ -155,14 +155,12 @@
       </KEYS>
     </TABLE>
 
-    <TABLE NAME="contester_testings" COMMENT="Defines contester">
+    <TABLE NAME="contester_testings" COMMENT="Records start/finish of individual testings of every submit">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="submitid"/>
-        <FIELD NAME="submitid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="id" NEXT="start"/>
-        <FIELD NAME="start" TYPE="datetime" NOTNULL="true" DEFAULT="CURRENT_TIMESTAMP" PREVIOUS="submitid" NEXT="start_uts"/>
-        <FIELD NAME="start_uts" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="start" NEXT="finish"/>
-        <FIELD NAME="finish" TYPE="datetime" NOTNULL="false" DEFAULT="NULL" PREVIOUS="start_uts" NEXT="finish_uts"/> -->
-        <FIELD NAME="finish_uts" TYPE="int" LENGTH="11" NOTNULL="false" UNSIGNED="true" PREVIOUS="finish_uts" NEXT="compiled"/>
+        <FIELD NAME="submitid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="id" NEXT="start_uts"/>
+        <FIELD NAME="start_uts" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="id" NEXT="finish_uts"/>
+        <FIELD NAME="finish_uts" TYPE="int" LENGTH="11" NOTNULL="false" UNSIGNED="true" PREVIOUS="start_uts" NEXT="compiled"/>
         <FIELD NAME="compiled" TYPE="int" LENGTH="1" NOTNULL="false" UNSIGNED="true"  PREVIOUS="finish_uts" NEXT="taken"/>  
         <FIELD NAME="taken" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true"  PREVIOUS="compiled" NEXT="passed"/>
         <FIELD NAME="passed" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" PREVIOUS="taken"/>
