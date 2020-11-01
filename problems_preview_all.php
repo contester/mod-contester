@@ -5,21 +5,7 @@
 *
 * @param string $s a string to convert
 */
-function mutate($s)
-{
-	/*$s = str_replace("le", " <=", $s);
-	return "<div id=symbol>$s</div>";*/
-	$s = str_replace("dots", "...", $s);
-	$s = str_replace("le", "\\le", $s);
-	$s = str_replace("<=", "\\le", $s);
-	$s = str_replace(">=", "\\ge", $s);
-	$s = str_replace("<", "&lt", $s);
-	$s = str_replace(">", "&gt", $s);
-	$s = str_replace("&lt", "</tex>&lt<tex>", $s);
-	$s = str_replace("&gt", "</tex>&gt<tex>", $s);
 
-	return "<tex>$s</tex>";
-}
 ?>
 <?PHP
 
@@ -30,7 +16,7 @@ function mutate($s)
     $a    = optional_param('a', 0, PARAM_INT);  // contester ID
     $sort = optional_param('sort', 0, PARAM_INT);
     $tag  = optional_param('tag', 0, PARAM_INT);
-    
+
     global $DB;
 
     if ($id) {
@@ -72,29 +58,14 @@ function mutate($s)
 
 /// Print the page header
 
-    /*if ($course->category) {
-        $navigation = "<a href=\"../../course/view.php?id=$course->id\">$course->shortname</a> ->";
-    }
-
-	$curcontester = "$contester->name ->";
-
-    $strcontesters = get_string("modulenameplural", "contester");
-    $strcontester  = get_string("modulename", "contester");
-    print_header("$course->shortname: $contester->name", "$course->fullname",
-                 "$navigation $curcontester".get_string('problemspreview', 'contester'),
-                  "", "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.css\" />",
-                  true, update_module_button($cm->id, $course->id, $strcontester),
-                  navmenu($course, $cm));*/
-                  
     $PAGE->set_url('/mod/contester/problems_preview_all.php', array('id' => $id, 'a' => $a, 'sort' => $sort, 'tag' => $tag));
     $PAGE->set_title("$course->shortname: $contester->name");
     $PAGE->set_heading("$course->fullname");
     $PAGE->navbar->add("$contester->name");
     $PAGE->set_focuscontrol("");
     $PAGE->set_cacheable(true);
-    $PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));
-    
-    echo $OUTPUT->header();                  
+
+    echo $OUTPUT->header();
 
 /// Print the main part of the page
 
@@ -126,17 +97,6 @@ function mutate($s)
 		"</div><div id=textheader>".get_string('outputformat', 'contester')."</div><div id=inoutformat>".$problem->output.
 		"</div>";
 
-		/*$text = str_replace("\n", "<br />", $text);
-		$text = preg_replace('/<[bB][rR]>(\n<[bB][rR]>|é|ö|ó|ê|å|í|ã|ø|ù|ç|õ|ú|ô|û|â|à|ï|ð|î|ë|ä|æ|ý|ÿ|÷|ñ|ì|è|ò|ü|á|þ|¸{1})/' ,'\1',$text);
-		$text = str_replace("\"å", "¸", $text);
-		$text = str_replace("\"e", "¸", $text);
-		$text = str_replace("$$", "$", $text);
-
-		while (strpos($text, "$") !== false) {
-			$pos = strpos($text, "$");
-			$pos2 = strpos(substr($text, $pos+1), "$");
-			$text = substr($text, 0, $pos).mutate(substr($text, $pos+1, $pos2)).substr($text, $pos+$pos2 + 2);
-		}*/
 		echo format_text($text);
 		$sql = "select samples.input as input, samples.output as output
 				from mdl_contester_samples samples

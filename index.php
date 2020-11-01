@@ -49,7 +49,6 @@ $PAGE->navbar->add($strname);
 $PAGE->set_title("$course->shortname: $strname");
 $PAGE->set_heading($course->fullname);
 $PAGE->set_pagelayout('incourse');
-$PAGE->set_button(update_module_button($id, $course->id, get_string("modulename", "contester")));
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading($strname);

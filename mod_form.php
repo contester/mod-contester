@@ -58,20 +58,18 @@ class mod_contester_mod_form extends moodleform_mod {
         $mform->addRule('name', null, 'required', null, 'client');
         $mform->addRule('name', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
         $mform->addHelpButton('name', 'contestername', 'contester');
-		
+
         // Adding the standard "intro" and "introformat" fields.
         //$this->add_intro_editor();
         //$this->standard_intro_elements();
-		
 
         // Adding the rest of contester settings, spreading all them into this fieldset
         // ... or adding more fieldsets ('header' elements) if needed for better logic.
-        
+
         //$mform->addElement('static', 'label1', get_string('contesterupdate', 'contester'), $out);
-	
         //$mform->addElement('header', 'contesterfieldset', get_string('contesterfieldset', 'contester'));
         //$mform->addElement('static', 'label2', 'contestersetting2', 'Your contester fields go here. Replace me!');
-		
+
         // Add standard grading elements.
         $this->standard_grading_coursemodule_elements();
 

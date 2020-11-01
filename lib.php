@@ -1620,7 +1620,7 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 	$submit->attempt = $attempts + 1;
 	//$mapping = $DB->get_record("contester_problemmap", "id", $submit->problem, "contesterid", $submit->contester);
 	$problem = $DB->get_record('contester_problems', array('dbid' => $submit->problem));
-	$res = null;
+	$res = $res = new \stdClass();
 	if ($cget_problem_name == true) {
 		$res->problem = $problem->name;
 	}

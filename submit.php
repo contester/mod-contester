@@ -32,8 +32,6 @@
 
     $contester_url = new moodle_url('/mod/contester/view.php', array('a' => $contester->id));
     $PAGE->navbar->add("$contester->name", $contester_url);
-    $PAGE->set_button(update_module_button($cm->id, $course->id,
-                      get_string("modulename", "contester")));
 
     echo $OUTPUT->header();
 

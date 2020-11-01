@@ -9,18 +9,18 @@
     $id = optional_param('id', 0, PARAM_INT); // Course Module ID, or
     $a  = optional_param('a', 0, PARAM_INT);  // contester ID
     $pid = required_param('pid', PARAM_INT); // ID of problem in problemmap
-    
+
     global $DB;
 
     if ($id) {
         if (! $cm = $DB->get_record("course_modules", array("id" => $id))) {
             print_error("Course Module ID was incorrect");
         }
-    
+
         if (! $course = $DB->get_record("course", array("id" => $cm->course))) {
             print_error("Course is misconfigured");
         }
-    
+
         if (! $contester = $DB->get_record("contester", array("id" => $cm->instance))) {
             print_error("Course module is incorrect");
         }
@@ -43,26 +43,14 @@
 
 /// Print the page header
 
-    /*if ($course->category) {
-        $navigation = "<a href=\"../../course/view.php?id=$course->id\">$course->shortname</a> ->";
-    }
-
-    $strcontesters = get_string("modulenameplural", "contester");
-    $strcontester  = get_string("modulename", "contester");
-
-    print_header("$course->shortname: $contester->name", "$course->fullname",
-                 "$navigation <a href=index.php?id=$course->id>$strcontesters</a> -> $contester->name", 
-                  "", "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.css\" />", true, update_module_button($cm->id, $course->id, $strcontester), 
-                  navmenu($course, $cm));*/
     $PAGE->set_url('/mod/contester/problem_solutions.php', array('a' => $a, 'pid' => $id));
     $PAGE->set_title("$course->shortname: $contester->name");
     $PAGE->set_heading("$course->fullname");
     $PAGE->navbar->add("$contester->name");
     $PAGE->set_focuscontrol("");
     $PAGE->set_cacheable(true);
-    $PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));
-    
-    echo $OUTPUT->header();                  
+
+    echo $OUTPUT->header();
 
 /// Print the main part of the page
 	contester_print_begin($contester->id);
@@ -70,8 +58,7 @@
 	echo "<br>";
 	print_string('solutionlist', 'contester');
 	$sql_problem_name = "SELECT problems.name from mdl_contester_problemmap as map, mdl_contester_problems as problems WHERE
-	map.contesterid = ? AND map.id = ? AND problems.id = map.problemid 
-	";
+	map.contesterid = ? AND map.id = ? AND problems.id = map.problemid";
 	echo " ".get_string('oftask', 'contester')." ".$DB->get_field_sql($sql_problem_name, array($contester->id, $pid))."<br>";
 	// достаем и выводим список правильных решений.
 	//$table = null;
@@ -80,22 +67,21 @@
 	$size = 'CHAR_LENGTH(submits.solution)';
 	$context = context_module::instance($cm->id);
     $is_admin = has_capability('moodle/site:config', $context);
-	
+
 	if ($is_admin || $DB->get_field('contester', 'freeview', array('id' => $contester->id))) $size = 
 	"concat('<a href=show_solution.php?a=$contester->id&sid=', CAST(submits.id AS CHAR), '>', CAST($size AS CHAR), '</a>')";
-	
+
 	$realpid = $DB->get_record('contester_problemmap', array('id' => $pid));
 	$realpid = $realpid->problemid;
 	$problem = $DB->get_record('contester_problems', array('id' => $realpid));
-	
+
 	$sql = "SELECT submits.id FROM mdl_contester_submits as submits, mdl_contester_testings as test 
 	WHERE
 		submits.problem=? AND submits.contester=? AND test.submitid=submits.id AND test.taken=test.passed
 	";
 	//echo $sql;
 	$solutions = $DB->get_recordset_sql($sql, array($problem->dbid, $contester->id));
-	
-	
+
 	foreach ($solutions as $solution)
 	{
 		//print_r(var_export($solution, true));
@@ -115,7 +101,7 @@
 		$row[]= $len;
 		$table->data []= $row;
 	}
-	
+
 /*	$sql = "SELECT CONCAT( user.firstname, ' ', user.lastname ), MAX(results.timex), $size FROM
 	user as user, contester_results as results, contester_submits as submits, contester_testings as testings, 
 	contester_problemmap as map, contester_problems as problems WHERE
@@ -124,27 +110,27 @@
 	AND submits.processed = 255 GROUP BY user.id, submits.id ORDER BY CHAR_LENGTH(submits.solution) ASC
 	";
 	echo "<textarea>".$sql."</textarea>";
-	
+
 	$tmp = mysql_query($sql);
 	while ($row = mysql_fetch_array($tmp))
 	{
 		unset ($row[0]);
 		unset ($row[1]);
 		unset ($row[2]);
-		
+
 		$table->data []= $row;
 	}
 	*/
 	if ($table->data === false)
 	{
-		print_string('nocorrectsolutions', contester);		
+		print_string('nocorrectsolutions', contester);
 	} else {
 		echo html_writer::table($table);
-		//print_table($table);	
+		//print_table($table);
 	}
 /// Finish the page
-	contester_print_end();
-    //print_footer($course);
+    contester_print_end();
+
     echo $OUTPUT->footer();
 
 ?>

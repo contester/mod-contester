@@ -8,7 +8,7 @@
 
     $id = optional_param('id', 0, PARAM_INT); // Course Module ID, or
     $a  = optional_param('a', 0, PARAM_INT);  // contester ID
-    
+
     global $DB;
 
     if ($id) {
@@ -38,9 +38,9 @@
 
     require_login($course->id);
     //add_to_log($course->id, "contester", "details", "details.php?id=$cm->id", "$contester->id");
-	$context = context_module::instance($cm->id);
+    $context = context_module::instance($cm->id);
     $is_admin = has_capability('moodle/site:config', $context);
-    
+
     if (!$is_admin) print_error(get_string('accessdenied', 'contester'));
     $pid = required_param('pid', PARAM_INT);
 
@@ -51,31 +51,14 @@
 			WHERE  mdl_contester_problems.id=?";
 	if (!$problem = $DB->get_record_sql($sql, array($pid))) print_error('No such problem!');
 
-    /*if ($course->category) {
-        $navigation = "<a href=\"../../course/view.php?id=$course->id\">$course->shortname</a> ->";
-    }
-    $problemspreview = "<a href=\"../../mod/contester/problems_preview.php?a=".$contester->id."\">".get_string('problemspreview', 'contester')."</a> ->";
-    $curcontester = "$contester->name ->";
-    $strcontester = get_string("modulename", "contester");
-    $strtags = get_string("tags", "contester");
-
-    $problempreview = "<a href=\"../../mod/contester/problem_preview.php?a=".$contester->id."&pid=".$pid."\">".$problem->name."</a> ->";
-
-    print_header("$course->shortname: $contester->name", "$course->fullname",
-                 "$navigation $curcontester $problemspreview $problempreview $strtags",
-                  "", "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.css\" />",
-                  true, update_module_button($cm->id, $course->id, $strcontester),
-                  navmenu($course, $cm));*/
-                  
     $PAGE->set_url('/mod/contester/problem_tag_details.php', array('a' => $a, 'pid' => $pid));
     $PAGE->set_title("$course->shortname: $contester->name");
     $PAGE->set_heading("$course->fullname");
     $PAGE->navbar->add("$contester->name");
     $PAGE->set_focuscontrol("");
     $PAGE->set_cacheable(true);
-    $PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));
-    
-    echo $OUTPUT->header();                  
+
+    echo $OUTPUT->header();
 
 /// Print the main part of the page
 
@@ -91,7 +74,7 @@
 	echo '<span id=textheader>'.get_string('addtags', 'contester').':</span><span id=tags>';
 	contester_show_problem_tags_to_add($pid);
 	echo '</span><br />';
-	
+
 	echo '<br>';
 
 	echo '<input type=submit value="'.get_string('save', 'contester').'">';
@@ -100,8 +83,8 @@
 	echo '</form>';
 
 /// Finish the page
-	contester_print_end();
-    //print_footer($course);
+    contester_print_end();
+
     echo $OUTPUT->footer()
 
 ?>

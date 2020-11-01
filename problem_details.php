@@ -8,7 +8,7 @@
 
     $id = optional_param('id', 0, PARAM_INT); // Course Module ID, or
     $a  = optional_param('a', 0, PARAM_INT);  // contester ID
-    
+
     global $DB;
 
     if ($id) {
@@ -55,18 +55,12 @@
     //$strcontester = get_string("modulename", "contester");
     $strprdetails = get_string("problemdetails", "contester");
 
-	$sql = "SELECT mdl_contester_problems.name as name
+    $sql = "SELECT mdl_contester_problems.name as name
 			FROM   mdl_contester_problems
 			WHERE  mdl_contester_problems.id=?";
-	if (!$problem = $DB->get_record_sql($sql, array($pid))) print_error('No such problem!');
-    /*$problempreview = "<a href=\"../../mod/contester/problem_preview.php?a=".$contester->id."&pid=".$pid."\">".$problem->name."</a> ->";
+    if (!$problem = $DB->get_record_sql($sql, array($pid)))
+        print_error('No such problem!');
 
-    print_header("$course->shortname: $contester->name", "$course->fullname",
-                 "$navigation $curcontester $problemspreview $problempreview $strprdetails",
-                  "", "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.css\" />",
-                  true, update_module_button($cm->id, $course->id, $strcontester),
-                  navmenu($course, $cm));*/
-                  
     $PAGE->set_url('/mod/contester/problem_details.php', array('a' => $a, 'pid' => $pid));
     $PAGE->set_title("$course->shortname: $contester->name");
     $PAGE->set_heading("$course->fullname");
@@ -75,22 +69,21 @@
     $PAGE->navbar->add("$contester->name", $contester_url);
     $PAGE->set_focuscontrol("");
     $PAGE->set_cacheable(true);
-    $PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));                  
-    
+
     echo $OUTPUT->header();
 
 /// Print the main part of the page
 
-	echo '<form action=save_problem.php method="POST">';
-	contester_show_problem_details($pid);
-	echo '<input type=submit value="'.get_string('save', 'contester').'">';
-	echo '<input type=hidden name="pid" value="'.$pid.'">';
-	echo '<input type=hidden name="a" value="'.$contester->id.'">';
-	echo '</form>';
+    echo '<form action=save_problem.php method="POST">';
+    contester_show_problem_details($pid);
+    echo '<input type=submit value="'.get_string('save', 'contester').'">';
+    echo '<input type=hidden name="pid" value="'.$pid.'">';
+    echo '<input type=hidden name="a" value="'.$contester->id.'">';
+    echo '</form>';
 
 /// Finish the page
-	contester_print_end();
-    //print_footer($course);
+    contester_print_end();
+
     echo $OUTPUT->footer()
 
 ?>

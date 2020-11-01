@@ -56,8 +56,6 @@
     $PAGE->set_heading($course->fullname);
 
     $PAGE->navbar->add("$contester->name");
-    $PAGE->set_button(update_module_button($cm->id, $course->id,
-                      get_string("modulename", "contester")));
 
     /*
      * Other things you may want to set - remove if not needed.

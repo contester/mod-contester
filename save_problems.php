@@ -8,7 +8,7 @@
 
     $id = optional_param('id', 0, PARAM_INT); // Course Module ID, or
     $a  = optional_param('a', 0, PARAM_INT);  // contester ID
-    
+
     global $DB;
 
     if ($id) {
@@ -41,12 +41,12 @@
     $context = context_module::instance($cm->id);
     $is_admin = has_capability('moodle/site:config', $context);
     $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);    
-    
+
     if (!$is_admin && !$is_teacher) print_error(get_string('accessdenied', 'contester'));
 
 /// Print the page header
 
-	$sql = "SELECT mdl_contester.id as id, 
+	$sql = "SELECT mdl_contester.id as id,
 				   mdl_contester.name as name
 			FROM   mdl_contester
 			WHERE  mdl_contester.id=?";
@@ -58,7 +58,6 @@
     $PAGE->navbar->add("$contester->name");
     $PAGE->set_focuscontrol("");
     $PAGE->set_cacheable(true);
-    $PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));                  
 
 /// Print the main part of the page
 
@@ -79,9 +78,9 @@
     		$DB->insert_record('contester_problemmap', $probmr);
     	}
 	}
-	
+
 	$freeview = optional_param('freeview', 0, PARAM_INT);
-	$viewown = optional_param('viewown', 0, PARAM_INT);	
+	$viewown = optional_param('viewown', 0, PARAM_INT);
 
     $iomethodmode = required_param("iomethodmode", PARAM_INT);
 
@@ -89,14 +88,14 @@
 	$contester->freeview = $freeview;
 	$contester->viewown = $viewown;
     $contester->iomethodmode = $iomethodmode;
-	
+
 	$DB->update_record('contester', $contester);
-	
+
 	redirect("view.php?a=$contester->id", get_string('updatesuccess', 'contester'), 2);
 
 /// Finish the page
-	contester_print_end();
-    //print_footer($course);
+    contester_print_end();
+
     echo $OUTPUT->footer()
 
 ?>

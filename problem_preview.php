@@ -8,21 +8,7 @@
 *
 * @param string $s a string to convert
 */
-function mutate($s)
-{
-	/*$s = str_replace("le", " <=", $s);
-	return "<div id=symbol>$s</div>";*/
-	$s = str_replace("dots", "...", $s);
-	$s = str_replace("le", "\\le", $s);
-	$s = str_replace("<=", "\\le", $s);
-	$s = str_replace(">=", "\\ge", $s);
-	$s = str_replace("<", "&lt", $s);
-	$s = str_replace(">", "&gt", $s);
-	$s = str_replace("&lt", "</tex>&lt<tex>", $s);
-	$s = str_replace("&gt", "</tex>&gt<tex>", $s);
 
-	return "<tex>$s</tex>";
-}
 ?>
 <?PHP  // $Id: view.php,v 1.2 2006/04/29 22:19:41 skodak Exp $
 
@@ -31,7 +17,7 @@ function mutate($s)
 
     $id = optional_param('id', 0, PARAM_INT); // Course Module ID, or
     $a  = optional_param('a', 0, PARAM_INT);  // contester ID
-    
+
     global $DB;
 
     if ($id) {
@@ -60,7 +46,7 @@ function mutate($s)
     }
 
     $context = context_module::instance($cm->id);
-	$is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
+    $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
     $is_admin = has_capability('moodle/site:config', $context);
 
     require_login($course->id);
@@ -74,36 +60,22 @@ function mutate($s)
 
 /// Print the page header
 
-	// достаем name для header-а, заодно всё остальное: название, условия, формат ввода-вывода
-	$sql = "select mdl_contester_problems.id as id, mdl_contester_problems.name as name,
+    // достаем name для header-а, заодно всё остальное: название, условия, формат ввода-вывода
+    $sql = "select mdl_contester_problems.id as id, mdl_contester_problems.name as name,
 				   mdl_contester_problems.dbid as dbid, mdl_contester_problems.description as description,
 				   mdl_contester_problems.input_format as input, mdl_contester_problems.output_format as output
 			from   mdl_contester_problems
 			where  mdl_contester_problems.id=?";
-	if (!$problem = $DB->get_record_sql($sql, array($pid))) print_error('No such problem!');
+    if (!$problem = $DB->get_record_sql($sql, array($pid))) print_error('No such problem!');
 
-    /*if ($course->category) {
-        $navigation = "<a href=\"../../course/view.php?id=$course->id\">$course->shortname</a> ->";
-    }
-    $problemspreview = "<a href=\"../../mod/contester/problems_preview.php?a=".$contester->id."\">".get_string('problemspreview', 'contester')."</a> ->";
-    $curcontester = "$contester->name ->";
-    $strcontester  = get_string("modulename", "contester");
-
-    print_header("$course->shortname: $contester->name", "$course->fullname",
-                 "$navigation $curcontester $problemspreview".$problem->name,
-                  "", "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.css\" />",
-                  true, update_module_button($cm->id, $course->id, $strcontester),
-                  navmenu($course, $cm));*/
-                  
     $PAGE->set_url('/mod/contester/problem_preview.php', array('a' => $a, 'pid' => $pid));
     $PAGE->set_title("$course->shortname: $contester->name");
     $PAGE->set_heading("$course->fullname");
     $PAGE->navbar->add("$contester->name");
     $PAGE->set_focuscontrol("");
     $PAGE->set_cacheable(true);
-    $PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));
 
-    echo $OUTPUT->header();        
+    echo $OUTPUT->header();
 
 /// Print the main part of the page
 
@@ -113,24 +85,6 @@ function mutate($s)
 	"</div><div id=textheader>".get_string('inputformat', 'contester')."</div><div id=inoutformat>".$problem->input.
 	"</div><div id=textheader>".get_string('outputformat', 'contester')."</div><div id=inoutformat>".$problem->output.
 	"</div>";
-	/*$text = str_replace("\n", "<br />", $text);
-	//$text = iconv("CP-1251", "UTF-8", $text);
-	$text = preg_replace('/<[bB][rR]>(\n<[bB][rR]>|й|ц|у|к|е|н|г|ш|щ|з|х|ъ|ф|ы|в|а|п|р|о|л|д|ж|э|я|ч|с|м|и|т|ь|б|ю|ё{1})/' ,'\1',$text);
-	//$text = preg_replace('/<[bB][rR]>([а-я])/', '\\1', $text);
-	$text = str_replace("\"е", "ё", $text);
-	$text = str_replace("\"e", "ё", $text); // какие-то нехорошие написали в условии ЛАТИНСКУЮ БУКВУ e,
-											// и хотят чтоб она тоже заменялась на ё. Ну хрен ли ё не пишется?
-	$text = str_replace("$$", "$", $text);
-
-
-	while (strpos($text, "$") !== false) {
-		$pos = strpos($text, "$");
-		$pos2 = strpos(substr($text, $pos+1), "$");
-		$text = substr($text, 0, $pos).mutate(substr($text, $pos+1, $pos2)).substr($text, $pos+$pos2 + 2);
-		//$text = substr($text, 0, $pos).'\\$\\$'.substr($text, $pos+1, $pos2).'\\$\\$'.substr($text, $pos+$pos2 + 2);
-	}*/
-	/*
-	echo $text;*/
 
 	echo format_text($text);
 	// дальше сэмплы выводятся
@@ -170,7 +124,7 @@ function mutate($s)
 
 	echo "</table>";
 /// Finish the page
-    //print_footer($course);
+
     echo $OUTPUT->footer();
 
 ?>

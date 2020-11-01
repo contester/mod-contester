@@ -35,7 +35,7 @@
     }
 
     $context = context_module::instance($cm->id);
-	$is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
+    $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
     $is_admin = has_capability('moodle/site:config', $context);
 
     require_login($course->id);
@@ -48,31 +48,15 @@
 
 /// Print the page header
 
-    /*if ($course->category) {
-        $navigation = "<a href=\"../../course/view.php?id=$course->id\">$course->shortname</a> ->";
-    }
-
-	$curcontester = "$contester->name ->";
-
-    $strcontesters = get_string("modulenameplural", "contester");
-    $strcontester  = get_string("modulename", "contester");
-
-    print_header("$course->shortname: $contester->name", "$course->fullname",
-                 "$navigation $curcontester".get_string("problemspreview", "contester"),
-                  "", "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.css\" />",
-                  true, update_module_button($cm->id, $course->id, $strcontester),
-                  navmenu($course, $cm));*/
-
     $PAGE->set_url('/mod/contester/problems_preview.php', array('a' => $a));
     $PAGE->set_title("$course->shortname: $contester->name");
     $PAGE->set_heading("$course->fullname");
     $PAGE->navbar->add("$contester->name");
     $PAGE->set_focuscontrol("");
     $PAGE->set_cacheable(true);
-    $PAGE->set_button(update_module_button($cm->id, $course->id, get_string("modulename", "contester")));
-    
-    echo $OUTPUT->header();	
-                  
+
+    echo $OUTPUT->header();
+
 /// Print the main part of the page
 
 	echo '<div id=textheader>'.get_string('tags', 'contester').':</div>';
