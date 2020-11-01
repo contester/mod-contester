@@ -61,8 +61,7 @@
     }
     echo "<p><strong>".get_string('solutionlist', 'contester')." (".$thisc." \ ".$allc.")</strong></p>";
 
-    if (!$userid)
-        $userid = $USER->id;
+    $userid = $USER->id;
 
     $table = new html_table();
     $table->head = array(get_string('problem', 'contester'), get_string('prlanguage', 'contester'),
