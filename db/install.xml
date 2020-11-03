@@ -16,7 +16,7 @@
         <FIELD NAME="description" TYPE="text" LENGTH="big" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="freeview" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="viewown" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" DEFAULT="1" SEQUENCE="false"/>
-	 <FIELD NAME="iomethodmode" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"/>
+	<FIELD NAME="iomethodmode" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -31,7 +31,7 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="name"/>        
         <FIELD NAME="name" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="ext"/>
 	  <FIELD NAME="ext" TYPE="char" LENGTH="16" NOTNULL="true" SEQUENCE="false" PREVIOUS="name"/>
-        <FIELD NAME="display" TYPE="int" LENGTH="10"/>        
+        <FIELD NAME="display" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -75,7 +75,7 @@
 
     <TABLE NAME="contester_resultdesc" COMMENT="Result descriptions in different languages">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" NEXT="success"/>        
+        <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" SEQUENCE="false" NEXT="success"/>        
         <FIELD NAME="success" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" SEQUENCE="false" PREVIOUS="id" NEXT="description"/>        
         <FIELD NAME="description" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" PREVIOUS="success" NEXT="language"/>
         <FIELD NAME="language" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" DEFAULT="1" SEQUENCE="false"  PREVIOUS="description"/>        
@@ -88,16 +88,16 @@
 
     <TABLE NAME="contester_results" COMMENT="Individual test results">
       <FIELDS>
-        <FIELD NAME="testingid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" NEXT="processed_uts"/>
-	 <FIELD NAME="processed_uts" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="testingid" NEXT="result"/>
-        <FIELD NAME="result" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="processed_uts" NEXT="test"/>        
-        <FIELD NAME="test" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="result" NEXT="timex"/>       
-         <FIELD NAME="timex" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" PREVIOUS="test" NEXT="memory"/>
-         <FIELD NAME="memory" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" PREVIOUS="timex" NEXT="info"/>
-        <FIELD NAME="info" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" PREVIOUS="memory" NEXT="testeroutput"/>
-        <FIELD NAME="testeroutput" TYPE="text" LENGTH="big" NOTNULL="false"  PREVIOUS="success" NEXT="testererror"/>
-        <FIELD NAME="testererror" TYPE="text" LENGTH="big" NOTNULL="false"  PREVIOUS="testeroutput" NEXT="testerexitcode"/>
-        <FIELD NAME="testerexitcode" TYPE="int" LENGTH="10" UNSIGNED="true" NOTNULL="false" DEFAULT="0" PREVIOUS="testererror"/>        
+        <FIELD NAME="testingid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" NEXT="processed_uts" SEQUENCE="false"/>
+	 <FIELD NAME="processed_uts" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="testingid" NEXT="result" SEQUENCE="false"/>
+        <FIELD NAME="result" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="processed_uts" NEXT="test" SEQUENCE="false"/>        
+        <FIELD NAME="test" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="result" NEXT="timex" SEQUENCE="false"/>       
+         <FIELD NAME="timex" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" PREVIOUS="test" NEXT="memory" SEQUENCE="false"/>
+         <FIELD NAME="memory" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" PREVIOUS="timex" NEXT="info" SEQUENCE="false"/>
+        <FIELD NAME="info" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" PREVIOUS="memory" NEXT="testeroutput" SEQUENCE="false"/>
+        <FIELD NAME="testeroutput" TYPE="text" LENGTH="big" NOTNULL="false"  PREVIOUS="success" NEXT="testererror" SEQUENCE="false"/>
+        <FIELD NAME="testererror" TYPE="text" LENGTH="big" NOTNULL="false"  PREVIOUS="testeroutput" NEXT="testerexitcode" SEQUENCE="false"/>
+        <FIELD NAME="testerexitcode" TYPE="int" LENGTH="10" UNSIGNED="true" NOTNULL="false" DEFAULT="0" PREVIOUS="testererror" SEQUENCE="false"/>        
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="testingid"/>
@@ -107,10 +107,10 @@
     <TABLE NAME="contester_samples" COMMENT="Defines contester">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="true" NEXT="problem_id"/>
-        <FIELD NAME="problem_id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="id" NEXT="number"/>        
-        <FIELD NAME="number" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="problem_id" NEXT="input"/>
-        <FIELD NAME="input" TYPE="text" LENGTH="big" NOTNULL="false" DEFAULT="NULL" PREVIOUS="number" NEXT="output"/>
-        <FIELD NAME="output" TYPE="text" LENGTH="big" NOTNULL="false" DEFAULT="NULL" PREVIOUS="input"/>        
+        <FIELD NAME="problem_id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="id" NEXT="number" SEQUENCE="false"/>        
+        <FIELD NAME="number" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="problem_id" NEXT="input" SEQUENCE="false"/>
+        <FIELD NAME="input" TYPE="text" LENGTH="big" NOTNULL="false" DEFAULT="NULL" PREVIOUS="number" NEXT="output" SEQUENCE="false"/>
+        <FIELD NAME="output" TYPE="text" LENGTH="big" NOTNULL="false" DEFAULT="NULL" PREVIOUS="input" SEQUENCE="false"/>        
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -120,14 +120,14 @@
     <TABLE NAME="contester_submits" COMMENT="Submitted solutions">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="contester"/>
-        <FIELD NAME="contester" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="id" NEXT="student"/>
-        <FIELD NAME="student" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="contester" NEXT="problem"/>
-        <FIELD NAME="problem" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="student" NEXT="lang"/>
-        <FIELD NAME="lang" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="problem" NEXT="iomethod"/>
-	 <FIELD NAME="iomethod" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" PREVIOUS="lang" NEXT="solution"/>
-        <FIELD NAME="solution" TYPE="binary" NOTNULL="false" PREVIOUS="iomethod" NEXT="submitted_uts"/>
-        <FIELD NAME="submitted_uts" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="solution" NEXT="processed"/>
-        <FIELD NAME="processed" TYPE="int" LENGTH="10" UNSIGNED="true" NOTNULL="false" PREVIOUS="submitted_uts"/>
+        <FIELD NAME="contester" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="id" NEXT="student" SEQUENCE="false"/>
+        <FIELD NAME="student" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="contester" NEXT="problem" SEQUENCE="false"/>
+        <FIELD NAME="problem" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="student" NEXT="lang" SEQUENCE="false"/>
+        <FIELD NAME="lang" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="problem" NEXT="iomethod" SEQUENCE="false"/>
+	 <FIELD NAME="iomethod" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" PREVIOUS="lang" NEXT="solution" SEQUENCE="false"/>
+        <FIELD NAME="solution" TYPE="binary" NOTNULL="false" PREVIOUS="iomethod" NEXT="submitted_uts" SEQUENCE="false"/>
+        <FIELD NAME="submitted_uts" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="solution" NEXT="processed" SEQUENCE="false"/>
+        <FIELD NAME="processed" TYPE="int" LENGTH="10" UNSIGNED="true" NOTNULL="false" PREVIOUS="submitted_uts" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -137,8 +137,8 @@
     <TABLE NAME="contester_tagmap" COMMENT="Defines contester">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="problemid"/>
-        <FIELD NAME="problemid" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" PREVIOUS="id" NEXT="tagid"/>        
-        <FIELD NAME="tagid" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" PREVIOUS="problemid"/>
+        <FIELD NAME="problemid" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" PREVIOUS="id" NEXT="tagid" SEQUENCE="false"/>        
+        <FIELD NAME="tagid" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" PREVIOUS="problemid" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -148,7 +148,7 @@
     <TABLE NAME="contester_tags" COMMENT="Defines contester">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="tag"/>        
-        <FIELD NAME="tag" TYPE="char" LENGTH="64" NOTNULL="true" PREVIOUS="id"/>
+        <FIELD NAME="tag" TYPE="char" LENGTH="64" NOTNULL="true" PREVIOUS="id" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -158,12 +158,12 @@
     <TABLE NAME="contester_testings" COMMENT="Records start/finish of individual testings of every submit">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="submitid"/>
-        <FIELD NAME="submitid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="id" NEXT="start_uts"/>
-        <FIELD NAME="start_uts" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="id" NEXT="finish_uts"/>
-        <FIELD NAME="finish_uts" TYPE="int" LENGTH="11" NOTNULL="false" UNSIGNED="true" PREVIOUS="start_uts" NEXT="compiled"/>
-        <FIELD NAME="compiled" TYPE="int" LENGTH="1" NOTNULL="false" UNSIGNED="true"  PREVIOUS="finish_uts" NEXT="taken"/>  
-        <FIELD NAME="taken" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true"  PREVIOUS="compiled" NEXT="passed"/>
-        <FIELD NAME="passed" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" PREVIOUS="taken"/>
+        <FIELD NAME="submitid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="id" NEXT="start_uts" SEQUENCE="false"/>
+        <FIELD NAME="start_uts" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="id" NEXT="finish_uts" SEQUENCE="false"/>
+        <FIELD NAME="finish_uts" TYPE="int" LENGTH="11" NOTNULL="false" UNSIGNED="true" PREVIOUS="start_uts" NEXT="compiled" SEQUENCE="false"/>
+        <FIELD NAME="compiled" TYPE="int" LENGTH="1" NOTNULL="false" UNSIGNED="true"  PREVIOUS="finish_uts" NEXT="taken" SEQUENCE="false"/>  
+        <FIELD NAME="taken" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true"  PREVIOUS="compiled" NEXT="passed" SEQUENCE="false"/>
+        <FIELD NAME="passed" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" PREVIOUS="taken" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
