@@ -119,14 +119,20 @@
         <FIELD NAME="student" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="problem" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="lang" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="iomethod" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="iomethod" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="solution" TYPE="binary" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="submitted_uts" TYPE="int" LENGTH="11" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="processed" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="processed" TYPE="int" LENGTH="4" NOTNULL="false" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="student" UNIQUE="false" FIELDS="student"/>
+        <INDEX NAME="contester" UNIQUE="false" FIELDS="contester"/>
+        <INDEX NAME="submitted_uts" UNIQUE="false" FIELDS="submitted_uts"/>
+        <INDEX NAME="processed" UNIQUE="false" FIELDS="processed"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="contester_tagmap" COMMENT="Defines contester">
       <FIELDS>
