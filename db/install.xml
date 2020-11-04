@@ -30,11 +30,14 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="name" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="ext" TYPE="char" LENGTH="16" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="display" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="display" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Language display order. If NULL, you can't select it when submitting."/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="ext" UNIQUE="true" FIELDS="ext"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="contester_language_map" COMMENT="Defines contester">
       <FIELDS>
@@ -49,12 +52,15 @@
     <TABLE NAME="contester_problemmap" COMMENT="Defines contester">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="problemid" TYPE="int" LENGTH="11" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="contesterid" TYPE="int" LENGTH="11" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="problemid" TYPE="int" LENGTH="11" NOTNULL="true" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="contesterproblem" UNIQUE="true" FIELDS="contesterid, problemid"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="contester_problems" COMMENT="Defines contester">
       <FIELDS>
