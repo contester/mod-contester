@@ -671,9 +671,7 @@ function contester_get_submit_info($submitid)
 				get_string('outof', 'contester')." $submit->taken.</a>";
 		else
 		{
-			$res_id = 2;
-			$res_desc = $DB->get_record("contester_resultdesc", "id", $res_id, 'language', 2);
-			$res->status = $res_desc->description;
+			$res->status = contester_get_resultdesc(2);
 		}
 	}
 	else
@@ -689,13 +687,21 @@ function contester_get_submit_info($submitid)
 		}
 		else
 			$res_id = 0;
-		$res_desc = $DB->get_record("contester_resultdesc", "id", $res_id, 'language', 2);
-		$res->status = $res_desc->description;
+		$res->status = contester_get_resultdesc($res_id);
 	}
 	//$res->solution = $submit->solution;
 	$res->points = $submit->points;
 	return $res;
 }
+
+function contester_incomplete_status($id) {
+	$res = new stdClass();
+	$res->status = contester_get_resultdesc($id);
+	$result = array();
+	$result [] = $res;
+	return $result;
+}
+
 /**
 * Returns detailed info about given submit in table
 *
@@ -705,42 +711,27 @@ function contester_get_submit_info($submitid)
 function contester_get_detailed_info($submitid)
 {
     global $DB;
-	$result = array();
 	$submit = $DB->get_record("contester_submits", array("id" => $submitid));
-	//print_r($submit);
-	$res = null;
 	if ($submit->processed == 0) { // если еще пока в очереди
-		$res_desc = $DB->get_record("contester_resultdesc", array("id" => 0, 'language' => 2));
-		$res->status = $res_desc->description;
-		$result []= $res;
-		return $result;
+		return contester_incomplete_status(0);
 	}
 	if (!$testing = $DB->get_record_sql("SELECT * FROM mdl_contester_testings WHERE (submitid = ?) ORDER BY id DESC", array($submitid))) {
-		$res_desc = $DB->get_record("contester_resultdesc", array("id" => 0, 'language' => 2));
-		$res->status = $res_desc->description;
-		$result []= $res;
-		return $result;
+		return contester_incomplete_status(0);
 	}
 	if (!$testing->compiled) {
-		//$res->status = get_string('ce', 'contester');
-		$res_desc = $DB->get_record("contester_resultdesc", array("id" => 1, 'language' => 2));
-		$res->status = $res_desc->description;
-		$result []= $res;
-		return $result;
+		return contester_incomplete_status(1);
 	};
 	//$results = $DB->get_records_sql("SELECT * FROM mdl_contester_results WHERE testingid=? and not (test = 0)", array($testing->id));
 	$results = $DB->get_records_list("contester_results", "testingid", array($testing->id), null, 'test,timex,memory,result');
+	$result = array();
 	foreach($results as $r)
 	{
 		if ($r->test == 0) continue;
 		$res = new stdClass();
-		//print_r($results);
 		$res->number = $r->test;
 		$res->time = $r->timex.'ms';
 		$res->memory = ($r->memory/1024).'KB';
-		$desc = $DB->get_record('contester_resultdesc', array('id' => $r->result, 'language' => '2'));
-		$res->result = $desc->description;
-		//print_r($res);
+		$res->result = contester_get_resultdesc($r->result);
 		$result []= $res;
 	}
 	return $result;
@@ -1576,6 +1567,16 @@ function contester_print_begin($instance, $contester_name = "") {
 function contester_print_end() {
 	echo "</td></tr></table>";
 }
+
+function contester_get_resultdesc($id) {
+	$sid = 'status.' . $id;
+	$r = get_string('status.' . $id, 'contester');
+	if (empty($r)) {
+		return '...';
+	}
+	return $r;
+}
+
 /* begin test code */
 function contester_get_special_submit_info($submitid, $cget_problem_name = true, $cget_langinfo = true, $cget_status = true, $cget_points = true)
 {
@@ -1620,7 +1621,7 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 	$submit->attempt = $attempts + 1;
 	//$mapping = $DB->get_record("contester_problemmap", "id", $submit->problem, "contesterid", $submit->contester);
 	$problem = $DB->get_record('contester_problems', array('dbid' => $submit->problem));
-	$res = $res = new \stdClass();
+	$res = new \stdClass();
 	if ($cget_problem_name == true) {
 		$res->problem = $problem->name;
 	}
@@ -1642,9 +1643,7 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 					get_string('outof', 'contester')." $testing->taken</a>";
 			else
 			{
-				$res_id = 2;
-				$res_desc = $DB->get_record('contester_resultdesc', array('id' => $res_id, 'language' => 2));
-				$res->status = $res_desc->description;
+				$res->status = contester_get_resultdesc(2);
 			}
 		} else {
 			if (!$queued){
@@ -1656,8 +1655,7 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 				//$res_id = $result->result;
 				$res_id = 1;
 			} else $res_id = 0;
-			$res_desc = $DB->get_record('contester_resultdesc', array('id' => $res_id, 'language' => 2));
-			$res->status = $res_desc->description;
+			$res->status = contester_get_resultdesc($res_id);
 		}
 	}
 	else {
