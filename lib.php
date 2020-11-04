@@ -694,7 +694,7 @@ function contester_get_submit_info($submitid)
 	return $res;
 }
 
-function contester_incomplete_status($id) {
+function contester_incomplete_status(int $id) {
 	$res = new stdClass();
 	$res->status = contester_get_resultdesc($id);
 	$result = array();
@@ -1568,7 +1568,7 @@ function contester_print_end() {
 	echo "</td></tr></table>";
 }
 
-function contester_get_resultdesc($id) {
+function contester_get_resultdesc(int $id): string {
 	$sid = 'status.' . $id;
 	$r = get_string('status.' . $id, 'contester');
 	if (empty($r)) {
