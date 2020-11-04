@@ -74,19 +74,6 @@
       </KEYS>
     </TABLE>
 
-    <TABLE NAME="contester_resultdesc" COMMENT="Result descriptions in different languages">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" SEQUENCE="false" NEXT="success"/>        
-        <FIELD NAME="success" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" SEQUENCE="false" PREVIOUS="id" NEXT="description"/>        
-        <FIELD NAME="description" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" PREVIOUS="success" NEXT="language"/>
-        <FIELD NAME="language" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" DEFAULT="1" SEQUENCE="false"  PREVIOUS="description"/>        
-	<FIELD NAME="uid" TYPE="int" LENGTH="11" NOTNULL="true" SEQUENCE="true"/>      
-      </FIELDS>
-      <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="uid"/>
-      </KEYS>
-    </TABLE>
-
     <TABLE NAME="contester_results" COMMENT="Individual test results">
       <FIELDS>
 	<FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" SEQUENCE="true" NEXT="testingid"/>
