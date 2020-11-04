@@ -40,17 +40,18 @@
 
     <TABLE NAME="contester_language_map" COMMENT="Defines contester">
       <FIELDS>
-        <FIELD NAME="contester_id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" SEQUENCE="true" NEXT="language_id"/>        
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="contester_id"/>
+        <FIELD NAME="contester_id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" SEQUENCE="true" NEXT="language_id" PREVIOUS="id"/>        
         <FIELD NAME="language_id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" SEQUENCE="false" PREVIOUS="contester_id"/>                
       </FIELDS>
       <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="contester_id"/>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
     </TABLE>
 
     <TABLE NAME="contester_problemmap" COMMENT="Defines contester">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="problemid"/>        
+        <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="problemid"/>
         <FIELD NAME="problemid" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" SEQUENCE="false" PREVIOUS="id" NEXT="contesterid"/>                
         <FIELD NAME="contesterid" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" SEQUENCE="false" PREVIOUS="problemid"/>                
       </FIELDS>
@@ -88,7 +89,8 @@
 
     <TABLE NAME="contester_results" COMMENT="Individual test results">
       <FIELDS>
-        <FIELD NAME="testingid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" NEXT="processed_uts" SEQUENCE="false"/>
+	<FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" SEQUENCE="true" NEXT="testingid"/>
+        <FIELD NAME="testingid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" NEXT="processed_uts" SEQUENCE="false" PREVIOUS="id"/>
 	 <FIELD NAME="processed_uts" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="testingid" NEXT="result" SEQUENCE="false"/>
         <FIELD NAME="result" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="processed_uts" NEXT="test" SEQUENCE="false"/>        
         <FIELD NAME="test" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" PREVIOUS="result" NEXT="timex" SEQUENCE="false"/>       
