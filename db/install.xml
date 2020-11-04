@@ -143,6 +143,9 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="pid" UNIQUE="true" FIELDS="problemid, tagid"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="contester_tags" COMMENT="Defines contester">
       <FIELDS>
@@ -159,13 +162,17 @@
         <FIELD NAME="submitid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="start_uts" TYPE="int" LENGTH="11" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="finish_uts" TYPE="int" LENGTH="11" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="compiled" TYPE="int" LENGTH="1" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="compiled" TYPE="int" LENGTH="4" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="taken" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="passed" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="submitid" UNIQUE="false" FIELDS="submitid"/>
+        <INDEX NAME="start_uts" UNIQUE="false" FIELDS="start_uts"/>
+      </INDEXES>
     </TABLE>
   </TABLES>
 </XMLDB>
