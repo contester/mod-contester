@@ -100,7 +100,7 @@
 		echo format_text($text);
 		$sql = "select samples.input as input, samples.output as output
 				from mdl_contester_samples samples
-				where samples.problem_id=? order by samples.number";
+				where samples.problem_id=? order by samples.orderno";
 		$text = "";
 		$text .= "<div id=textheader>".get_string('samples', 'contester')."</div>";
 		$samples = $DB->get_records_sql($sql, array($problem->id));
