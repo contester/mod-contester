@@ -50,13 +50,13 @@
 
     echo $OUTPUT->header();
 
+
+    $pd = $DB->get_record_sql('select p.id as problem_id, p.dbid as dbid, p.name as problem_name from {contester_problems} p, {contester_problemmap} m where m.id = ? and m.problemid = p.id', [$pid]);
+
 	contester_print_begin($contester->id);
-	// header
 	echo "<br>";
 	print_string('solutionlist', 'contester');
-	$sql_problem_name = "SELECT problems.name from mdl_contester_problemmap as map, mdl_contester_problems as problems WHERE
-	map.contesterid = ? AND map.id = ? AND problems.id = map.problemid";
-	echo " ".get_string('oftask', 'contester')." ".$DB->get_field_sql($sql_problem_name, array($contester->id, $pid))."<br>";
+	echo " ".get_string('oftask', 'contester')." ".$pd->problem_name."<br>";
 	$table = new html_table();
 	$table->head = array(get_string('student', 'contester'), get_string('time', 'contester'), get_string('size', 'contester'));
 	$size = 'CHAR_LENGTH(submits.solution)';
@@ -66,22 +66,19 @@
 	if ($is_admin || $DB->get_field('contester', 'freeview', array('id' => $contester->id))) $size = 
 	"concat('<a href=show_solution.php?a=$contester->id&sid=', CAST(submits.id AS CHAR), '>', CAST($size AS CHAR), '</a>')";
 
-	$realpid = $DB->get_record('contester_problemmap', array('id' => $pid));
-	$realpid = $realpid->problemid;
-	$problem = $DB->get_record('contester_problems', array('id' => $realpid));
-
-	$sql = "SELECT submits.id FROM mdl_contester_submits as submits, mdl_contester_testings as test 
-	WHERE
-		submits.problem=? AND submits.contester=? AND test.submitid=submits.id AND test.taken=test.passed
-	";
-	$solutions = $DB->get_recordset_sql($sql, array($problem->dbid, $contester->id));
+	$sql = 'select submits.id,
+		u.firstname, u.lastname
+	       	from {contester_submits} submits,
+		{contester_testings} test,
+		{user} u
+		where submits.problem = ? and submits.contester=? AND test.submitid=submits.id AND test.taken=test.passed
+		AND submits.student = u.id order by submits.id';
+	$solutions = $DB->get_recordset_sql($sql, [$pd->dbid, $contester->id]);
 
 	foreach ($solutions as $solution)
 	{
 		$row = array();
-		$user = $DB->get_record_sql("SELECT user.firstname, user.lastname FROM mdl_user as user, mdl_contester_submits as submit
-			WHERE submit.id=? AND user.id = submit.student", array($solution->id));
-		$row[]= $user->firstname.' '.$user->lastname;
+		$row[]= $solution->firstname.' '.$solution->lastname;
 		$time = $DB->get_record_sql("SELECT MAX(res.timex) as time FROM mdl_contester_results as res 
 			WHERE 
 			res.testingid=?", array($solution->id));
@@ -94,6 +91,7 @@
 		$row[]= $len;
 		$table->data []= $row;
 	}
+	$solutions->close();
 
 	if ($table->data === false)
 	{
