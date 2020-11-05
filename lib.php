@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  * Library of interface functions and constants for module contester
  *
@@ -28,10 +29,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die();
+
 /**
  * Example constant, you probably want to remove this :-)
  */
 define('contester_ULTIMATE_ANSWER', 42);
+
 /* Moodle core API */
 /**
  * Returns the information on whether the module supports a feature
@@ -55,6 +58,7 @@ function contester_supports($feature) {
             return null;
     }
 }
+
 /**
  * Saves a new instance of the contester into the database
  *
@@ -76,6 +80,7 @@ function contester_add_instance(stdClass $contester, mod_contester_mod_form $mfo
     contester_grade_item_update($contester);
     return $contester->id;
 }
+
 /**
  * Updates an instance of the contester in the database
  *
@@ -92,8 +97,8 @@ function contester_update_instance(stdClass $contester, mod_contester_mod_form $
     $contester->timemodified = time();
     $contester->id = $contester->instance;
     // You may have to add extra stuff in here.
-//Start new code
-	if (!isset ($contester->freeview)) $contester->freeview = 0;
+
+    if (!isset ($contester->freeview)) $contester->freeview = 0;
     if (!isset ($contester->viewown)) $contester->viewown = 0;
     if (isset($contester->add_problem) && (trim($contester->add_problem) != '0'))
     {
@@ -127,6 +132,7 @@ function contester_update_instance(stdClass $contester, mod_contester_mod_form $
     contester_grade_item_update($contester);
     return $result;
 }
+
 /**
  * Removes an instance of the contester from the database
  *
@@ -237,6 +243,7 @@ function contester_user_complete($course, $user, $mod, $contester) {
 	}
     return true;
 }
+
 /**
  * Given a course and a time, this module should find recent activity
  * that has occurred in contester activities and print it out.
@@ -249,6 +256,7 @@ function contester_user_complete($course, $user, $mod, $contester) {
 function contester_print_recent_activity($course, $viewfullnames, $timestart) {
     return false;
 }
+
 /**
  * Prepares the recent activity data
  *
@@ -268,6 +276,7 @@ function contester_print_recent_activity($course, $viewfullnames, $timestart) {
  */
 function contester_get_recent_mod_activity(&$activities, &$index, $timestart, $courseid, $cmid, $userid=0, $groupid=0) {
 }
+
 /**
  * Prints single activity item prepared by {@link contester_get_recent_mod_activity()}
  *
@@ -279,6 +288,7 @@ function contester_get_recent_mod_activity(&$activities, &$index, $timestart, $c
  */
 function contester_print_recent_mod_activity($activity, $courseid, $detail, $modnames, $viewfullnames) {
 }
+
 /**
  * Function to be run periodically according to the moodle cron
  *
@@ -292,6 +302,7 @@ function contester_print_recent_mod_activity($activity, $courseid, $detail, $mod
 function contester_cron () {
     return true;
 }
+
 /**
  * Returns all other caps used in the module
  *
@@ -303,6 +314,7 @@ function contester_cron () {
 function contester_get_extra_capabilities() {
     return array();
 }
+
 /* Gradebook API */
 /**
  * Is a given scale used by the instance of contester?
@@ -322,6 +334,7 @@ function contester_scale_used($contesterid, $scaleid) {
         return false;
     }
 }
+
 /**
  * Checks if scale is being used by any instance of contester.
  *
@@ -338,6 +351,7 @@ function contester_scale_used_anywhere($scaleid) {
         return false;
     }
 }
+
 /**
  * Creates or updates grade item for the given contester instance
  *
@@ -369,6 +383,7 @@ function contester_grade_item_update(stdClass $contester, $reset=false) {
     grade_update('mod/contester', $contester->course, 'mod', 'contester',
             $contester->id, 0, null, $item);
 }
+
 /**
  * Delete grade item for given contester instance
  *
@@ -381,6 +396,7 @@ function contester_grade_item_delete($contester) {
     return grade_update('mod/contester', $contester->course, 'mod', 'contester',
             $contester->id, 0, null, array('deleted' => 1));
 }
+
 /**
  * Update contester grades in the gradebook
  *
@@ -396,6 +412,7 @@ function contester_update_grades(stdClass $contester, $userid = 0) {
     $grades = array();
     grade_update('mod/contester', $contester->course, 'mod', 'contester', $contester->id, 0, $grades);
 }
+
 /* File API */
 /**
  * Returns the lists of all browsable file areas within the given module context
@@ -411,6 +428,7 @@ function contester_update_grades(stdClass $contester, $userid = 0) {
 function contester_get_file_areas($course, $cm, $context) {
     return array();
 }
+
 /**
  * File browsing support for contester file areas
  *
@@ -431,6 +449,7 @@ function contester_get_file_areas($course, $cm, $context) {
 function contester_get_file_info($browser, $areas, $course, $cm, $context, $filearea, $itemid, $filepath, $filename) {
     return null;
 }
+
 /**
  * Serves the files from the contester file areas
  *
@@ -453,6 +472,7 @@ function contester_pluginfile($course, $cm, $context, $filearea, array $args, $f
     require_login($course, true, $cm);
     send_file_not_found();
 }
+
 /* Navigation API */
 /**
  * Extends the global navigation tree by adding contester nodes if there is a relevant content
@@ -467,6 +487,7 @@ function contester_pluginfile($course, $cm, $context, $filearea, array $args, $f
 function contester_extend_navigation(navigation_node $navref, stdClass $course, stdClass $module, cm_info $cm) {
     // TODO Delete this function and its docblock, or implement it.
 }
+
 /**
  * Extends the settings navigation with the contester settings
  *
@@ -484,6 +505,7 @@ $contester_SAMPLES_PREFIX = '\\begin{example}';
 $contester_SAMPLES_SUFFIX = '\\end{example}';
 $contester_SAMPLE_PREFIX = '\\exmp';
 $contester_SAMPLE_SUFFIX = '%';
+
 /*
 *
 * function contester_choose_from_list is choose_from_menu with additional parameters
@@ -532,6 +554,7 @@ function contester_choose_from_list($options, $name, $multiple=false, $size=1, $
         echo $output;
     }
 }
+
 function contester_grades($contesterid) {
 /// Must return an array of grades for a given instance of this module,
 /// indexed by user.  It also returns a maximum allowed grade.
@@ -561,9 +584,11 @@ function contester_grades($contesterid) {
 // 	var_dump($return);	echo "<br>";
    return $return;
 }
+
 function contester_get_participants($contesterid) {
 	return $DB->get_records_sql("SELECT DISTINCT student FROM {{contester_submits}} WHERE contester=?", array($contesterid));
 }
+
 /**
 * Called by course/reset.php
 * @param $mform form passed by reference
@@ -571,6 +596,7 @@ function contester_get_participants($contesterid) {
 function contester_reset_course_form_definition(&$mform) {
    $mform->addElement('header', ' contesterheader', get_string('modulenameplural', 'contester'));
 }
+
 /**
 * Course reset form defaults.
 */
@@ -584,9 +610,11 @@ function contester_reset_userdata($data)
     return $status;
 }
 
+
 //////////////////////////////////////////////////////////////////////////////////////
 /// Any other contester functions go here.  Each of them must have a name that
 /// starts with contester_
+
 function contester_get_submit($submitid)
 {
     global $DB;
@@ -645,7 +673,6 @@ function contester_get_detailed_info($submitid)
 	if (!$testing->compiled) {
 		return contester_incomplete_status(1);
 	};
-	//$results = $DB->get_records_sql("SELECT * FROM mdl_contester_results WHERE testingid=? and not (test = 0)", array($testing->id));
 	$results = $DB->get_records_list("contester_results", "testingid", array($testing->id), null, 'test,timex,memory,result');
 	$result = array();
 	foreach($results as $r)
@@ -660,12 +687,14 @@ function contester_get_detailed_info($submitid)
 	}
 	return $result;
 }
+
 function contester_obj2assoc($obj)
 {
 	foreach($obj as $key => $val)
 		$result[$key] = $val;
 	return $result;
 }
+
 function contester_get_last_submits($contesterid, $cnt = 1, $user = NULL, $problem = NULL, $datefrom_uts = NULL, $dateto_uts = NULL)
 {
     if ($cnt == -1)
@@ -705,108 +734,77 @@ function contester_get_last_submits($contesterid, $cnt = 1, $user = NULL, $probl
     return $result;
 }
 
-// берём последнее из правильных или последнее из неправильных, если правильных не было
+// берём последнее из правильных или последнее из неправильных,
+// если правильных не было
+function contester_get_last_or_last_correct_submit($contesterid, $user, $problem, $datefrom_uts, $dateto_uts)
+{
+    $submits = contester_get_last_submits($contesterid, -1, $user, $problem, $datefrom_uts, $dateto_uts);
+    $points = -1;
+    $mincorrectresult = -1;
+    $sid = -1;
+    $correct = false;
+    foreach($submits as $line) {
+        $submit = contester_get_submit($line->id);
+        // another correct
+        if (($correct) && ($submit->taken == $submit->passed)) {
+            if ($mincorrectresult > $submit->points) {
+                $mincorrectresult = $submit->points;
+                $sid = $submit->id;
+            }
+            if ($points < $submit->points) {
+                $points = $submit->points;
+            }
+        }
+        // correct or better
+        if ((!$correct) && ($points <= $submit->points)) {
+            if ($submit->taken == $submit->passed) {
+                $correct = true;
+                $mincorrectresult = $submit->points;
+            }
+            $points = $submit->points;
+            $taken = $submit->taken;
+            $passed = $submit->passed;
+            $sid = $submit->id;
+        }
+    }
+
+    $result = new stdClass();
+    if ($sid == -1 || $taken == 0)
+        $result->text = "";
+    else {
+        if ($correct) {
+            $result->text = '+ ' . $points;
+            $result->correct = true;
+        }
+        else {
+            $result->text = '- ('.$passed.'/'.$taken.')';
+            $result->correct = false;
+        }
+        $result->sid = $sid;
+    }
+    return $result;
+}
+
 function contester_get_last_or_last_correct_submit_reference($contesterid, $user, $problem, $datefrom_uts, $dateto_uts)
 {
-	$submits = contester_get_last_submits($contesterid, -1, $user, $problem, $datefrom_uts, $dateto_uts);
-	// ^ sorted by submitted DESC
-	$sid = -1;
-	$points = -5;
-	$taken = 0;
-	$passed = 0;
-	$correct = false;
-	$compiled = false;
-	foreach($submits as $line)
-	{
-		$submit = contester_get_submit($line->id);
-		if ($submit->taken == 0) continue;
-		if ($sid == -1) // no one yet
-		{
-			$sid = $submit->id;
-			$points = $submit->points;
-			$taken = $submit->taken;
-			$passed = $submit->passed;
-			$compiled = $submit->compiled;
-			if ($taken == $passed)
-			{
-				$correct = true;
-			}
-		}
-		else
-		{
-			if ($submit->taken == $submit->passed) // correct
-			{
-				$points = $submit->points;
-				if (!$correct) 	//first correct
-				{
-					$compiled = $submit->compiled;
-					$correct = true;
-					$sid = $submit->id;
-					$taken = $submit->taken;
-					$passed = $submit->passed;
-				}
-			}
-		}
-	}
-	if ($sid == -1 || $taken == 0) return "";
-	else
-	{
-		$s = "";
-		$result = "";
-		if ($correct) $result = '+ ' . $points;
-		else $result = '- ('.$passed.'/'.$taken.')';
-		$s = sprintf("<a href=\"show_solution.php?a=%d&sid=%d\">%s</a>", $contesterid, $sid, $result);
-		if (!$correct)
-			$s = $s." ".sprintf("<a href=\"details.php?a=%d&sid=%d\">%s</a>", $contesterid, $sid, "*");
-		return $s;
-	}
+    $result = contester_get_last_or_last_correct_submit($contesterid, $user, $problem, $datefrom_uts, $dateto_uts);
+    if ($result->text) {
+        $solution_url = new moodle_url('show_solution.php', ['a' => $contesterid, 'sid' => $result->sid]);
+        $res = '<a href="'.$solution_url.'">'.$result->text.'</a>';
+        if (!$result->correct) {
+            $details_url = new moodle_url('details.php', ['a' => $contesterid, 'sid' => $result->sid]);
+            $res += 'a <href="'.$details_url.'">'.'*'.'</a>';
+        }
+        return $res;
+    }
+    return "";
 }
-// Like contester_get_last_or_last_correct_submit_reference. Only result without reference
+
 function contester_get_result_without_reference($contesterid, $user, $problem, $datefrom_uts, $dateto_uts)
 {
-	$submits = contester_get_last_submits($contesterid, -1, $user, $problem, $datefrom_uts, $dateto_uts);
-	$result = -5;
-	$mincorrectresult = -5;
-	$sid = -1;
-	$correct = false;
-	foreach($submits as $line)
-	{
-		$submit = contester_get_submit($line->id);
-		// another correct
-		if (($correct) && ($submit->taken == $submit->passed))
-		{
-			if ($mincorrectresult > $submit->points)
-			{
-				$mincorrectresult = $submit->points;
-				$sid = $submit->id;
-			}
-			if ($result < $submit->points)
-			{
-				$result = $submit->points;
-			}
-		}
-		// correct or better
-		if ((!$correct) && ($result <= $submit->points))
-		{
-			if ($submit->taken == $submit->passed)
-			{
-				$correct = true;
-				$mincorrectresult = $submit->points;
-			}
-			$result = $submit->points;
-			$taken = $submit->taken;
-			$passed = $submit->passed;
-			$sid = $submit->id;
-		}
-	}
-	$points = $result;
-	if ($sid == -1 || $taken == 0) return ""; else
-	{
-		if ($correct) $result = '+ ' . $points; else
-			$result = '- ('.$passed.'/'.$taken.')';
-		return $result;
-	}
+    return contester_get_last_or_last_correct_submit($contesterid, $user, $problem, $datefrom_uts, $dateto_uts)->text;
 }
+
 function contester_get_user_points($contesterid, $user)
 {
 	global $DB;
@@ -820,12 +818,14 @@ function contester_get_user_points($contesterid, $user)
 	$problems->close();
 	return $result;
 }
+
 function contester_get_rounded_points($attempts, $passed, $taken)
 {
 	if ($taken > $passed)
 		return round(max(30 - $attempts, 15) * $passed / $taken /1.5, 2);
 	return round(max(30 - $attempts, 15), 0);
 }
+
 function contester_draw_assoc_table($res)
 {
     echo "<table width=90% align=left border=1>";
@@ -854,6 +854,7 @@ function contester_draw_assoc_table($res)
     }
     echo "</table>";
 }
+
 function contester_draw_table_from_sql($query)
 {
 	$res = array();
@@ -862,6 +863,7 @@ function contester_draw_table_from_sql($query)
  	       $res[] = $line;
 	contester_draw_assoc_table($res);
 }
+
 /**
 * Shows problems mapped to given instance of contester
 *
@@ -897,6 +899,7 @@ function contester_show_problemlist($instance)
     $res->close();
     echo '</table></td></tr>';
 }
+
 function contester_get_all_tags()
 {
 	global $DB;
@@ -910,16 +913,19 @@ function contester_get_all_tags()
 							ORDER BY tags.tag");
     return $res;
 }
+
 function contester_count_all_problems()
 {
 	global $DB;
 	return $DB->count_records("contester_problems");
 }
+
 function contester_count_all_tags()
 {
 	global $DB;
 	return $DB->count_records("contester_tags");
 }
+
 function contester_show_tags_ref($instance, $sort, $ifall="")
 {
 	unset($tags);
@@ -932,6 +938,7 @@ function contester_show_tags_ref($instance, $sort, $ifall="")
     		"&tag=".$item->id.">".$item->tag.' ('.$item->count.')'."</a></nobr> ";
     }
 }
+
 function contester_get_problem_tags($pid)
 {
 	global $DB;
@@ -945,6 +952,7 @@ function contester_get_problem_tags($pid)
     						 ORDER BY mdl_contester_tags.tag");
 	return $tags;
 }
+
 function contester_get_not_problem_tags($pid)
 {
 	global $DB;
@@ -961,6 +969,7 @@ function contester_get_not_problem_tags($pid)
     						 ORDER BY mdl_contester_tags.tag");
 	return $tags;
 }
+
 function contester_show_problem_tags($pid)
 {
 	unset($tags);
@@ -970,6 +979,7 @@ function contester_show_problem_tags($pid)
     	echo $item->tag." ";
     }
 }
+
 function contester_show_problems_preview($instance, $sort, $tag)
 {
 	global $DB;
@@ -977,7 +987,7 @@ function contester_show_problems_preview($instance, $sort, $tag)
     unset($order);
     unset($whtag);
     unset($data);
-    
+
     $sql = "SELECT   mdl_contester_problems.id as pr_id,
 	   							     mdl_contester_problems.name as name,
    								     mdl_contester_problems.dbid as dbid
@@ -989,14 +999,14 @@ function contester_show_problems_preview($instance, $sort, $tag)
    											WHERE  mdl_contester_tagmap.problemid=mdl_contester_problems.id
    											       AND
    											       mdl_contester_tagmap.tagid=?)";
-		$data []= $tag; 
+		$data []= $tag;
    	}
-   	
+
    	$sql .= " ORDER BY ";
-    
-   	if ($sort == 1) 
+
+   	if ($sort == 1)
    		$sql .= "mdl_contester_problems.name";
-   	else 	
+   	else
    		$sql .= "mdl_contester_problems.dbid";
 	$res = $DB->get_records_sql($sql, $data);
     echo '<table cellpadding=5 border=1 bordercolor=#D0D0D0>';
@@ -1028,6 +1038,7 @@ function contester_show_problems_preview($instance, $sort, $tag)
     }
     echo '</table>';
 }
+
 function contester_get_problems_preview_all($instance, $sort, $tag)
 {
 	global $DB;
@@ -1035,7 +1046,7 @@ function contester_get_problems_preview_all($instance, $sort, $tag)
     unset($order);
     unset($whtag);
     unset($data);
-    
+
     $sql = "SELECT  mdl_contester_problems.id as id,
 	   							    mdl_contester_problems.name as name,
    								    mdl_contester_problems.dbid as dbid,
@@ -1050,19 +1061,19 @@ function contester_get_problems_preview_all($instance, $sort, $tag)
    											 WHERE  mdl_contester_tagmap.problemid=mdl_contester_problems.id
    											      AND
    											        mdl_contester_tagmap.tagid=?)";
-   											        
+
 		$data []= $tag;
    	}
-   	
+
    	$sql .= " ORDER BY ";
-   	
+
    	if ($sort == 1)
    		$sql .= "mdl_contester_problems.name";
    	else
    		$sql .= "mdl_contester_problems.dbid";
-   		
+
    	$res = $DB->get_records_sql($sql, $data);
-   	
+
    	/*if ($sort == 1) {$order = "contester_problems.name";}
    	else {$order = "contester_problems.dbid";}
    	if ($tag != 0) {$whtag = " WHERE EXISTS (SELECT mdl_contester_tagmap.id
@@ -1081,11 +1092,13 @@ function contester_get_problems_preview_all($instance, $sort, $tag)
    							    ORDER BY ".$order);*/
  	return $res;
 }
+
 function contester_print_link_to_problem($instance, $pid)
 {
 	echo "<a href=problem.php?a=$instance&pid=$pid>".
    		get_string('problemstatement', 'contester')."</a>";
 }
+
 function contester_print_link_to_problem_details($instance, $pid, $dbid)
 {
     global $DB;
@@ -1105,6 +1118,7 @@ function contester_print_link_to_problem_details($instance, $pid, $dbid)
    		echo "<a href=problem_details.php?a=$instance&pid=$pid>".
 	   		get_string('problemdetails', 'contester')." (".$dbid.")</a>";
 }
+
 function contester_print_link_to_problem_tags_details($instance, $pid)
 {
     global $DB;
@@ -1123,6 +1137,7 @@ function contester_print_link_to_problem_tags_details($instance, $pid)
    		echo "<a href=problem_tags_details.php?a=$instance&pid=$pid>".
 	   		get_string('tagsdetails', 'contester')."</a>";
 }
+
 function contester_print_link_to_upload($instance)
 {
     global $DB;
@@ -1135,13 +1150,14 @@ function contester_print_link_to_upload($instance)
     if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
         print_error("Course Module ID was incorrect");
     }
-    $context = context_module::instance($cm->id);    
+    $context = context_module::instance($cm->id);
     $is_admin = has_capability('moodle/site:config', $context);
     if ($is_admin)
     {
         echo "<p><a href=upload_problem_form.php?a=$instance>".get_string('uploadtask', 'contester')."</a></p>";
     }
 }
+
 function contester_print_link_to_problems_preview($instance)
 {
     global $DB;
@@ -1154,13 +1170,14 @@ function contester_print_link_to_problems_preview($instance)
     if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
         print_error("Course Module ID was incorrect");
     }
-    //$context = get_context_instance(CONTEXT_MODULE, $cm->id);    
+    //$context = get_context_instance(CONTEXT_MODULE, $cm->id);
     $context = context_module::instance($cm->id);
     $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
     $is_admin = has_capability('moodle/site:config', $context);
     if ($is_admin || $is_teacher)
         echo "<p><a href=problems_preview.php?a=$instance>".get_string('problemspreview', 'contester')."</a></p>";
 }
+
 /**
 * Shows select-list of all problems in DB. Name of <select> - tag in HTML: add_problem
 *
@@ -1172,7 +1189,7 @@ function contester_show_problemadd()
     echo '<tr valign="top">';
 	echo '<td align="right"><b>'.get_string('addproblem', 'contester').':</b></td>';
 	echo '<td>';
-	
+
     unset($choices);
     unset($res);
     $res = $DB->get_records_sql("SELECT   mdl_contester_problems.id as pr_id,
@@ -1186,6 +1203,7 @@ function contester_show_problemadd()
     contester_choose_from_list($choices, 'add_problem[]', true, 20); //multiple + 20 rows
     echo '</td></tr>';
 }
+
 /**
 * Processes updates of tho mod 'contester'
 *
@@ -1207,6 +1225,7 @@ function contester_process_options($data)
 */
 	return true;
 }
+
 /**
  * Parses $text, containing problem description and samples of input and output, and adds it into
  * DB.
@@ -1275,6 +1294,7 @@ function contester_parse_task($text, $dbid)
 		$DB->insert_record('contester_samples', $example);
 	}
 }
+
 /**
 * Shows detailed info about problem with ability to edit
 *
@@ -1355,6 +1375,7 @@ function contester_show_problem_details($pid)
 <?php
 	return true;
 }
+
 function contester_show_problem_tags_to_delete($pid)
 {
 	global $DB;
@@ -1370,6 +1391,7 @@ function contester_show_problem_tags_to_delete($pid)
     }
     return 0;
 }
+
 function contester_show_problems_to_delete($a)
 {
     global $DB;
@@ -1404,6 +1426,7 @@ function contester_show_problems_to_delete($a)
     echo '</table>';
     return 0;
 }
+
 function contester_show_problems_to_add($a)
 {
     global $DB;
@@ -1428,6 +1451,7 @@ function contester_show_problems_to_add($a)
 
     return 0;
 }
+
 function contester_show_problem_tags_to_add($pid)
 {
 	global $DB;
@@ -1444,6 +1468,7 @@ function contester_show_problem_tags_to_add($pid)
     }
     return 0;
 }
+
 /**
 * Shows navigation bar for given instance of contester
 *
@@ -1473,6 +1498,7 @@ function contester_show_nav_bar($instance) {
     if ($is_admin || $is_teacher)
         echo "<nobr><a href=problems_details.php?a=$instance>".get_string('contesterupdate', 'contester')."</a></nobr><br>";		
 }
+
 /**
 * Something like header
 *
@@ -1485,6 +1511,7 @@ function contester_print_begin($instance, $contester_name = "") {
 	contester_show_nav_bar($instance);
 	echo "</td><td align=center>";
 }
+
 /**
 * Something like footer
 */
