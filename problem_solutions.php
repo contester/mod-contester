@@ -58,28 +58,26 @@
 	print_string('solutionlist', 'contester');
 	echo " ".get_string('oftask', 'contester')." ".$pd->problem_name."<br>";
 	$table = new html_table();
-	$table->head = array(get_string('student', 'contester'), get_string('time', 'contester'), get_string('size', 'contester'));
+	$table->head = ['ID', get_string('student', 'contester'), get_string('time', 'contester'), get_string('size', 'contester')];
 	$context = context_module::instance($cm->id);
 	$is_admin = has_capability('moodle/site:config', $context);
 
 	$sql = 'select submits.id,
 		OCTET_LENGTH(submits.solution) as slen,
-		u.firstname, u.lastname
+		test.id as testing_id,
+		u.firstname, u.lastname,
+		max(res.timex) as max_time
 	       	from {contester_submits} submits,
 		{contester_testings} test,
-		{user} u
+		{user} u,
+		{contester_results} res
 		where submits.problem = ? and submits.contester=? AND test.submitid=submits.id AND test.taken=test.passed
-		AND submits.student = u.id order by submits.id';
+		AND submits.student = u.id and test.id = res.testingid group by submits.id, test.id, u.firstname, u.lastname order by submits.id';
 	$solutions = $DB->get_recordset_sql($sql, [$pd->dbid, $contester->id]);
 
 	foreach ($solutions as $solution)
 	{
-		$row = array();
-		$row[]= $solution->firstname.' '.$solution->lastname;
-		$time = $DB->get_record_sql("SELECT MAX(res.timex) as time FROM mdl_contester_results as res 
-			WHERE 
-			res.testingid=?", array($solution->id));
-		$row[]= $time->time;
+		$row = [$solution->id, $solution->firstname.' '.$solution->lastname, $solution->max_time];
 		$len = $solution->slen;
 		if ($is_admin || $contester->freeview) {
 			$len = "<a href=show_solution.php?a=$contester->id&sid={$solution->id}>".$len."</a>";
