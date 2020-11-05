@@ -46,10 +46,10 @@
 
 /// Print the page header
 
-	$sql = "SELECT mdl_contester_problems.name as name
-			FROM   mdl_contester_problems
-			WHERE  mdl_contester_problems.id=?";
-	if (!$problem = $DB->get_record_sql($sql, array($pid))) print_error('No such problem!');
+    // TODO: don't do this! call contester_problem_details as a function which builds form, return error if not found.
+    if (!$DB->record_exists('contester_problems', ['id' => $pid]))
+        print_error('No such problem!');
+
 
     $PAGE->set_url('/mod/contester/problem_tag_details.php', array('a' => $a, 'pid' => $pid));
     $PAGE->set_title("$course->shortname: $contester->name");
