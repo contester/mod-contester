@@ -41,8 +41,6 @@
 
     //add_to_log($course->id, "contester", "problem_solutions", "problem_solutions.php?a=$contester->id&pid=$pid", "$contester->id");
 
-/// Print the page header
-
     $PAGE->set_url('/mod/contester/problem_solutions.php', array('a' => $a, 'pid' => $id));
     $PAGE->set_title("$course->shortname: $contester->name");
     $PAGE->set_heading("$course->fullname");
@@ -52,7 +50,6 @@
 
     echo $OUTPUT->header();
 
-/// Print the main part of the page
 	contester_print_begin($contester->id);
 	// header
 	echo "<br>";
@@ -60,8 +57,6 @@
 	$sql_problem_name = "SELECT problems.name from mdl_contester_problemmap as map, mdl_contester_problems as problems WHERE
 	map.contesterid = ? AND map.id = ? AND problems.id = map.problemid";
 	echo " ".get_string('oftask', 'contester')." ".$DB->get_field_sql($sql_problem_name, array($contester->id, $pid))."<br>";
-	// достаем и выводим список правильных решений.
-	//$table = null;
 	$table = new html_table();
 	$table->head = array(get_string('student', 'contester'), get_string('time', 'contester'), get_string('size', 'contester'));
 	$size = 'CHAR_LENGTH(submits.solution)';
@@ -79,12 +74,10 @@
 	WHERE
 		submits.problem=? AND submits.contester=? AND test.submitid=submits.id AND test.taken=test.passed
 	";
-	//echo $sql;
 	$solutions = $DB->get_recordset_sql($sql, array($problem->dbid, $contester->id));
 
 	foreach ($solutions as $solution)
 	{
-		//print_r(var_export($solution, true));
 		$row = array();
 		$user = $DB->get_record_sql("SELECT user.firstname, user.lastname FROM mdl_user as user, mdl_contester_submits as submit
 			WHERE submit.id=? AND user.id = submit.student", array($solution->id));
@@ -102,33 +95,12 @@
 		$table->data []= $row;
 	}
 
-/*	$sql = "SELECT CONCAT( user.firstname, ' ', user.lastname ), MAX(results.timex), $size FROM
-	user as user, contester_results as results, contester_submits as submits, contester_testings as testings, 
-	contester_problemmap as map, contester_problems as problems WHERE
-	map.contesterid=$contester->id AND map.id=$pid AND map.problemid=problems.id AND 
-	submits.problem = problems.dbid AND testings.submitid=submits.id AND submits.student=user.id AND testings.taken=testings.passed
-	AND submits.processed = 255 GROUP BY user.id, submits.id ORDER BY CHAR_LENGTH(submits.solution) ASC
-	";
-	echo "<textarea>".$sql."</textarea>";
-
-	$tmp = mysql_query($sql);
-	while ($row = mysql_fetch_array($tmp))
-	{
-		unset ($row[0]);
-		unset ($row[1]);
-		unset ($row[2]);
-
-		$table->data []= $row;
-	}
-	*/
 	if ($table->data === false)
 	{
 		print_string('nocorrectsolutions', contester);
 	} else {
 		echo html_writer::table($table);
-		//print_table($table);
 	}
-/// Finish the page
     contester_print_end();
 
     echo $OUTPUT->footer();
