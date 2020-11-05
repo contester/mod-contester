@@ -46,12 +46,6 @@
 
 /// Print the page header
 
-	$sql = "SELECT mdl_contester.id as id,
-				   mdl_contester.name as name
-			FROM   mdl_contester
-			WHERE  mdl_contester.id=?";
-	if (!$contester = $DB->get_record_sql($sql, array($a))) print_error('No such problem!');
-
     $PAGE->set_url('/mod/contester/save_problems.php');
     $PAGE->set_title("$course->shortname: $contester->name");
     $PAGE->set_heading("$course->fullname");
