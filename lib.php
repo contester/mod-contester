@@ -793,7 +793,7 @@ function contester_get_last_or_last_correct_submit_reference($contesterid, $user
         $res = '<a href="'.$solution_url.'">'.$result->text.'</a>';
         if (!$result->correct) {
             $details_url = new moodle_url('details.php', ['a' => $contesterid, 'sid' => $result->sid]);
-            $res .= '<a href="'.$details_url.'">'.'*'.'</a>';
+            $res .= ' <a href="'.$details_url.'">'.'*'.'</a>';
         }
         return $res;
     }
