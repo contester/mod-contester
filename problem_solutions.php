@@ -59,12 +59,8 @@
 	echo " ".get_string('oftask', 'contester')." ".$pd->problem_name."<br>";
 	$table = new html_table();
 	$table->head = array(get_string('student', 'contester'), get_string('time', 'contester'), get_string('size', 'contester'));
-	$size = 'CHAR_LENGTH(submits.solution)';
 	$context = context_module::instance($cm->id);
-    $is_admin = has_capability('moodle/site:config', $context);
-
-	if ($is_admin || $DB->get_field('contester', 'freeview', array('id' => $contester->id))) $size = 
-	"concat('<a href=show_solution.php?a=$contester->id&sid=', CAST(submits.id AS CHAR), '>', CAST($size AS CHAR), '</a>')";
+	$is_admin = has_capability('moodle/site:config', $context);
 
 	$sql = 'select submits.id,
 		u.firstname, u.lastname
