@@ -99,9 +99,7 @@
     }
     $datefrom_uts = $dt_from->getTimestamp();
 
-
-
-    $query = "SELECT DISTINCT submits.student
+    $query = "SELECT DISTINCT submits.student id, concat(u.lastname, ' ', u.firstname) name
               FROM   {contester_submits} submits,
 		     {user} u
               WHERE  u.id=submits.student
@@ -111,7 +109,7 @@
                      submits.submitted_uts BETWEEN ? AND ?
               ORDER  BY u.lastname, u.firstname";
 
-    $query2 = "SELECT DISTINCT gm.userid student
+    $query2 = "SELECT DISTINCT gm.userid id, concat(u.lastname, ' ', u.firstname) name
                FROM   {groups_members} gm, {user} u,
                       {contester_submits} submits
                WHERE  u.id = gm.userid
@@ -123,45 +121,27 @@
                       gm.groupid = ?
                       AND
                       submits.submitted_uts BETWEEN ? AND ?
-               ORDER BY mdl_user.lastname, mdl_user.firstname";
+               ORDER BY u.lastname, u.firstname";
 
     if ($group_value == -1 || $group_value == 'none') {
-        $students = $DB->get_recordset_sql($query,
+        $sts = $DB->get_records_sql($query,
                      [$contester->id, $datefrom_uts, $dateto_uts]);
     }
     else {
-        $students = $DB->get_recordset_sql($query2,
+        $sts = $DB->get_records_sql($query2,
                      [$contester->id, $group_value, $datefrom_uts, $dateto_uts]);
     }
 
 
     $query =
-	"SELECT problemid, id as pid FROM {contester_problemmap}
+	"SELECT pm.problemid id, pm.id as pid, p.name FROM {contester_problemmap} pm, {contester_problems} p
 		WHERE
-		contesterid = ? ORDER BY id";
+		p.id = pm.problemid AND pm.contesterid = ? ORDER BY pm.id";
 
 
-    $problems = $DB->get_recordset_sql($query, [$contester->id]);
+    $prs = $DB->get_records_sql($query, [$contester->id]);
 
     $table = array();
-    $sts = array();
-    foreach ($students as $student) {
-        $st = new stdClass();
-        $st->name = $DB->get_field('user', 'lastname', array('id'=>$student->student)). ' '
-                    .$DB->get_field('user', 'firstname', array('id'=>$student->student));
-        $st->id = $student->student;
-        $sts []= $st;
-    }
-    $prs = array();
-    foreach ($problems as $problem) {
-        $pr = new stdClass();
-        $pr->id = $problem->problemid;
-        $pr->pid = $problem->pid;
-        $pr->name = $DB->get_field('contester_problems', 'name', array('id'=>$pr->id));
-        if ($pr->id != 0 && $pr->name != "")
-            $prs []= $pr;
-    }
-
     echo '<p style="padding-top:20pt"><table align="left" border="1"><tr><td></td>';
     foreach ($prs as $pr) {
         echo "<td><a href=problem.php?pid=".$pr->pid.
