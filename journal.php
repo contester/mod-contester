@@ -81,15 +81,9 @@
     echo '</td></tr></table>';
     echo '</form>';
 
-    if ($group_value == -1 || $group_value == 'none')
-        $groupquery = '';
-    else
-        $groupquery = 'AND (mdl_groups_members.groupid ='.$group_value.')';
-
-
     if ($datetime_to_value == NULL) {
         $dt_to = new DateTime("now", $school_timezone);
-        $dt_to->modify('+1 hour');  // на всякий пожарный
+        $dt_to->modify('+1 hour');  // на всякий пожарный <- wtf
     }
     else {
         $dt_to = new DateTime($datetime_to_value, $school_timezone);
@@ -109,46 +103,45 @@
 
     $query = "SELECT DISTINCT submits.student
               FROM   {contester_submits} submits,
-                     mdl_user
-              WHERE  mdl_user.id=submits.student
+		     {user} u
+              WHERE  u.id=submits.student
                      AND
-                     submits.contester = $contester->id
+                     submits.contester = ?
                      AND
                      submits.submitted_uts BETWEEN ? AND ?
-              ORDER  BY mdl_user.lastname, mdl_user.firstname";
+              ORDER  BY u.lastname, u.firstname";
 
-    $query2 = "SELECT DISTINCT mdl_groups_members.userid AS student
-               FROM   mdl_groups_members, mdl_user,
+    $query2 = "SELECT DISTINCT gm.userid student
+               FROM   {groups_members} gm, {user} u,
                       {contester_submits} submits
-               WHERE  mdl_user.id = mdl_groups_members.userid
+               WHERE  u.id = gm.userid
                       AND
-                      mdl_groups_members.userid = submits.student
+                      gm.userid = submits.student
                       AND
-                      submits.contester = $contester->id
+                      submits.contester = ?
                       AND
-                      mdl_groups_members.groupid = ?
+                      gm.groupid = ?
                       AND
                       submits.submitted_uts BETWEEN ? AND ?
                ORDER BY mdl_user.lastname, mdl_user.firstname";
 
     if ($group_value == -1 || $group_value == 'none') {
         $students = $DB->get_recordset_sql($query,
-                     array($datefrom_uts, $dateto_uts));
+                     [$contester->id, $datefrom_uts, $dateto_uts]);
     }
     else {
         $students = $DB->get_recordset_sql($query2,
-                     array($group_value, $datefrom_uts, $dateto_uts));
+                     [$contester->id, $group_value, $datefrom_uts, $dateto_uts]);
     }
 
 
     $query =
-
-	"SELECT problemid, id as pid FROM mdl_contester_problemmap
+	"SELECT problemid, id as pid FROM {contester_problemmap}
 		WHERE
-		(contesterid = $contester->id) ORDER BY id";
+		contesterid = ? ORDER BY id";
 
 
-    $problems = $DB->get_recordset_sql($query);
+    $problems = $DB->get_recordset_sql($query, [$contester->id]);
 
     $table = array();
     $sts = array();
