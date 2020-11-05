@@ -90,7 +90,7 @@
 	// дальше сэмплы выводятся
 	$sql = "select samples.input as input, samples.output as output
 	from mdl_contester_samples samples
-	where samples.problem_id=? order by samples.number";
+	where samples.problem_id=? order by samples.orderno";
 	//error($sql);
 
 	$text = "";

@@ -73,7 +73,7 @@
                                               samples.output as output
                                        FROM   {contester_samples} samples
                                        WHERE  samples.problem_id=?
-                                              order by samples.number",
+                                              order by samples.orderno",
                                       array($problem->id));
     foreach($samples as $sample) {
         $text .= "<div>".get_string('input', 'contester')."</div><div align=left><pre>".

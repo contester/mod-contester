@@ -147,4 +147,18 @@ $string['september']    = 'Сентябрь';
 $string['october']      = 'Октябрь';
 $string['november']     = 'Ноябрь';
 $string['december']     = 'Декабрь';
+
+// status descriptions
+
+$string['status.0'] = 'В очереди...';
+$string['status.1'] = 'Компиляция успешна';
+$string['status.2'] = 'Ошибка при компиляции';
+$string['status.10'] = 'Тест принят';
+$string['status.11'] = 'Превышен лимит времени';
+$string['status.12'] = 'Ошибка при выполнении';
+$string['status.13'] = 'Неверный ответ';
+$string['status.14'] = 'Ошибка представления';
+$string['status.15'] = 'Превышен лимит памяти';
+$string['status.16'] = 'Неверный выходной файл или ошибка при тестировании';
+
 ?>
