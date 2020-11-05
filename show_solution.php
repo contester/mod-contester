@@ -34,7 +34,7 @@
             $userid = $USER->id;
     	}
         $user = $DB->get_field_sql("SELECT user.id
-                                    FROM   mdl_user as user,
+                                    FROM   {user} as user,
                                            {contester_submits} submits
                                     WHERE  submits.id=?
                                            AND
@@ -59,6 +59,8 @@
 /// Print the main part of the page
 
     contester_print_begin($contester->id);
+
+    // TODO: this is similar to the part in problem_details. Extract to common API.
 
     $sr = $DB->get_record_sql("SELECT  problems.name as problem_name,
                                        user.firstname as firstname,
