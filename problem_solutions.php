@@ -63,6 +63,7 @@
 	$is_admin = has_capability('moodle/site:config', $context);
 
 	$sql = 'select submits.id,
+		OCTET_LENGTH(submits.solution) as slen,
 		u.firstname, u.lastname
 	       	from {contester_submits} submits,
 		{contester_testings} test,
@@ -79,11 +80,10 @@
 			WHERE 
 			res.testingid=?", array($solution->id));
 		$row[]= $time->time;
-		$length = $DB->get_record_sql("SELECT CHAR_LENGTH(solution) as len from mdl_contester_submits
-		WHERE id=?", array($solution->id));
-		$len = $length->len;
-		if ($is_admin || $DB->get_field('contester', 'freeview', array('id' => $contester->id))) 
+		$len = $solution->slen;
+		if ($is_admin || $contester->freeview) {
 			$len = "<a href=show_solution.php?a=$contester->id&sid={$solution->id}>".$len."</a>";
+		}
 		$row[]= $len;
 		$table->data []= $row;
 	}
