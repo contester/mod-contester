@@ -39,14 +39,11 @@
     contester_print_begin($contester->id);
 
     // print the number of solutions in queue
-    $qnum = $DB->get_record_sql("SELECT  COUNT(1) as cnt
-                                 FROM    mdl_contester_submits
-                                 WHERE   ((processed is NULL) or (processed = 1))");
-    $cnum = $DB->get_record_sql("SELECT  COUNT(1) as cnt
-                                 FROM    mdl_contester_submits
-                                 WHERE   (processed = 255)");
-    echo "<p>".get_string("numinqueue", "contester").": ".$qnum->cnt.
-          " (".get_string("numchecked", "contester")." ". $cnum->cnt.")";
+    // TODO: make this 1 query
+    $qnum = $DB->count_records_select('contester_submits', '(processed is NULL) or (processed = 1)');
+    $cnum = $DB->count_records_select('contester_submits', 'processed = 255');
+    echo "<p>".get_string("numinqueue", "contester").": ".$qnum.
+          " (".get_string("numchecked", "contester")." ". $cnum.")";
 
     $thisc = get_string('thiscontester', 'contester');
     $allc = get_string('all', 'contester');
@@ -75,11 +72,11 @@
 					    submits.submitted_uts as submitted_uts,
     		                            contester.name as p5,
                                             problemmap.id as pid
-                                     FROM   mdl_contester_problems as problems,
-                                            mdl_contester_submits as submits,
-                                            mdl_contester_languages as languages,
-                                            mdl_contester as contester,
-                                            mdl_contester_problemmap as problemmap
+                                     FROM   {contester_problems} as problems,
+					    {contester_submits} as submits,
+					    {contester_languages} as languages,
+					    {contester} as contester,
+					    {contester_problemmap} as problemmap
                                      WHERE
                                             submits.student = ? AND
                                             submits.lang = languages.id AND
@@ -88,7 +85,7 @@
 					    contester.id = ? AND
                                             problemmap.contesterid = contester.id AND
                                             problemmap.problemid = problems.id
-                                     ORDER BY submits.submitted_uts DESC', array($userid, $contester->id));
+                                     ORDER BY submits.submitted_uts DESC', [$userid, $contester->id]);
     }
     else {
         $tmp = $DB->get_records_sql('SELECT submits.id as p4,
@@ -98,11 +95,11 @@
 					    submits.submitted_uts as submitted_uts,
 					    contester.name as p5,
                                             problemmap.id as pid
-                                     FROM   mdl_contester_problems as problems,
-                                            mdl_contester_submits as submits,
-                                            mdl_contester_languages as languages,
-                                            mdl_contester as contester,
-                                            mdl_contester_problemmap as problemmap
+                                     FROM   {contester_problems} as problems,
+					    {contester_submits} as submits,
+					    {contester_languages} as languages,
+					    {contester} as contester,
+					    {contester_problemmap} as problemmap
                                      WHERE
                                             submits.student=? AND
                                             submits.lang=languages.id AND
@@ -110,7 +107,7 @@
                                             submits.contester = contester.id AND
                                             problemmap.contesterid = contester.id AND
                                             problemmap.problemid = problems.id
-                                     ORDER BY submits.submitted_uts DESC', array($userid));
+                                     ORDER BY submits.submitted_uts DESC', [$userid]);
     }
 
     foreach($tmp as $row)
