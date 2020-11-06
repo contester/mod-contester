@@ -657,7 +657,7 @@ function contester_get_detailed_info($submitid)
 	if ($submit->processed == 0) { // если еще пока в очереди
 		return contester_incomplete_status(0);
 	}
-	if (!$testing = $DB->get_record_sql("SELECT * FROM mdl_contester_testings WHERE (submitid = ?) ORDER BY id DESC", array($submitid))) {
+	if (!$testing = $DB->get_record_sql("SELECT * FROM {contester_testings} WHERE (submitid = ?) ORDER BY id DESC", array($submitid))) {
 		return contester_incomplete_status(0);
 	}
 	if (!$testing->compiled) {
@@ -1527,17 +1527,11 @@ function contester_get_special_submit_info($submitid, $cget_problem_name = true,
 	{
 		$submit->$field = 0;
 	}
-	$tmp = $DB->get_record_sql('SELECT  COUNT(1) as cnt
-						   FROM    mdl_contester_submits
-						   WHERE   (contester = ?)
-						   AND     (student = ?)
-						   AND     (problem = ?)
-						   AND     (submitted_uts < ?)',
-                                   array($submit->contester, $submit->student,
-                                         $submit->problem, $submit->submitted_uts));
-	$attempts = 0 + $tmp->cnt;
+	 $attempts = $DB->count_records_select('contester_submits', 'contester = ? AND student = ? AND problem = ? AND submitted_uts < ?',
+		         [$submit->contester, $submit->student, $submit->problem, $submit->submitted_uts]);
+
 	if (!$testing = $DB->get_record_sql('SELECT   *
-	                                FROM     mdl_contester_testings
+	                                FROM     {contester_testings}
 	                                WHERE    (submitid = ?)
 					AND      (compiled is not null)
 	                                ORDER BY id
