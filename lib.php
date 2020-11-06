@@ -620,13 +620,8 @@ function contester_get_submit($submitid)
     global $DB;
 
     $submit = $DB->get_record("contester_submits", array("id" => $submitid));
-    $tmp = $DB->get_record_sql("SELECT    COUNT(1) as cnt
-                                  FROM    mdl_contester_submits
-                                  WHERE       (contester = {$submit->contester})
-                                          AND (student = {$submit->student})
-                                          AND (problem = {$submit->problem})
-                                          AND (submitted_uts < '{$submit->submitted_uts}')");
-    $attempts = 0 + $tmp->cnt;
+    $attempts = $DB->count_records_select('contester_submits', 'contester = ? AND student = ? AND problem = ? AND submitted_uts < ?',
+	[$submit->contester, $submit->student, $submit->problem, $submit->submitted_uts]);
     $result = $DB->get_record_sql("SELECT      *
                                       FROM      mdl_contester_testings
                                      WHERE     (submitid = {$submitid})
