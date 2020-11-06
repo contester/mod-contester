@@ -622,12 +622,7 @@ function contester_get_submit($submitid)
     $submit = $DB->get_record("contester_submits", array("id" => $submitid));
     $attempts = $DB->count_records_select('contester_submits', 'contester = ? AND student = ? AND problem = ? AND submitted_uts < ?',
 	[$submit->contester, $submit->student, $submit->problem, $submit->submitted_uts]);
-    $result = $DB->get_record_sql("SELECT      *
-                                      FROM      mdl_contester_testings
-                                     WHERE     (submitid = {$submitid})
-                                  ORDER BY     id
-                                      DESC
-                                     LIMIT     1");
+    $result = $DB->get_records('contester_testings', ['submitid' => $submitid], 'id desc', 'compiled,taken,passed', $limitnum=1);
     $fields = array("compiled", "taken", "passed");
     foreach($fields as $field)
     {
