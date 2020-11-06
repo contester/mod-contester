@@ -61,12 +61,12 @@
 /// Print the page header
 
     // достаем name для header-а, заодно всё остальное: название, условия, формат ввода-вывода
-    $sql = "select mdl_contester_problems.id as id, mdl_contester_problems.name as name,
-				   mdl_contester_problems.dbid as dbid, mdl_contester_problems.description as description,
-				   mdl_contester_problems.input_format as input, mdl_contester_problems.output_format as output
-			from   mdl_contester_problems
-			where  mdl_contester_problems.id=?";
-    if (!$problem = $DB->get_record_sql($sql, array($pid))) print_error('No such problem!');
+//    $sql = "select mdl_contester_problems.id as id, mdl_contester_problems.name as name,
+//				   mdl_contester_problems.dbid as dbid, mdl_contester_problems.description as description,
+//				   mdl_contester_problems.input_format as input, mdl_contester_problems.output_format as output
+//			from   mdl_contester_problems
+//			where  mdl_contester_problems.id=?";
+    if (!$problem = $DB->get_record('contester_problems', ['id' => $pid])) print_error('No such problem!');
 
     $PAGE->set_url('/mod/contester/problem_preview.php', array('a' => $a, 'pid' => $pid));
     $PAGE->set_title("$course->shortname: $contester->name");
@@ -89,7 +89,7 @@
 	echo format_text($text);
 	// дальше сэмплы выводятся
 	$sql = "select samples.input as input, samples.output as output
-	from mdl_contester_samples samples
+	from {contester_samples} samples
 	where samples.problem_id=? order by samples.orderno";
 	//error($sql);
 
