@@ -99,7 +99,7 @@
     }
     $datefrom_uts = $dt_from->getTimestamp();
 
-    $query = "SELECT DISTINCT submits.student id, concat(u.lastname, ' ', u.firstname) name
+    $query = "SELECT DISTINCT submits.student id, concat(u.lastname, ' ', u.firstname) fullname
               FROM   {contester_submits} submits,
 		     {user} u
               WHERE  u.id=submits.student
@@ -107,9 +107,9 @@
                      submits.contester = ?
                      AND
                      submits.submitted_uts BETWEEN ? AND ?
-              ORDER  BY u.lastname, u.firstname";
+              ORDER  BY fullname";
 
-    $query2 = "SELECT DISTINCT gm.userid id, concat(u.lastname, ' ', u.firstname) name
+    $query2 = "SELECT DISTINCT gm.userid id, concat(u.lastname, ' ', u.firstname) fullname
                FROM   {groups_members} gm, {user} u,
                       {contester_submits} submits
                WHERE  u.id = gm.userid
@@ -121,7 +121,7 @@
                       gm.groupid = ?
                       AND
                       submits.submitted_uts BETWEEN ? AND ?
-               ORDER BY u.lastname, u.firstname";
+               ORDER BY fullname";
 
     if ($group_value == -1 || $group_value == 'none') {
         $sts = $DB->get_records_sql($query,
@@ -155,7 +155,7 @@
     }
     $userid = $USER->id;
     foreach ($sts as $st) {
-        echo "<tr><td><a href=\"../../user/view.php?id=$st->id&course=$course->id\">$st->name</a></td>";
+        echo "<tr><td><a href=\"../../user/view.php?id=$st->id&course=$course->id\">$st->fullname</a></td>";
         $cnt = 0;
         foreach ($prs as $pr) {
             if ($is_admin || $is_teacher || $st->id == $userid) {
