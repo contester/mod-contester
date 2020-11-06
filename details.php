@@ -40,15 +40,15 @@
     contester_print_begin($contester->id);
 
     $sr = $DB->get_record_sql("SELECT  problems.name as problem_name,
-                                       user.firstname as firstname,
-                                       user.lastname as lastname,
+                                       u.firstname as firstname,
+                                       u.lastname as lastname,
                                        submits.submitted_uts as submitted_uts
                                FROM    {contester_submits} submits,
                                        {contester_problems} problems,
-                                       {user} user
+                                       {user} u
                                WHERE
                                        submits.problem=problems.dbid AND
-                                       user.id = submits.student AND
+                                       u.id = submits.student AND
                                        submits.id=?", array($sid));
 
     echo $sr->firstname . ' ' . $sr->lastname . ' ' . $sr ->problem_name . ' ' .
