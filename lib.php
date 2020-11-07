@@ -711,8 +711,7 @@ function contester_get_last_or_last_correct_submit($contesterid, $user, $problem
     $mincorrectresult = -1;
     $sid = -1;
     $correct = false;
-    foreach($submits as $line) {
-        $submit = contester_get_special_submit_info($line->id, false, false, true, true, false, false);
+    foreach($submits as $submit) {
         // another correct
         if (($correct) && ($submit->taken == $submit->passed)) {
             if ($mincorrectresult > $submit->points) {
@@ -1508,6 +1507,7 @@ function contester_get_special_submit_info($submitid,
     $submit = $DB->get_record('contester_submits', array('id' => $submitid));
 
     $res = new \stdClass();
+    $res->id = $submitid;
 
     if ($cget_problem_name == true) {
         $problem = $DB->get_record('contester_problems', array('dbid' => $submit->problem));
@@ -1538,6 +1538,7 @@ function contester_get_special_submit_info($submitid,
             $queued = false;
             foreach($fields as $field) {
                 $submit->$field = $testing->$field;
+                $res->$field = $submit->$field;
             }
         }
 
