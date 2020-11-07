@@ -39,19 +39,9 @@
 
     contester_print_begin($contester->id);
 
-    $sr = $DB->get_record_sql("SELECT  problems.name as problem_name,
-                                       u.firstname as firstname,
-                                       u.lastname as lastname,
-                                       submits.submitted_uts as submitted_uts
-                               FROM    {contester_submits} submits,
-                                       {contester_problems} problems,
-                                       {user} u
-                               WHERE
-                                       submits.problem=problems.dbid AND
-                                       u.id = submits.student AND
-                                       submits.id=?", array($sid));
+    $sr = contester_get_special_submit_info($sid, true, true, false, false, true);
 
-    echo $sr->firstname . ' ' . $sr->lastname . ' ' . $sr ->problem_name . ' ' .
+    echo $sr->userinfo . ' ' . $sr->problem . ' ' .
          '<br />' . userdate($sr->submitted_uts, get_string('strftimedatetime')) . '<br/><br/>';
 
     $result = contester_get_detailed_info($sid);
