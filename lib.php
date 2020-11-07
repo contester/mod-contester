@@ -1518,90 +1518,110 @@ function contester_get_resultdesc(int $id): string {
 	return $r;
 }
 
-function contester_get_special_submit_info($submitid, $cget_problem_name = true, $cget_langinfo = true, $cget_status = true, $cget_points = true)
+function contester_get_special_submit_info($submitid,
+                                           $cget_problem_name=true,
+                                           $cget_langinfo=true,
+                                           $cget_status=true,
+                                           $cget_points=true,
+                                           $cget_userinfo=false)
 {
-	global $DB;
-	$submit = $DB->get_record('contester_submits', array('id' => $submitid));
-	$fields = array("compiled", "taken", "passed");
-	foreach($fields as $field)
-	{
-		$submit->$field = 0;
-	}
-	 $attempts = $DB->count_records_select('contester_submits', 'contester = ? AND student = ? AND problem = ? AND submitted_uts < ?',
-		         [$submit->contester, $submit->student, $submit->problem, $submit->submitted_uts]);
+    global $DB;
+    $submit = $DB->get_record('contester_submits', array('id' => $submitid));
 
-	if (!$testing = $DB->get_record_sql('SELECT   *
-	                                FROM     {contester_testings}
-	                                WHERE    (submitid = ?)
-					AND      (compiled is not null)
-	                                ORDER BY id
-	                                DESC', array($submitid)))
-		$queued = true;
-	else
-	{
-		$queued = false;
-		//$fields = array("compiled", "taken", "passed");
-		foreach($fields as $field)
-		{
-			$submit->$field = $testing->$field;
-		}
-	}
+    $fields = ["compiled", "taken", "passed"];
+    foreach($fields as $field) {
+        $submit->$field = 0;
+    }
+    $attempts = $DB->count_records_select('contester_submits', 'contester = ? AND student = ? AND problem = ? AND submitted_uts < ?',
+                                          [$submit->contester, $submit->student, $submit->problem, $submit->submitted_uts]);
 
-	//print_r($submit);
-	if ($submit->taken)
-		$submit->points = contester_get_rounded_points($attempts, $submit->passed, $submit->taken);
-	else
-		$submit->points = 0;
-	$submit->attempt = $attempts + 1;
-	//$mapping = $DB->get_record("contester_problemmap", "id", $submit->problem, "contesterid", $submit->contester);
-	$problem = $DB->get_record('contester_problems', array('dbid' => $submit->problem));
-	$res = new \stdClass();
-	if ($cget_problem_name == true) {
-		$res->problem = $problem->name;
-	}
-	else {
-		$res->problem = "";
-	}
-	if ($cget_langinfo == true) {
-		$lang = $DB->get_record('contester_languages', array('id' => $submit->lang));
-		$res->prlanguage = $lang->name;
-	}
-	else {
-		$res->prlanguage = "";
-	}
-	if ($cget_status == true) {
-		if ($submit->processed == 255) {
-			if ($submit->compiled == '1')
-				$res->status = "<a href=details.php?sid=$submit->id&a=$submit->contester>".
-					get_string('passed', 'contester')." $testing->passed ".
-					get_string('outof', 'contester')." $testing->taken</a>";
-			else
-			{
-				$res->status = contester_get_resultdesc(2);
-			}
-		} else {
-			if (!$queued){
-				$result = $DB->get_records_sql('SELECT    *
-							  FROM      mdl_contester_results
-							  WHERE    (testingid = ?)
-							  ORDER BY  testingid DESC', array($testing->id));
-				//print_r($result);
-				//$res_id = $result->result;
-				$res_id = 1;
-			} else $res_id = 0;
-			$res->status = contester_get_resultdesc($res_id);
-		}
-	}
-	else {
-		$res->status = "";
-	}
-	//$res->solution = $submit->solution;
-	if ($cget_points == true) {
-		$res->points = $submit->points;
-	}
-	else {
-		$res->points = "";
-	}
-	return $res;
+    if (!$testing = $DB->get_record_sql('SELECT   *
+                                         FROM     {contester_testings}
+                                         WHERE    (submitid = ?)
+                                         AND      (compiled is not null)
+                                         ORDER BY id
+                                         DESC', array($submitid)))
+        $queued = true;
+    else {
+        $queued = false;
+        foreach($fields as $field) {
+            $submit->$field = $testing->$field;
+        }
+    }
+
+    if ($submit->taken)
+        $submit->points = contester_get_rounded_points($attempts, $submit->passed, $submit->taken);
+    else
+        $submit->points = 0;
+
+    $submit->attempt = $attempts + 1;
+
+    $problem = $DB->get_record('contester_problems', array('dbid' => $submit->problem));
+
+    $res = new \stdClass();
+    if ($cget_problem_name == true) {
+        $res->problem = $problem->name;
+    }
+    else {
+        $res->problem = "";
+    }
+    if ($cget_langinfo == true) {
+        $lang = $DB->get_record('contester_languages', array('id' => $submit->lang));
+        $res->prlanguage = $lang->name;
+    }
+    else {
+        $res->prlanguage = "";
+    }
+    if ($cget_status == true) {
+        if ($submit->processed == 255) {
+            if ($submit->compiled == '1')
+                $res->status = "<a href=details.php?sid=$submit->id&a=$submit->contester>".
+                                 get_string('passed', 'contester')." $testing->passed ".
+                                 get_string('outof', 'contester')." $testing->taken</a>";
+            else {
+                $res->status = contester_get_resultdesc(2);
+            }
+        }
+        else {
+            if (!$queued) {
+                $result = $DB->get_records_sql('SELECT    *
+                                                FROM      {contester_results}
+                                                WHERE     (testingid = ?)
+                                                ORDER BY  testingid
+                                                DESC', array($testing->id));
+
+                $res_id = 1;
+            }
+            else {
+                $res_id = 0;
+            }
+            $res->status = contester_get_resultdesc($res_id);
+        }
+    }
+    else {
+        $res->status = "";
+    }
+
+    if ($cget_points == true) {
+        $res->points = $submit->points;
+    }
+    else {
+        $res->points = "";
+    }
+
+    if ($cget_userinfo == true) {
+        $sr = $DB->get_record_sql("SELECT  concat(u.lastname, ' ', u.firstname) name,
+                                   FROM    {contester_submits} submits,
+                                           {user} u
+                                   WHERE
+                                           u.id = submits.student AND
+                                           submits.id=?", array($sid));
+        $res->userinfo = $sr->name;
+    }
+    else {
+        $res->userinfo = "";
+    }
+
+    return $res;
 }
 
