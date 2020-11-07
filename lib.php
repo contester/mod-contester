@@ -230,7 +230,7 @@ function contester_user_complete($course, $user, $mod, $contester) {
 		foreach($submits as $line)
 		{
 			echo "<br />";
-			$submit = contester_get_submit($line->id);
+			$submit = contester_get_special_submit_info($line->id, false, true, true, false, false);
 			$res = $DB->get_record('contester_problems', 'dbid', $submit->problem);
 			echo get_string("problem", "contester")." ".$submit->problem." (".$res->name.") - ".
 				get_string("points", "contester").": ".$submit->points."; ";
@@ -615,27 +615,6 @@ function contester_reset_userdata($data)
 /// Any other contester functions go here.  Each of them must have a name that
 /// starts with contester_
 
-function contester_get_submit($submitid)
-{
-    global $DB;
-
-    $submit = $DB->get_record("contester_submits", array("id" => $submitid));
-    $attempts = $DB->count_records_select('contester_submits', 'contester = ? AND student = ? AND problem = ? AND submitted_uts < ?',
-	[$submit->contester, $submit->student, $submit->problem, $submit->submitted_uts]);
-    $result = $DB->get_record_sql("select * from {contester_testings} where submitid = ? order by id desc limit 1", [$submitid]);
-    $fields = array("compiled", "taken", "passed");
-    foreach($fields as $field)
-    {
-        $submit->$field = $result->$field;
-    }
-    if ($submit->compiled && $submit->taken)
-        $submit->points = contester_get_rounded_points($attempts, $submit->passed, $submit->taken);
-    else
-        $submit->points = 0;
-    $submit->attempt = $attempts + 1;
-    return $submit;
-}
-
 function contester_incomplete_status(int $id) {
 	$res = new stdClass();
 	$res->status = contester_get_resultdesc($id);
@@ -719,7 +698,7 @@ function contester_get_last_submits($contesterid, $cnt = 1, $user = NULL, $probl
     $result = array();
 
     foreach($submits as $submit)
-        $result []= contester_get_submit($submit->id);
+        $result []= contester_get_special_submit_info($submit->id, false, false, true, true, false, false);
 
     return $result;
 }
@@ -734,7 +713,7 @@ function contester_get_last_or_last_correct_submit($contesterid, $user, $problem
     $sid = -1;
     $correct = false;
     foreach($submits as $line) {
-        $submit = contester_get_submit($line->id);
+        $submit = contester_get_special_submit_info($line->id, false, false, true, true, false, false);
         // another correct
         if (($correct) && ($submit->taken == $submit->passed)) {
             if ($mincorrectresult > $submit->points) {
@@ -1622,7 +1601,7 @@ function contester_get_submit_info_to_print($sid)
     $sr = contester_get_special_submit_info($sid, true, true, false, false, true, true);
 
     return '<p>' . $sr->userinfo . ' ' . $sr->problem . ' ' . '(' .
-           $sr->prlanguage . ')'. '<br />' . 
+           $sr->prlanguage . ')'. '<br />' .
            userdate($sr->submitted_uts, get_string('strftimedatetime')) .
            '</p>';
 }
