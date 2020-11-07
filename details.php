@@ -39,10 +39,7 @@
 
     contester_print_begin($contester->id);
 
-    $sr = contester_get_special_submit_info($sid, true, true, false, false, true);
-
-    echo $sr->userinfo . ' ' . $sr->problem . ' ' .
-         '<br />' . userdate($sr->submitted_uts, get_string('strftimedatetime')) . '<br/><br/>';
+    echo contester_get_submit_info_to_print($sid);
 
     $result = contester_get_detailed_info($sid);
     echo "<p>";

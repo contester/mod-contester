@@ -60,10 +60,7 @@
 
     contester_print_begin($contester->id);
 
-    $sr = contester_get_special_submit_info($sid, true, true, false, false, true);
-
-    echo $sr->userinfo . ' ' . $sr->problem . ' ' .
-         '<br />' . userdate($sr->submitted_uts, get_string('strftimedatetime')) . '<br/><br/>';
+    echo contester_get_submit_info_to_print($sid);
 
     echo "<textarea cols=85 rows = 30 readonly='yes'>".$DB->get_field('contester_submits', 'solution', array('id' => $sid))."</textarea>";
 

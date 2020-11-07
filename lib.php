@@ -1523,58 +1523,54 @@ function contester_get_special_submit_info($submitid,
                                            $cget_langinfo=true,
                                            $cget_status=true,
                                            $cget_points=true,
-                                           $cget_userinfo=false)
+                                           $cget_userinfo=false,
+                                           $cget_timesubmitted=false)
 {
     global $DB;
     $submit = $DB->get_record('contester_submits', array('id' => $submitid));
 
-    $fields = ["compiled", "taken", "passed"];
-    foreach($fields as $field) {
-        $submit->$field = 0;
-    }
-    $attempts = $DB->count_records_select('contester_submits', 'contester = ? AND student = ? AND problem = ? AND submitted_uts < ?',
-                                          [$submit->contester, $submit->student, $submit->problem, $submit->submitted_uts]);
-
-    if (!$testing = $DB->get_record_sql('SELECT   *
-                                         FROM     {contester_testings}
-                                         WHERE    (submitid = ?)
-                                         AND      (compiled is not null)
-                                         ORDER BY id
-                                         DESC', array($submitid)))
-        $queued = true;
-    else {
-        $queued = false;
-        foreach($fields as $field) {
-            $submit->$field = $testing->$field;
-        }
-    }
-
-    if ($submit->taken)
-        $submit->points = contester_get_rounded_points($attempts, $submit->passed, $submit->taken);
-    else
-        $submit->points = 0;
-
-    $submit->attempt = $attempts + 1;
-
-    $problem = $DB->get_record('contester_problems', array('dbid' => $submit->problem));
-
     $res = new \stdClass();
-    $res->submitted_uts = $submit->submitted_uts;
 
     if ($cget_problem_name == true) {
+        $problem = $DB->get_record('contester_problems', array('dbid' => $submit->problem));
         $res->problem = $problem->name;
     }
-    else {
-        $res->problem = "";
-    }
+
     if ($cget_langinfo == true) {
         $lang = $DB->get_record('contester_languages', array('id' => $submit->lang));
         $res->prlanguage = $lang->name;
     }
-    else {
-        $res->prlanguage = "";
-    }
+
     if ($cget_status == true) {
+        $fields = ["compiled", "taken", "passed"];
+        foreach($fields as $field) {
+            $submit->$field = 0;
+        }
+        $attempts = $DB->count_records_select('contester_submits', 'contester = ? AND student = ? AND problem = ? AND submitted_uts < ?',
+                                              [$submit->contester, $submit->student, $submit->problem, $submit->submitted_uts]);
+
+        if (!$testing = $DB->get_record_sql('SELECT   *
+                                             FROM     {contester_testings}
+                                             WHERE    (submitid = ?)
+                                             AND      (compiled is not null)
+                                             ORDER BY id
+                                             DESC', array($submitid)))
+            $queued = true;
+        else {
+            $queued = false;
+            foreach($fields as $field) {
+                $submit->$field = $testing->$field;
+            }
+        }
+
+        if ($submit->taken)
+            $submit->points = contester_get_rounded_points($attempts, $submit->passed, $submit->taken);
+        else
+            $submit->points = 0;
+
+        $submit->attempt = $attempts + 1;
+
+
         if ($submit->processed == 255) {
             if ($submit->compiled == '1')
                 $res->status = "<a href=details.php?sid=$submit->id&a=$submit->contester>".
@@ -1600,15 +1596,9 @@ function contester_get_special_submit_info($submitid,
             $res->status = contester_get_resultdesc($res_id);
         }
     }
-    else {
-        $res->status = "";
-    }
 
     if ($cget_points == true) {
         $res->points = $submit->points;
-    }
-    else {
-        $res->points = "";
     }
 
     if ($cget_userinfo == true) {
@@ -1619,9 +1609,20 @@ function contester_get_special_submit_info($submitid,
                                      AND     submits.id = ?", [$submitid]);
         $res->userinfo = $name->fullname;
     }
-    else {
-        $res->userinfo = "";
+
+    if ($cget_timesubmitted == true) {
+        $res->submitted_uts = $submit->submitted_uts;
     }
 
     return $res;
+}
+
+function contester_get_submit_info_to_print($sid)
+{
+    $sr = contester_get_special_submit_info($sid, true, true, false, false, tru>
+
+    return '<p>' . $sr->userinfo . ' ' . $sr->problem . ' ' . '(' .
+           $sr->prlanguage . ')'. '<br />' . 
+           userdate($sr->submitted_uts, get_string('strftimedatetime')) .
+           '</p>';
 }
