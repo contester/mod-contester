@@ -1559,6 +1559,8 @@ function contester_get_special_submit_info($submitid,
     $problem = $DB->get_record('contester_problems', array('dbid' => $submit->problem));
 
     $res = new \stdClass();
+    $res->submitted_uts = $submit->submitted_uts;
+
     if ($cget_problem_name == true) {
         $res->problem = $problem->name;
     }
@@ -1610,13 +1612,12 @@ function contester_get_special_submit_info($submitid,
     }
 
     if ($cget_userinfo == true) {
-        $sr = $DB->get_record_sql("SELECT  concat(u.lastname, ' ', u.firstname) name,
-                                   FROM    {contester_submits} submits,
-                                           {user} u
-                                   WHERE
-                                           u.id = submits.student AND
-                                           submits.id=?", array($sid));
-        $res->userinfo = $sr->name;
+        $name = $DB->get_record_sql("SELECT  concat(u.lastname, ' ', u.firstname) fullname
+                                     FROM    {contester_submits} submits,
+                                             {user} u
+                                     WHERE   u.id = submits.student
+                                     AND     submits.id = ?", [$submitid]);
+        $res->userinfo = $name->fullname;
     }
     else {
         $res->userinfo = "";
@@ -1624,4 +1625,3 @@ function contester_get_special_submit_info($submitid,
 
     return $res;
 }
-
