@@ -227,10 +227,9 @@ function contester_user_complete($course, $user, $mod, $contester) {
 	{
 		$result = contester_get_user_points($contester->id, $user->id);
 		echo ": ".$result.".";
-		foreach($submits as $line)
+		foreach($submits as $submit)
 		{
 			echo "<br />";
-			$submit = contester_get_special_submit_info($line->id, false, true, true, false, false);
 			$res = $DB->get_record('contester_problems', 'dbid', $submit->problem);
 			echo get_string("problem", "contester")." ".$submit->problem." (".$res->name.") - ".
 				get_string("points", "contester").": ".$submit->points."; ";
