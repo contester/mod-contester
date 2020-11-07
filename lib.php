@@ -1619,7 +1619,7 @@ function contester_get_special_submit_info($submitid,
 
 function contester_get_submit_info_to_print($sid)
 {
-    $sr = contester_get_special_submit_info($sid, true, true, false, false, tru>
+    $sr = contester_get_special_submit_info($sid, true, true, false, false, true, true);
 
     return '<p>' . $sr->userinfo . ' ' . $sr->problem . ' ' . '(' .
            $sr->prlanguage . ')'. '<br />' . 
