@@ -1605,3 +1605,55 @@ function contester_get_submit_info_to_print($sid)
            userdate($sr->submitted_uts, get_string('strftimedatetime')) .
            '</p>';
 }
+
+function contester_get_problem($pid, $with_samples=false)
+{
+    global $DB;
+    if (!$problem = $DB->get_record_sql("SELECT problems.id as id,
+                                                problems.dbid as dbid,
+                                                problems.name as name,
+                                                problems.description as description,
+                                                problems.input_format as input,
+                                                problems.output_format as output
+                                         FROM   {contester_problems} problems,
+                                                {contester_problemmap} problemmap
+                                         WHERE  problemmap.problemid=problems.id
+                                         AND    problemmap.id=?", array($pid))) {
+        return null;
+    }
+    $problem->samples = $DB->get_recordset_sql("SELECT samples.input as input,
+                                                       samples.output as output
+                                                FROM   {contester_samples} samples
+                                                WHERE  samples.problem_id=?
+                                                       order by samples.orderno",
+                                                [$problem->id]);
+    return $problem;
+}
+
+function contester_get_problem_with_samples_to_print($pid)
+{
+    $problem = contester_get_problem($pid, true);
+    if (!$problem) {
+        return null;
+    }
+    $text = "<div id=problemname>".$problem->name."</div><br />";
+    $text .= format_text("<div>".$problem->description."</div>")."<br />";
+    $text .= "<div class=textheader>".get_string('inputformat', 'contester')."</div>";
+    $text .= format_text("<div>".$problem->input."</div>")."<br />";
+    $text .= "<div class=textheader>".get_string('outputformat', 'contester')."</div>";
+    $text .= format_text("<div>".$problem->output."</div>")."<br />";
+
+    $text .= "<div class=textheader>".get_string('samples', 'contester')."</div>";
+
+
+    foreach($problrm->samples as $sample) {
+        $text .= "<div>".get_string('input', 'contester')."</div><div align=left><pre>".
+                 $sample->input."</pre></div>"."<div>".get_string('output', 'contester').
+                 "</div><div align=left><pre>".$sample->output."</pre></div>";
+    }
+
+    $problem->samples->close();
+    $problem->text = $text;
+
+    return $problem;
+}
