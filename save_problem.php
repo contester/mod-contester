@@ -65,9 +65,9 @@
 	$problem = new stdClass();
 	$problem->id = $pid;
 	$problem->name = required_param('name', PARAM_TEXT);
-	$problem->description = $_POST['description']; //required_param('description');
-	$problem->input_format = $_POST['inputformat']; //required_param('inputformat');
-	$problem->output_format = $_POST['outputformat']; //required_param('outputformat');
+	$problem->description = $_POST['description']['text']; //required_param('description');
+	$problem->input_format = $_POST['inputformat']['text']; //required_param('inputformat');
+	$problem->output_format = $_POST['outputformat']['text']; //required_param('outputformat');
 	$DB->update_record('contester_problems', $problem);
 
 	redirect("problem_preview.php?a=$contester->id&pid=$pid", get_string('updatesuccess', 'contester'), 2);
