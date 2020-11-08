@@ -1646,7 +1646,7 @@ function contester_get_problem_with_samples_to_print($pid)
     $text .= "<div class=textheader>".get_string('samples', 'contester')."</div>";
 
 
-    foreach($problrm->samples as $sample) {
+    foreach($problem->samples as $sample) {
         $text .= "<div>".get_string('input', 'contester')."</div><div align=left><pre>".
                  $sample->input."</pre></div>"."<div>".get_string('output', 'contester').
                  "</div><div align=left><pre>".$sample->output."</pre></div>";

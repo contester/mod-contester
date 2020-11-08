@@ -49,48 +49,31 @@
         echo '<br />' . get_string('mode_console', 'contester');
     }
 
-    echo "<table width = 70%><tr><td>";
-    if (!$problem = $DB->get_record_sql("SELECT problems.id as id,
-                                                problems.name as name,
-                                                problems.description as description,
-                                                problems.input_format as input,
-                                                problems.output_format as output
-                                         FROM   {contester_problems} problems,
-                                                {contester_problemmap} problemmap
-                                         WHERE  problemmap.problemid=problems.id
-                                         AND    problemmap.id=?", array($pid)))
-        print_error(get_string('noproblem', 'contester'));
+    echo "<table width = 70%>";
 
-    echo "<div id=problemname>".$problem->name."</div><br />";
-    echo format_text("<div>".$problem->description."</div>")."<br />";
-    echo "<div class=textheader>".get_string('inputformat', 'contester')."</div>";
-    echo format_text("<div>".$problem->input."</div>")."<br />";
-    echo "<div class=textheader>".get_string('outputformat', 'contester')."</div>";
-    echo format_text("<div>".$problem->output."</div>")."<br />";
-
-    $text = "<div class=textheader>".get_string('samples', 'contester')."</div>";
-    $samples = $DB->get_recordset_sql("SELECT samples.input as input,
-                                              samples.output as output
-                                       FROM   {contester_samples} samples
-                                       WHERE  samples.problem_id=?
-                                              order by samples.orderno",
-                                      array($problem->id));
-    foreach($samples as $sample) {
-        $text .= "<div>".get_string('input', 'contester')."</div><div align=left><pre>".
-                 $sample->input."</pre></div>"."<div>".get_string('output', 'contester').
-                 "</div><div align=left><pre>".$sample->output."</pre></div>";
+    $problem = contester_get_problem_with_samples_to_print($pid);
+    if ($problem) {
+        echo '<tr><td>';
+        echo $problem->text;
+        echo '</tr></td>';
     }
-    echo $text."</td></tr></table>";
+    else {
+        print_error(get_string('noproblem', 'contester'));
+    }
 
+    echo '<tr><td align="center">';
     echo '<form enctype="multipart/form-data" method="post" action="submit_form.php?pid='.$pid.'&a='.$contester->id.'">';
     echo '<table cellpadding="5"><tbody>';
     echo '<tr><td colspan="2" align="center"><input type="submit" value="'.get_string('submit', 'contester').'"></input></td></tr>';
     echo '</tbody></table></form>';
+    echo '</tr></td>';
 
+    echo '<tr><td align="center">';
     $solutions_url = new moodle_url('/mod/contester/problem_solutions.php', array('a' => $contester->id, 'pid' => $pid));
     echo "<a href=$solutions_url>".get_string("solutionlist", "contester")."</a>";
+    echo '</tr></td>';
 
-    $samples->close();
+    echo '</table>';
 
     contester_print_end();
 
