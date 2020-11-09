@@ -1203,9 +1203,6 @@ function contester_process_options($data)
 function contester_parse_task($text, $dbid)
 {
 	global $DB;
-	//convert_cyr_string()
-	$text = iconv("windows-1251", "UTF-8", $text);
-	//echo $text;
 	assert(substr($text, 0, 15) == "\\begin{problem}");
 	// Разбор условия
 	$text = substr_replace($text, "", 0, 16);
