@@ -51,7 +51,8 @@
 
     echo "<table width = 70%>";
 
-    $problem = contester_get_problem_with_samples_to_print($pid);
+    $problem_id = contester_get_problem_id_by_pid($pid);
+    $problem = contester_get_problem_with_samples_to_print($problem_id);
     if ($problem) {
         echo '<tr><td>';
         echo $problem->text;

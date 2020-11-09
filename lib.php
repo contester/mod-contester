@@ -1606,19 +1606,10 @@ function contester_get_submit_info_to_print($sid)
            '</p>';
 }
 
-function contester_get_problem($pid, $with_samples=false)
+function contester_get_problem($problem_id, $with_samples=false)
 {
     global $DB;
-    if (!$problem = $DB->get_record_sql("SELECT problems.id as id,
-                                                problems.dbid as dbid,
-                                                problems.name as name,
-                                                problems.description as description,
-                                                problems.input_format as input,
-                                                problems.output_format as output
-                                         FROM   {contester_problems} problems,
-                                                {contester_problemmap} problemmap
-                                         WHERE  problemmap.problemid=problems.id
-                                         AND    problemmap.id=?", array($pid))) {
+    if (!$problem = $DB->get_record("contester_problems", ["id" => $problem_id])) {
         return null;
     }
     $problem->samples = $DB->get_recordset_sql("SELECT samples.input as input,
@@ -1630,18 +1621,18 @@ function contester_get_problem($pid, $with_samples=false)
     return $problem;
 }
 
-function contester_get_problem_with_samples_to_print($pid)
+function contester_get_problem_with_samples_to_print($problem_id)
 {
-    $problem = contester_get_problem($pid, true);
+    $problem = contester_get_problem($problem_id, true);
     if (!$problem) {
         return null;
     }
     $text = "<div id=problemname>".$problem->name."</div><br />";
     $text .= format_text("<div>".$problem->description."</div>")."<br />";
     $text .= "<div class=textheader>".get_string('inputformat', 'contester')."</div>";
-    $text .= format_text("<div>".$problem->input."</div>")."<br />";
+    $text .= format_text("<div>".$problem->input_format."</div>")."<br />";
     $text .= "<div class=textheader>".get_string('outputformat', 'contester')."</div>";
-    $text .= format_text("<div>".$problem->output."</div>")."<br />";
+    $text .= format_text("<div>".$problem->output_format."</div>")."<br />";
 
     $text .= "<div class=textheader>".get_string('samples', 'contester')."</div>";
 
@@ -1656,4 +1647,10 @@ function contester_get_problem_with_samples_to_print($pid)
     $problem->text = $text;
 
     return $problem;
+}
+
+function contester_get_problem_id_by_pid($pid) {
+    global $DB;
+    $res = $DB->get_record("contester_problemmap", ["id" => $pid]);
+    return $res->problemid;
 }
