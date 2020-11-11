@@ -614,12 +614,74 @@ function contester_reset_userdata($data)
 /// Any other contester functions go here.  Each of them must have a name that
 /// starts with contester_
 
+
+/**
+* Something like header
+*
+* @param int $instance - instance of the contester
+*/
+function contester_print_begin($instance, $contester_name = "") {
+    echo "<table width=95% height=95%>
+          <tr><td colspan=\"2\" align=center><div id=textheader>".$contester_name."</div></td></tr>
+          <tr><td valign=top>";
+    contester_show_nav_bar($instance);
+    echo "</td><td align=center>";
+}
+
+/**
+* Something like footer
+*/
+function contester_print_end() {
+    echo "</td></tr></table>";
+}
+
+/**
+* Shows navigation bar for given instance of contester
+*
+* @param int $instance instance of the contester
+*/
+function contester_show_nav_bar($instance) {
+    global $DB;
+    if (! $contester = $DB->get_record('contester', array('id'=>$instance))) {
+    	print_error("Course module is incorrect");
+    }
+	if (! $course = $DB->get_record('course', array('id'=>$contester->course))) {
+		print_error("Course is misconfigured");
+	}
+    if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
+    	print_error("Course Module ID was incorrect");
+    }
+    $context = context_module::instance($cm->id);
+    $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
+    $is_admin = has_capability('moodle/site:config', $context);
+    echo "<nobr><a href=view.php?a=$instance>".get_string('problemlist','contester')."</a></nobr><br>";
+    echo "<nobr><a href=submit_form.php?a=$instance>".get_string('submit','contester')."</a></nobr><br>";
+    if ($DB->get_field('contester', 'viewown', array('id'=>$instance))) 
+        echo "<nobr><a href=my_solutions.php?a=$instance>".get_string('mysolutions', 'contester')."</a></nobr><br>";
+
+    echo "<nobr><a href=journal.php?a=$instance>".get_string('journal', 'contester')."</a></nobr><br>";
+
+    if ($is_admin || $is_teacher)
+        echo "<nobr><a href=problems_details.php?a=$instance>".get_string('contesterupdate', 'contester')."</a></nobr><br>";		
+}
+
+///////////////////////////   SUBMITS   //////////////////////////////////
+
 function contester_incomplete_status(int $id) {
-	$res = new stdClass();
-	$res->status = contester_get_resultdesc($id);
-	$result = array();
-	$result [] = $res;
-	return $result;
+    $res = new stdClass();
+    $res->status = contester_get_resultdesc($id);
+    $result = array();
+    $result [] = $res;
+    return $result;
+}
+
+function contester_get_resultdesc(int $id): string {
+    $sid = 'status.' . $id;
+    $r = get_string('status.' . $id, 'contester');
+    if (empty($r)) {
+        return '...';
+    }
+    return $r;
 }
 
 /**
@@ -628,43 +690,147 @@ function contester_incomplete_status(int $id) {
 * @return array
 * @param int $submitid ID of needed submit
 */
-function contester_get_detailed_info($submitid)
-{
+function contester_get_detailed_info($submitid) {
     global $DB;
-	$submit = $DB->get_record("contester_submits", array("id" => $submitid));
-	if ($submit->processed == 0) { // если еще пока в очереди
-		return contester_incomplete_status(0);
-	}
-	if (!$testing = $DB->get_record_sql("SELECT * FROM {contester_testings} WHERE (submitid = ?) ORDER BY id DESC", array($submitid))) {
-		return contester_incomplete_status(0);
-	}
-	if (!$testing->compiled) {
-		return contester_incomplete_status(1);
-	};
-	$results = $DB->get_records_list("contester_results", "testingid", array($testing->id), null, 'test,timex,memory,result');
-	$result = array();
-	foreach($results as $r)
-	{
-		if ($r->test == 0) continue;
-		$res = new stdClass();
-		$res->number = $r->test;
-		$res->time = $r->timex.'ms';
-		$res->memory = ($r->memory/1024).'KB';
-		$res->result = contester_get_resultdesc($r->result);
-		$result []= $res;
-	}
-	return $result;
+    $submit = $DB->get_record("contester_submits", ["id" => $submitid]);
+    if ($submit->processed == 0) {  // submit in queue
+        return contester_incomplete_status(0);
+    }
+    if (!$testing = $DB->get_record_sql("SELECT *
+                                         FROM {contester_testings}
+                                         WHERE (submitid = ?)
+                                         ORDER BY id DESC",
+                                        array($submitid))) {
+        return contester_incomplete_status(0);
+    }
+    if (!$testing->compiled) {
+        return contester_incomplete_status(1);
+    }
+    $results = $DB->get_records_list("contester_results", "testingid", array($testing->id), null, 'test,timex,memory,result');
+    $result = array();
+    foreach($results as $r) {
+        if ($r->test == 0) continue;
+        $res = new stdClass();
+        $res->number = $r->test;
+        $res->time = $r->timex.'ms';
+        $res->memory = ($r->memory/1024).'KB';
+        $res->result = contester_get_resultdesc($r->result);
+        $result []= $res;
+    }
+    return $result;
 }
 
-function contester_obj2assoc($obj)
-{
-	foreach($obj as $key => $val)
-		$result[$key] = $val;
-	return $result;
+function contester_get_special_submit_info($submitid,
+                                           $cget_problem_name=true,
+                                           $cget_langinfo=true,
+                                           $cget_status=true,
+                                           $cget_points=true,
+                                           $cget_userinfo=false,
+                                           $cget_timesubmitted=false) {
+    global $DB;
+    $submit = $DB->get_record('contester_submits', array('id' => $submitid));
+
+    $res = new \stdClass();
+    $res->id = $submitid;
+
+    if ($cget_problem_name == true) {
+        $problem = $DB->get_record('contester_problems',
+                                   ['dbid' => $submit->problem]);
+        $res->problem = $problem->name;
+    }
+
+    if ($cget_langinfo == true) {
+        $lang = $DB->get_record('contester_languages',
+                                ['id' => $submit->lang]);
+        $res->prlanguage = $lang->name;
+    }
+
+    if ($cget_status == true) {
+        $fields = ["compiled", "taken", "passed"];
+        foreach($fields as $field) {
+            $submit->$field = 0;
+        }
+        $attempts = $DB->count_records_select('contester_submits', 'contester = ? AND student = ? AND problem = ? AND submitted_uts < ?',
+                                              [$submit->contester, $submit->student, $submit->problem, $submit->submitted_uts]);
+
+        if (!$testing = $DB->get_record_sql('SELECT   *
+                                             FROM     {contester_testings}
+                                             WHERE    (submitid = ?)
+                                             AND      (compiled is not null)
+                                             ORDER BY id
+                                             DESC', array($submitid)))
+            $queued = true;
+        else {
+            $queued = false;
+            foreach($fields as $field) {
+                $submit->$field = $testing->$field;
+                $res->$field = $submit->$field;
+            }
+        }
+
+        if ($submit->taken)
+            $submit->points = contester_get_rounded_points($attempts,
+                                                           $submit->passed,
+                                                           $submit->taken);
+        else
+            $submit->points = 0;
+
+        $submit->attempt = $attempts + 1;
+
+
+        if ($submit->processed == 255) {
+            if ($submit->compiled == '1') {
+                $details_url = new moodle_url('details.php', ['sid' => $submit->id,'a' => $submit->contester]);
+                $res->status = "<a href=" . $details_url . ">" .
+                                get_string('passed', 'contester') .
+                                " $testing->passed " .
+                                get_string('outof', 'contester') .
+                                " $testing->taken</a>";
+            }
+            else {
+                $res->status = contester_get_resultdesc(2);
+            }
+        }
+        else {
+            if (!$queued) {
+                $result = $DB->get_records_sql('SELECT    *
+                                                FROM      {contester_results}
+                                                WHERE     (testingid = ?)
+                                                ORDER BY  testingid
+                                                DESC', [$testing->id]);
+
+                $res_id = 1;
+            }
+            else {
+                $res_id = 0;
+            }
+            $res->status = contester_get_resultdesc($res_id);
+        }
+    }
+
+    if ($cget_points == true) {
+        $res->points = $submit->points;
+    }
+
+    if ($cget_userinfo == true) {
+        $name = $DB->get_record_sql("SELECT  concat(u.lastname, ' ', u.firstname) fullname
+                                     FROM    {contester_submits} submits,
+                                             {user} u
+                                     WHERE   u.id = submits.student
+                                     AND     submits.id = ?", [$submitid]);
+        $res->userinfo = $name->fullname;
+    }
+
+    if ($cget_timesubmitted == true) {
+        $res->submitted_uts = $submit->submitted_uts;
+    }
+
+    return $res;
 }
 
-function contester_get_last_submits($contesterid, $cnt = 1, $user = NULL, $problem = NULL, $datefrom_uts = NULL, $dateto_uts = NULL)
-{
+function contester_get_last_submits($contesterid, $cnt = 1,
+                                    $user = NULL, $problem = NULL,
+                                    $datefrom_uts = NULL, $dateto_uts = NULL) {
     if ($cnt == -1)
         $cnt = 10000;
 
@@ -697,16 +863,18 @@ function contester_get_last_submits($contesterid, $cnt = 1, $user = NULL, $probl
     $result = array();
 
     foreach($submits as $submit)
-        $result []= contester_get_special_submit_info($submit->id, false, false, true, true, false, false);
+        $result []= contester_get_special_submit_info($submit->id,
+                                                      false, false, true,
+                                                      true,  false, false);
 
     return $result;
 }
 
-// берём последнее из правильных или последнее из неправильных,
-// если правильных не было
-function contester_get_last_or_last_correct_submit($contesterid, $user, $problem, $datefrom_uts, $dateto_uts)
-{
-    $submits = contester_get_last_submits($contesterid, -1, $user, $problem, $datefrom_uts, $dateto_uts);
+function contester_get_last_or_last_correct_submit($contesterid, $user,
+                                                   $problem,
+                                                   $datefrom_uts, $dateto_uts) {
+    $submits = contester_get_last_submits($contesterid, -1, $user, $problem,
+                                          $datefrom_uts, $dateto_uts);
     $points = -1;
     $mincorrectresult = -1;
     $sid = -1;
@@ -736,8 +904,9 @@ function contester_get_last_or_last_correct_submit($contesterid, $user, $problem
     }
 
     $result = new stdClass();
-    if ($sid == -1 || $taken == 0)
+    if ($sid == -1 || $taken == 0) {
         $result->text = "";
+    }
     else {
         if ($correct) {
             $result->text = '+ ' . $points;
@@ -752,9 +921,12 @@ function contester_get_last_or_last_correct_submit($contesterid, $user, $problem
     return $result;
 }
 
-function contester_get_last_or_last_correct_submit_reference($contesterid, $user, $problem, $datefrom_uts, $dateto_uts)
-{
-    $result = contester_get_last_or_last_correct_submit($contesterid, $user, $problem, $datefrom_uts, $dateto_uts);
+function contester_get_last_or_last_correct_submit_reference($contesterid,
+                                                             $user, $problem,
+                                                             $datefrom_uts, $dateto_uts) {
+    $result = contester_get_last_or_last_correct_submit($contesterid, $user,
+                                                        $problem,
+                                                        $datefrom_uts, $dateto_uts);
     if ($result->text) {
         $solution_url = new moodle_url('show_solution.php', ['a' => $contesterid, 'sid' => $result->sid]);
         $res = '<a href="'.$solution_url.'">'.$result->text.'</a>';
@@ -767,40 +939,40 @@ function contester_get_last_or_last_correct_submit_reference($contesterid, $user
     return "";
 }
 
-function contester_get_result_without_reference($contesterid, $user, $problem, $datefrom_uts, $dateto_uts)
-{
-    return contester_get_last_or_last_correct_submit($contesterid, $user, $problem, $datefrom_uts, $dateto_uts)->text;
+function contester_get_result_without_reference($contesterid, $user, $problem,
+                                                $datefrom_uts, $dateto_uts) {
+    return contester_get_last_or_last_correct_submit($contesterid, $user,
+                                                     $problem,
+                                                     $datefrom_uts, $dateto_uts)->text;
 }
 
-function contester_get_user_points($contesterid, $user)
-{
-	global $DB;
-	$problems = $DB->get_recordset_select("contester_problemmap", "contesterid = ?", array($contesterid), "problemid");
-	$result = 0;
-	foreach($problems as $line)
-	{
-		if ($line['problemid'] && $line['problemid'] != 0)
-			$result += contester_get_best_submit($contesterid, $user, $line['problemid']);
-	}
-	$problems->close();
-	return $result;
+function contester_get_user_points($contesterid, $user) {
+    global $DB;
+    $problems = $DB->get_recordset_select("contester_problemmap", "contesterid = ?", array($contesterid), "problemid");
+    $result = 0;
+    foreach($problems as $line) {
+        if ($line['problemid'] && $line['problemid'] != 0) {
+            $result += contester_get_last_or_last_correct_submit($contesterid,
+                                                                 $user,
+                                                                 $line['problemid']);
+        }
+    }
+    $problems->close();
+    return $result;
 }
 
-function contester_get_rounded_points($attempts, $passed, $taken)
-{
-	if ($taken > $passed)
-		return round(max(30 - $attempts, 15) * $passed / $taken /1.5, 2);
-	return round(max(30 - $attempts, 15), 0);
+function contester_get_rounded_points($attempts, $passed, $taken) {
+    if ($taken > $passed) {
+        return round(max(30 - $attempts, 15) * $passed / $taken /1.5, 2);
+    }
+    return round(max(30 - $attempts, 15), 0);
 }
 
-function contester_draw_assoc_table($res)
-{
+function contester_draw_assoc_table($res) {
     echo "<table width=90% align=left border=1>";
-    foreach($res as $line)
-    {
+    foreach($res as $line) {
         echo "<tr>";
-        foreach($line as $key => $val)
-        {
+        foreach($line as $key => $val) {
             echo "<td>&nbsp;";
             echo get_string($key, 'contester');;
             echo "</td>";
@@ -808,11 +980,9 @@ function contester_draw_assoc_table($res)
         echo "</tr>";
         break;
     }
-    foreach($res as $line)
-    {
+    foreach($res as $line) {
         echo "<tr>";
-        foreach($line as $key => $val)
-        {
+        foreach($line as $key => $val) {
             echo "<td>&nbsp;";
             echo $val;
             echo "</td>";
@@ -822,441 +992,165 @@ function contester_draw_assoc_table($res)
     echo "</table>";
 }
 
-function contester_draw_table_from_sql($query)
-{
-	$res = array();
-        $result = mysql_query($query);
-        while($line = mysql_fetch_assoc($result))
- 	       $res[] = $line;
-	contester_draw_assoc_table($res);
+function contester_get_submit_info_to_print($sid) {
+    $sr = contester_get_special_submit_info($sid, true, true, false, false, true, true);
+
+    return '<p>' . $sr->userinfo . ' ' . $sr->problem . ' ' . '(' .
+           $sr->prlanguage . ')'. '<br />' .
+           userdate($sr->submitted_uts, get_string('strftimedatetime')) .
+           '</p>';
 }
+
+////////////////////////////   PROBLEMS   ///////////////////////////////
 
 /**
 * Shows problems mapped to given instance of contester
 *
 * @param int $instance - id of the contester's instance
 */
-function contester_show_problemlist($instance)
-{
-	global $DB;
-	echo '<tr valign="top">';
-	echo '<td align="right"><b>'.get_string('availableproblems', 'contester').':</b></td>';
+function contester_show_problemlist($instance) {
+    global $DB;
+    echo '<tr valign="top">';
+    echo '<td align="right"><b>'.get_string('availableproblems', 'contester').':</b></td>';
     echo '<td align="left">';
     echo '<table><tr><td colspan=3>'.get_string('problemstodelete', 'contester').'</td></tr>';
 
     unset($res);
     $res = $DB->get_recordset_sql("SELECT   problems.name as name,
-    				 problemmap.id as id,
-    				 problems.id as pid,
-    				 problems.dbid as dbid
-    		from	 {contester_problems} problems, {contester_problemmap} problemmap
-    		WHERE	 problemmap.problemid=problems.id
-    			and  problemmap.contesterid=?
-    		order by problemmap.id", array($instance));
-    foreach ($res as $line)
-    {
+                                            problemmap.id as id,
+                                            problems.id as pid,
+                                            problems.dbid as dbid
+                                   FROM     {contester_problems} problems,
+                                            {contester_problemmap} problemmap
+                                   WHERE    problemmap.problemid=problems.id
+                                   AND      problemmap.contesterid=?
+                                   ORDER BY problemmap.id", [$instance]);
+    foreach ($res as $line) {
     	$name = $line['name'];
     	echo "<tr><td><input type=checkbox name=\"pid".$line['id']."\" value=checked></td><td size=60%>
     	<nobr>$name</nobr></td>";
-    	if (isadmin()) echo "<td size=40%><nobr>
-    		<a href=$CFG->dirroot/mod/contester/problem_details.php?a=$instance&pid=".$line['pid'].">".
-    		get_string('problemdetails', 'contester')." (".$line['dbid'].")</a></nobr></td>";
+    	if (isadmin()) {
+            $pd_url = new moodle_url('problem_details.php', ['a' => $instance,
+                                                             'pid' => $line['pid']]);
+            echo "<td size=40%><nobr><a href=" . $dp_url . ">" .
+    		  get_string('problemdetails', 'contester') . " (" .
+                  $line['dbid'].")</a></nobr></td>";
+        }
     	echo "</tr>";
     }
     $res->close();
     echo '</table></td></tr>';
 }
 
-function contester_get_all_tags()
-{
-	global $DB;
-	unset($res);
-	$res = $DB->get_records_sql("SELECT   tags.id  as id,
-									 tags.tag as tag,
-									 COUNT(tagmap.tagid) as count
-							FROM     {contester_tags} tags LEFT JOIN {contester_tagmap} tagmap
-							ON       tags.id=tagmap.tagid
-							GROUP BY tags.id
-							ORDER BY tags.tag");
-    return $res;
+function contester_count_all_problems() {
+    global $DB;
+    return $DB->count_records("contester_problems");
 }
 
-function contester_count_all_problems()
-{
-	global $DB;
-	return $DB->count_records("contester_problems");
-}
-
-function contester_count_all_tags()
-{
-	global $DB;
-	return $DB->count_records("contester_tags");
-}
-
-function contester_show_tags_ref($instance, $sort, $ifall="")
-{
-	unset($tags);
-	$tags = contester_get_all_tags();
-	echo "<a href=problems_preview".$ifall.".php?a=$instance&sort=".$sort.
-    		"&tag=0>".get_string("alltags", "contester").' ('.contester_count_all_problems().')'."</a> ";
-	foreach ($tags as $item)
-    {
-    	echo "<nobr><a href=problems_preview".$ifall.".php?a=$instance&sort=".$sort.
-    		"&tag=".$item->id.">".$item->tag.' ('.$item->count.')'."</a></nobr> ";
-    }
-}
-
-function contester_get_problem_tags($pid)
-{
-	global $DB;
-	unset($tags);
-    $tags = $DB->get_records_sql("SELECT   mdl_contester_tags.tag as tag,
-                                      mdl_contester_tags.id as id,
-                                      mdl_contester_tagmap.id as mid
-    						 FROM     mdl_contester_tagmap LEFT JOIN mdl_contester_tags
-    						       ON mdl_contester_tagmap.tagid = mdl_contester_tags.id
-    						 WHERE	  mdl_contester_tagmap.problemid = ".$pid."
-    						 ORDER BY mdl_contester_tags.tag");
-	return $tags;
-}
-
-function contester_get_not_problem_tags($pid)
-{
-	global $DB;
-	unset($tags);
-    $tags = $DB->get_records_sql("SELECT   mdl_contester_tags.tag,
-                                      mdl_contester_tags.id
-    						 FROM     mdl_contester_tags LEFT JOIN mdl_contester_tagmap
-    						       ON mdl_contester_tagmap.tagid = mdl_contester_tags.id
-    						 WHERE 	  0 = (SELECT COUNT(mdl_contester_tagmap.id)
-    						               FROM   mdl_contester_tagmap
-    						 		 	   WHERE  mdl_contester_tagmap.problemid = ".$pid."
-    						 		   		 AND  mdl_contester_tagmap.tagid = mdl_contester_tags.id)
-  				 		     GROUP BY mdl_contester_tags.tag
-    						 ORDER BY mdl_contester_tags.tag");
-	return $tags;
-}
-
-function contester_show_problem_tags($pid)
-{
-	unset($tags);
-    $tags = contester_get_problem_tags($pid);
-    foreach ($tags as $item)
-    {
-    	echo $item->tag." ";
-    }
-}
-
-function contester_show_problems_preview($instance, $sort, $tag)
-{
-	global $DB;
-	unset($res);
+function contester_show_problems_preview($instance, $sort, $tag) {
+    global $DB;
+    unset($res);
     unset($order);
     unset($whtag);
     unset($data);
 
-    $sql = "SELECT   mdl_contester_problems.id as pr_id,
-	   							     mdl_contester_problems.name as name,
-   								     mdl_contester_problems.dbid as dbid
-   							FROM     mdl_contester_problems";
-   	if ($tag != 0)
-   	{
-   		$sql .= " WHERE EXISTS (SELECT mdl_contester_tagmap.id
-   											FROM   mdl_contester_tagmap
-   											WHERE  mdl_contester_tagmap.problemid=mdl_contester_problems.id
-   											       AND
-   											       mdl_contester_tagmap.tagid=?)";
-		$data []= $tag;
-   	}
+    $sql = "SELECT   problems.id as pr_id,
+                     problems.name as name,
+                     problems.dbid as dbid
+            FROM     {contester_problems} as problems";
+    if ($tag != 0) {
+        $sql .= " WHERE EXISTS (SELECT tagmap.id
+                                FROM   {contester_tagmap} as tagmap
+                                WHERE  tagmap.problemid=problems.id
+                                AND    tagmap.tagid=?)";
+        $data []= $tag;
+    }
 
-   	$sql .= " ORDER BY ";
+    $sql .= " ORDER BY ";
 
-   	if ($sort == 1)
-   		$sql .= "mdl_contester_problems.name";
-   	else
-   		$sql .= "mdl_contester_problems.dbid";
-	$res = $DB->get_records_sql($sql, $data);
+    if ($sort == 1) {
+        $sql .= "problems.name";
+    }
+    else {
+        $sql .= "problems.dbid";
+    }
+    $res = $DB->get_records_sql($sql, $data);
     echo '<table cellpadding=5 border=1 bordercolor=#D0D0D0>';
     echo '<tr>';
-    if ($sort == 0)
-    {
-   		echo "<th>".get_string('id', 'contester')."</th>";
-    	echo "<th><a href=problems_preview.php?a=$instance&sort=1&tag=".$tag.">".
-    		get_string('problemname', 'contester')."</a></th>";
+    if ($sort == 0) {
+        echo "<th>" . get_string('id', 'contester') . "</th>";
+        echo "<th><a href=problems_preview.php?a=$instance&sort=1&tag=" .
+              $tag . ">" . get_string('problemname', 'contester') . "</a></th>";
     }
-    else
-    {
-   		echo "<th><a href=problems_preview.php?a=$instance&sort=0&tag=".$tag.">".
-   			get_string('id', 'contester')."</a></th>";
-    	echo "<th>".get_string('problemname', 'contester')."</th>";
+    else {
+        echo "<th><a href=problems_preview.php?a=$instance&sort=0&tag=" .
+              $tag . ">" . get_string('id', 'contester') . "</a></th>";
+    	echo "<th>" . get_string('problemname', 'contester') . "</th>";
     }
-   	echo '<th>'.get_string('tags', 'contester');
-   	echo '</th>';
+    echo '<th>'.get_string('tags', 'contester');
+    echo '</th>';
     echo '</tr>';
-    foreach ($res as $line)
-    {
+    foreach ($res as $line) {
     	echo '<tr>';
-    	echo '<td>'.$line->dbid.'</td>';
-    	echo "<td><a href=problem_preview.php?a=$instance&pid=".$line->pr_id.">".$line->name."</a></td>";
-   		echo "<td><span id=taglist>";
-   		contester_show_problem_tags($line->pr_id);
-   		echo "</span></td>";
-    	echo '</tr>';
+    	echo '<td>' . $line->dbid . '</td>';
+    	echo "<td><a href=problem_preview.php?a=$instance&pid=" .
+              $line->pr_id . ">" . $line->name . "</a></td>";
+        echo "<td><span id=taglist>";
+        contester_show_problem_tags($line->pr_id);
+        echo "</span></td>";
+        echo '</tr>';
     }
     echo '</table>';
 }
 
-function contester_get_problems_preview_all($instance, $sort, $tag)
-{
-	global $DB;
-	unset($res);
+function contester_get_problems_preview_all($instance, $sort, $tag) {
+    global $DB;
+    unset($res);
     unset($order);
     unset($whtag);
     unset($data);
 
-    $sql = "SELECT  mdl_contester_problems.id as id,
-	   							    mdl_contester_problems.name as name,
-   								    mdl_contester_problems.dbid as dbid,
-   								    mdl_contester_problems.description as description,
-   								    mdl_contester_problems.input_format as input,
-   								    mdl_contester_problems.output_format as output
-   							    FROM     mdl_contester_problems";
-   	if ($tag != 0)
-   	{
-   		$sql .= " WHERE EXISTS (SELECT mdl_contester_tagmap.id
-   											 FROM   mdl_contester_tagmap
-   											 WHERE  mdl_contester_tagmap.problemid=mdl_contester_problems.id
-   											      AND
-   											        mdl_contester_tagmap.tagid=?)";
+    $sql = "SELECT  problems.id as id,
+                    problems.name as name,
+                    problems.dbid as dbid,
+                    problems.description as description,
+                    problems.input_format as input,
+                    problems.output_format as output
+            FROM    {contester_problems} as problems";
+    if ($tag != 0) {
+        $sql .= " WHERE EXISTS (SELECT tagmap.id
+                                FROM   {contester_tagmap} as tagmap
+                                WHERE  tagmap.problemid=problems.id
+                                AND    tagmap.tagid=?)";
 
-		$data []= $tag;
-   	}
+        $data []= $tag;
+    }
 
-   	$sql .= " ORDER BY ";
+    $sql .= " ORDER BY ";
 
-   	if ($sort == 1)
-   		$sql .= "mdl_contester_problems.name";
-   	else
-   		$sql .= "mdl_contester_problems.dbid";
+    if ($sort == 1) {
+        $sql .= "problems.name";
+    }
+    else {
+        $sql .= "problems.dbid";
+    }
+    $res = $DB->get_records_sql($sql, $data);
 
-   	$res = $DB->get_records_sql($sql, $data);
-
-   	/*if ($sort == 1) {$order = "contester_problems.name";}
-   	else {$order = "contester_problems.dbid";}
-   	if ($tag != 0) {$whtag = " WHERE EXISTS (SELECT mdl_contester_tagmap.id
-   											 FROM   mdl_contester_tagmap
-   											 WHERE  mdl_contester_tagmap.problemid=mdl_contester_problems.id
-   											      AND
-   											        mdl_contester_tagmap.tagid=".$tag.") ";}
-   	else {$whtag = "";}
-	$res = $DB->get_records_sql("SELECT  mdl_contester_problems.id as id,
-	   							    mdl_contester_problems.name as name,
-   								    mdl_contester_problems.dbid as dbid,
-   								    mdl_contester_problems.description as description,
-   								    mdl_contester_problems.input_format as input,
-   								    mdl_contester_problems.output_format as output
-   							    FROM     mdl_contester_problems".$whtag."
-   							    ORDER BY ".$order);*/
- 	return $res;
+    return $res;
 }
 
-function contester_print_link_to_problem($instance, $pid)
-{
-	echo "<a href=problem.php?a=$instance&pid=$pid>".
-   		get_string('problemstatement', 'contester')."</a>";
+function contester_print_link_to_problem($instance, $pid) {
+    $problem_url = new moodle_url('problem.php', ['a' => $instance,
+                                                  'pid' => $pid]);
+    echo "<a href=problem.php" . $problem_url . ">" .
+          get_string('problemstatement', 'contester')."</a>";
 }
 
-function contester_print_link_to_problem_details($instance, $pid, $dbid)
-{
-    global $DB;
-    if (! $contester = $DB->get_record("contester", array("id" => $instance))) {
-	print_error("Course module is incorrect");
-    }
-    if (! $course = $DB->get_record("course", array("id" => $contester->course))) {
-	print_error("Course is misconfigured");
-    }
-    if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
-	print_error("Course Module ID was incorrect");
-    }
-    $context = context_module::instance($cm->id);
-    $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
-    $is_admin = has_capability('moodle/site:config', $context);	
-   	if ($is_admin)
-   		echo "<a href=problem_details.php?a=$instance&pid=$pid>".
-	   		get_string('problemdetails', 'contester')." (".$dbid.")</a>";
-}
-
-function contester_print_link_to_problem_tags_details($instance, $pid)
-{
-    global $DB;
-    if (! $contester = $DB->get_record("contester", array("id" => $instance))) {
-	print_error("Course module is incorrect");
-    }
-    if (! $course = $DB->get_record("course", array("id" => $contester->course))) {
-	print_error("Course is misconfigured");
-    }
-    if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
-	print_error("Course Module ID was incorrect");
-    }
-    $context = context_module::instance($cm->id);
-    $is_admin = has_capability('moodle/site:config', $context);	
-   	if ($is_admin)
-   		echo "<a href=problem_tags_details.php?a=$instance&pid=$pid>".
-	   		get_string('tagsdetails', 'contester')."</a>";
-}
-
-function contester_print_link_to_upload($instance)
-{
-    global $DB;
-    if (! $contester = $DB->get_record("contester", array("id" => $instance))) {
-        print_error("Course module is incorrect");
-    }
-    if (! $course = $DB->get_record("course", array("id" => $contester->course))) {
-        print_error("Course is misconfigured");
-    }
-    if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
-        print_error("Course Module ID was incorrect");
-    }
-    $context = context_module::instance($cm->id);
-    $is_admin = has_capability('moodle/site:config', $context);
-    if ($is_admin)
-    {
-        echo "<p><a href=upload_problem_form.php?a=$instance>".get_string('uploadtask', 'contester')."</a></p>";
-    }
-}
-
-function contester_print_link_to_problems_preview($instance)
-{
-    global $DB;
-    if (! $contester = $DB->get_record("contester", array("id" => $instance))) {
-        print_error("Course module is incorrect");
-    }
-    if (! $course = $DB->get_record("course", array("id" => $contester->course))) {
-        print_error("Course is misconfigured");
-    }
-    if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
-        print_error("Course Module ID was incorrect");
-    }
-    //$context = get_context_instance(CONTEXT_MODULE, $cm->id);
-    $context = context_module::instance($cm->id);
-    $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
-    $is_admin = has_capability('moodle/site:config', $context);
-    if ($is_admin || $is_teacher)
-        echo "<p><a href=problems_preview.php?a=$instance>".get_string('problemspreview', 'contester')."</a></p>";
-}
-
-/**
-* Shows select-list of all problems in DB. Name of <select> - tag in HTML: add_problem
-*
-* values: id-s of problems in DB
-*/
-function contester_show_problemadd()
-{
-	global $DB;
-    echo '<tr valign="top">';
-	echo '<td align="right"><b>'.get_string('addproblem', 'contester').':</b></td>';
-	echo '<td>';
-
-    unset($choices);
-    unset($res);
-    $res = $DB->get_records_sql("SELECT   mdl_contester_problems.id as pr_id,
-    								 mdl_contester_problems.dbid as dbid,
-    							     mdl_contester_problems.name as name
-    						FROM     mdl_contester_problems
-    						ORDER BY mdl_contester_problems.dbid");
-    foreach ($res as $line){
-    	$choices[$line->pr_id] = $line->dbid." ".$line->name;
-    }
-    contester_choose_from_list($choices, 'add_problem[]', true, 20); //multiple + 20 rows
-    echo '</td></tr>';
-}
-
-/**
-* Processes updates of tho mod 'contester'
-*
-* $data->path must contain the path to directory with a problem to add
-* to contester.
-* @return boolean
-* @param object $data $data->path must contain the path to directory with a problem.
-*/
-function contester_process_options($data)
-{
-	/*$file = $data->path;
-	assert(file_exists($file."/description"));
-	assert(is_file($file."/description"));
-	$descr = file_get_contents($file."/description");
-	assert(file_exists($file."/Text"));
-	assert(is_dir($file."/Text"));
-	assert(file_exists($file."/Text/text.tex"));
-	assert(is_file($file."/Text/text.tex"));
-*/
-	return true;
-}
-
-/**
- * Parses $text, containing problem description and samples of input and output, and adds it into
- * DB.
- *
- * @param string $text - problem definition.
- * @param string $dbid - id of problem in contester's DB.
- */
-function contester_parse_task($text, $dbid)
-{
-	global $DB;
-	assert(substr($text, 0, 15) == "\\begin{problem}");
-	// Разбор условия
-	$text = substr_replace($text, "", 0, 16);
-	$alt_descr = substr($text, 0, strpos($text, "}"));
-	$text = substr_replace($text, "", 0, strpos($text, "}") + 2);
-	// input и output никуда не выводятся
-	$inp_file = substr($text, 0, strpos($text, "}"));
-	$text = substr_replace($text, "", 0, strpos($text, "}") + 2);
-	$out_file = substr($text, 0, strpos($text, "}"));
-	$text = substr_replace($text, "", 0, strpos($text, "}") + 2);
-	// то же самое с timelimit'ом
-	$timelimit = substr($text, 0, strpos($text, "}"));
-	$text = substr_replace($text, "", 0, strpos($text, "}") + 1);
-	$statement = substr($text, 0, strpos($text, "\\InputFile"));
-	if ($statement[0] == '{') $statement = substr($statement, strpos($statement, '}') + 1);
-	$text = substr_replace($text, "", 0, strpos($text, "\\InputFile") + 10);
-	$inp_format = substr($text, 0, strpos($text, "\\OutputFile"));
-	$text = substr_replace($text, "", 0, strpos($text, "\\OutputFile") + 11);
-	$out_format = substr($text, 0, strpos($text, "\\Example"));
-	// создаем экземпляр, забиваем поля как в БД и вносим запись.
-	$problem = null;
-	$problem->name = $alt_descr;
-	$statement = trim($statement);
-	$problem->description = $statement;
-	$inp_format = trim($inp_format);
-	$problem->input_format = $inp_format;
-	$out_format = trim($out_format);
-	$problem->output_format = $out_format;
-	$problem->dbid = $dbid;
-	// id сохраняем чтоб внести сэмплы для этой задачи
-	$pid = $DB->insert_record('contester_problems',$problem);
-	//print_r($problem);
-	echo "<br/>";
-	//p($pid);
-	//p(mysql_error());
-	// разбор сэмплов
-	// может быть ботва если вместо example будет че-то типа examplerich...
-	$text = substr_replace($text, "", 0, strpos($text, "\\Example") + 8);
-	$text = substr_replace($text, "", 0, strpos($text, "\\begin{example}") + 15);
-	$num = 0;
-	while (strpos($text, "\\exmp") !== false) {
-		$text = substr_replace($text, "", 0, strpos($text, "\\exmp") + 6);
-		// создаем экземпляр сэмпла, пихаем в базу.
-		$example = null;
-		$example->problem_id = $pid;
-		$example->number = $num++;
-		$example->input = substr($text, 0, strpos($text, "}"));
-		$text = substr_replace($text, "", 0, strpos($text, "}") + 2);
-		$example->output = substr($text, 0, strpos($text, "}"));
-		$example->output = rtrim($example->output); //тут может быть проблема, если по условию задачи
-		$example->input = rtrim($example->input); //допускаются не "well-formed" тесты
-		$text = substr_replace($text, "", 0, strpos($text, "}") + 2);
-		$DB->insert_record('contester_samples', $example);
-	}
+function contester_print_link_to_problem_details($instance, $pid, $dbid) {
+    $pd_url = new moodle_url('problem_details.php', ['a' => $instance,
+                                                     'pid' => $pid]);
+    echo "<a href=" . $pd_url . ">" .
+          get_string('problemdetails', 'contester') . " (" . $dbid . ")</a>";
 }
 
 /**
@@ -1264,16 +1158,13 @@ function contester_parse_task($text, $dbid)
 *
 * @param int $pid id of problem to edit
 */
-function contester_show_problem_details($pid)
-{
-	global $DB;
-	//echo $usehtmleditor='Gecko';
-	//$usehtmleditor = can_use_html_editor();
-	$usehtmleditor = true;
-	if (!$problem = $DB->get_record('contester_problems', array('id' => $pid))) {
-		print_error(get_string('noproblem'));
-		return false;
-	}
+function contester_show_problem_details($problem_id) {
+    global $DB;
+    $usehtmleditor = true;
+    if (!$problem = $DB->get_record('contester_problems', ['id' => $problem_id])) {
+        print_error(get_string('noproblem'));
+        return false;
+    }
 ?>
 <table cellpadding="5">
 <tr valign="top">
@@ -1337,274 +1228,114 @@ function contester_show_problem_details($pid)
 </table>
 
 <?php
-	return true;
+    return true;
 }
 
-function contester_show_problem_tags_to_delete($pid)
-{
-	global $DB;
-	if (!$problem = $DB->get_record('contester_problems', array('id' => $pid))) {
-		print_error(get_string('noproblem'));
-		return false;
-	}
-	unset($tags);
-    $tags = contester_get_problem_tags($pid);
-    foreach ($tags as $item)
-    {
-    	echo "<nobr><input type=\"checkbox\" name=\"tagsdel[]\" value=".$item->mid.">".$item->tag."</nobr>&nbsp;";
-    }
-    return 0;
+function contester_print_link_to_upload($instance) {
+    $up_url = new moodle_url('upload_problem_form.php', ['a' => $instance])
+    echo "<p><a href=" . $up_url . ">" .
+          get_string('uploadtask', 'contester') . "</a></p>";
 }
 
-function contester_show_problems_to_delete($a)
-{
+function contester_print_link_to_problems_preview($instance) {
+    $pp_url = new moodle_url('problems_preview.php', ['a' => $instance]);
+    echo "<p><a href=" . $pp_url . ">" .
+          get_string('problemspreview', 'contester') . "</a></p>";
+}
+
+/**
+* Shows select-list of all problems in DB. Name of <select> - tag in HTML: add_problem
+*
+* values: id-s of problems in DB
+*/
+function contester_show_problemadd() {
     global $DB;
-    if (!$contester = $DB->get_record('contester', array('id' => $a))) {
-        print_error(get_string('nocontester'));
-        return false;
-    }
+    echo '<tr valign="top">';
+    echo '<td align="right"><b>' . get_string('addproblem', 'contester') .
+         ':</b></td>';
+    echo '<td>';
 
-    unset($problems);
-
-    $problems = $DB->get_records_sql("SELECT mdl_contester_problems.name as name,
-				 mdl_contester_problemmap.id as id,
-				 mdl_contester_problems.id as pid,
-				 mdl_contester_problems.dbid as dbid
-		FROM	 mdl_contester_problems, mdl_contester_problemmap
-		WHERE	 mdl_contester_problemmap.problemid=mdl_contester_problems.id
-		AND		 mdl_contester_problemmap.contesterid=?
-		ORDER BY mdl_contester_problemmap.id", array($a));
-    echo '<p><b>'.get_string('availableproblems', 'contester').':</b></p>';
-    echo '<p>'.get_string('problemstodelete', 'contester').'</p>';
-    echo "<table>";
-    foreach ($problems as $problem)
-    {
-        echo "<tr>";
-        echo "<td><input type=\"checkbox\" name=\"probsdel[]\" value=".$problem->pid."></td>";
-        echo "<td>".$problem->name."</td>";
-        echo "<td size=40%><nobr><a href=problem_details.php?a=".$a."&pid=".$problem->pid.">".
-              get_string('problemdetails', 'contester')." (".$problem->dbid.")</a></nobr></td>";
-    	echo "</td>";
-    	echo "</tr>";
-    }
-    echo '</table>';
-    return 0;
-}
-
-function contester_show_problems_to_add($a)
-{
-    global $DB;
-
-    if (!$problem = $DB->get_record('contester', array('id' => $a))) {
-        print_error(get_string('nocontester'));
-        return false;
-    }
-
-    unset($res);
-    $res = $DB->get_records_sql("SELECT   mdl_contester_problems.id as pr_id,
-    								 mdl_contester_problems.dbid as dbid,
-    							     mdl_contester_problems.name as name
-    						FROM     mdl_contester_problems
-    						ORDER BY mdl_contester_problems.dbid");
     unset($choices);
-    foreach ($res as $line){
+    unset($res);
+    $res = $DB->get_records_sql("SELECT   problems.id as pr_id,
+                                          problems.dbid as dbid,
+                                          problems.name as name
+                                 FROM     {contester_problems} as problems
+                                 ORDER BY problems.dbid");
+    foreach ($res as $line) {
     	$choices[$line->pr_id] = $line->dbid." ".$line->name;
     }
-    echo '<p><b>'.get_string('addproblem', 'contester').':   </b></p>';
-    contester_choose_from_list($choices, 'probsadd[]', true, 20); //multiple + 20 rows
-
-    return 0;
-}
-
-function contester_show_problem_tags_to_add($pid)
-{
-	global $DB;
-
-	if (!$problem = $DB->get_record('contester_problems', array('id' => $pid))) {
-		print_error(get_string('noproblem'));
-		return false;
-	}
-	unset($tags);
-    $tags = contester_get_not_problem_tags($pid);
-    foreach ($tags as $item)
-    {
-    	echo "<nobr><input type=\"checkbox\" name=\"tagsadd[]\" value=".$item->id.">".$item->tag."</nobr>&nbsp;";
-    }
-    return 0;
+    contester_choose_from_list($choices, 'add_problem[]', true, 20); //multiple + 20 rows
+    echo '</td></tr>';
 }
 
 /**
-* Shows navigation bar for given instance of contester
-*
-* @param int $instance instance of the contester
-*/
-function contester_show_nav_bar($instance) {
+ * Parses $text, containing problem description and samples of input and output, and adds it into
+ * DB.
+ *
+ * @param string $text - problem definition.
+ * @param string $dbid - id of problem in contester's DB.
+ */
+function contester_parse_task($text, $dbid) {
     global $DB;
-    if (! $contester = $DB->get_record('contester', array('id'=>$instance))) {
-    	print_error("Course module is incorrect");
-    }
-	if (! $course = $DB->get_record('course', array('id'=>$contester->course))) {
-		print_error("Course is misconfigured");
-	}
-    if (! $cm = get_coursemodule_from_instance("contester", $contester->id, $course->id)) {
-    	print_error("Course Module ID was incorrect");
-    }
-    $context = context_module::instance($cm->id);
-    $is_teacher = has_capability('moodle/course:viewhiddenactivities', $context);
-    $is_admin = has_capability('moodle/site:config', $context);
-    echo "<nobr><a href=view.php?a=$instance>".get_string('problemlist','contester')."</a></nobr><br>";
-    echo "<nobr><a href=submit_form.php?a=$instance>".get_string('submit','contester')."</a></nobr><br>";
-    if ($DB->get_field('contester', 'viewown', array('id'=>$instance))) 
-        echo "<nobr><a href=my_solutions.php?a=$instance>".get_string('mysolutions', 'contester')."</a></nobr><br>";
+    assert(substr($text, 0, 15) == "\\begin{problem}");
+    // parse statement
+    $text = substr_replace($text, "", 0, 16);
+    $alt_descr = substr($text, 0, strpos($text, "}"));
+    $text = substr_replace($text, "", 0, strpos($text, "}") + 2);
+    // input and output not used
+    $inp_file = substr($text, 0, strpos($text, "}"));
+    $text = substr_replace($text, "", 0, strpos($text, "}") + 2);
+    $out_file = substr($text, 0, strpos($text, "}"));
+    $text = substr_replace($text, "", 0, strpos($text, "}") + 2);
+    // timelimit not used
+    $timelimit = substr($text, 0, strpos($text, "}"));
+    $text = substr_replace($text, "", 0, strpos($text, "}") + 1);
 
-    echo "<nobr><a href=journal.php?a=$instance>".get_string('journal', 'contester')."</a></nobr><br>";
+    $statement = substr($text, 0, strpos($text, "\\InputFile"));
+    if ($statement[0] == '{') {
+        $statement = substr($statement, strpos($statement, '}') + 1);
+    }
+    $text = substr_replace($text, "", 0, strpos($text, "\\InputFile") + 10);
+    $inp_format = substr($text, 0, strpos($text, "\\OutputFile"));
+    $text = substr_replace($text, "", 0, strpos($text, "\\OutputFile") + 11);
+    $out_format = substr($text, 0, strpos($text, "\\Example"));
 
-    if ($is_admin || $is_teacher)
-        echo "<nobr><a href=problems_details.php?a=$instance>".get_string('contesterupdate', 'contester')."</a></nobr><br>";		
+    $problem = null;
+    $problem->name = $alt_descr;
+    $statement = trim($statement);
+    $problem->description = $statement;
+    $inp_format = trim($inp_format);
+    $problem->input_format = $inp_format;
+    $out_format = trim($out_format);
+    $problem->output_format = $out_format;
+    $problem->dbid = $dbid;
+    // save id to add samples later
+    $problem_id = $DB->insert_record('contester_problems',$problem);
+
+    echo "<br/>";
+
+    // parse samples
+    $text = substr_replace($text, "", 0, strpos($text, "\\Example") + 8);
+    $text = substr_replace($text, "", 0, strpos($text, "\\begin{example}") + 15);
+    $num = 0;
+    while (strpos($text, "\\exmp") !== false) {
+        $text = substr_replace($text, "", 0, strpos($text, "\\exmp") + 6);
+        $example = null;
+        $example->problem_id = $pid;
+        $example->number = $num++;
+        $example->input = substr($text, 0, strpos($text, "}"));
+        $text = substr_replace($text, "", 0, strpos($text, "}") + 2);
+        $example->output = substr($text, 0, strpos($text, "}"));
+        $example->output = rtrim($example->output); // here can be problems if
+        $example->input = rtrim($example->input); // tests are not "well-formed"
+        $text = substr_replace($text, "", 0, strpos($text, "}") + 2);
+        $DB->insert_record('contester_samples', $example);
+    }
 }
 
-/**
-* Something like header
-*
-* @param int $instance -instance of the contester
-*/
-function contester_print_begin($instance, $contester_name = "") {
-	echo "<table width=95% height=95%>
-	          <tr><td colspan=\"2\" align=center><div id=textheader>".$contester_name."</div></td></tr>
-	          <tr><td valign=top>";
-	contester_show_nav_bar($instance);
-	echo "</td><td align=center>";
-}
 
-/**
-* Something like footer
-*/
-function contester_print_end() {
-	echo "</td></tr></table>";
-}
-
-function contester_get_resultdesc(int $id): string {
-	$sid = 'status.' . $id;
-	$r = get_string('status.' . $id, 'contester');
-	if (empty($r)) {
-		return '...';
-	}
-	return $r;
-}
-
-function contester_get_special_submit_info($submitid,
-                                           $cget_problem_name=true,
-                                           $cget_langinfo=true,
-                                           $cget_status=true,
-                                           $cget_points=true,
-                                           $cget_userinfo=false,
-                                           $cget_timesubmitted=false)
-{
-    global $DB;
-    $submit = $DB->get_record('contester_submits', array('id' => $submitid));
-
-    $res = new \stdClass();
-    $res->id = $submitid;
-
-    if ($cget_problem_name == true) {
-        $problem = $DB->get_record('contester_problems', array('dbid' => $submit->problem));
-        $res->problem = $problem->name;
-    }
-
-    if ($cget_langinfo == true) {
-        $lang = $DB->get_record('contester_languages', array('id' => $submit->lang));
-        $res->prlanguage = $lang->name;
-    }
-
-    if ($cget_status == true) {
-        $fields = ["compiled", "taken", "passed"];
-        foreach($fields as $field) {
-            $submit->$field = 0;
-        }
-        $attempts = $DB->count_records_select('contester_submits', 'contester = ? AND student = ? AND problem = ? AND submitted_uts < ?',
-                                              [$submit->contester, $submit->student, $submit->problem, $submit->submitted_uts]);
-
-        if (!$testing = $DB->get_record_sql('SELECT   *
-                                             FROM     {contester_testings}
-                                             WHERE    (submitid = ?)
-                                             AND      (compiled is not null)
-                                             ORDER BY id
-                                             DESC', array($submitid)))
-            $queued = true;
-        else {
-            $queued = false;
-            foreach($fields as $field) {
-                $submit->$field = $testing->$field;
-                $res->$field = $submit->$field;
-            }
-        }
-
-        if ($submit->taken)
-            $submit->points = contester_get_rounded_points($attempts, $submit->passed, $submit->taken);
-        else
-            $submit->points = 0;
-
-        $submit->attempt = $attempts + 1;
-
-
-        if ($submit->processed == 255) {
-            if ($submit->compiled == '1')
-                $res->status = "<a href=details.php?sid=$submit->id&a=$submit->contester>".
-                                 get_string('passed', 'contester')." $testing->passed ".
-                                 get_string('outof', 'contester')." $testing->taken</a>";
-            else {
-                $res->status = contester_get_resultdesc(2);
-            }
-        }
-        else {
-            if (!$queued) {
-                $result = $DB->get_records_sql('SELECT    *
-                                                FROM      {contester_results}
-                                                WHERE     (testingid = ?)
-                                                ORDER BY  testingid
-                                                DESC', array($testing->id));
-
-                $res_id = 1;
-            }
-            else {
-                $res_id = 0;
-            }
-            $res->status = contester_get_resultdesc($res_id);
-        }
-    }
-
-    if ($cget_points == true) {
-        $res->points = $submit->points;
-    }
-
-    if ($cget_userinfo == true) {
-        $name = $DB->get_record_sql("SELECT  concat(u.lastname, ' ', u.firstname) fullname
-                                     FROM    {contester_submits} submits,
-                                             {user} u
-                                     WHERE   u.id = submits.student
-                                     AND     submits.id = ?", [$submitid]);
-        $res->userinfo = $name->fullname;
-    }
-
-    if ($cget_timesubmitted == true) {
-        $res->submitted_uts = $submit->submitted_uts;
-    }
-
-    return $res;
-}
-
-function contester_get_submit_info_to_print($sid)
-{
-    $sr = contester_get_special_submit_info($sid, true, true, false, false, true, true);
-
-    return '<p>' . $sr->userinfo . ' ' . $sr->problem . ' ' . '(' .
-           $sr->prlanguage . ')'. '<br />' .
-           userdate($sr->submitted_uts, get_string('strftimedatetime')) .
-           '</p>';
-}
-
-function contester_get_problem($problem_id, $with_samples=false)
-{
+function contester_get_problem($problem_id, $with_samples=false) {
     global $DB;
     if (!$problem = $DB->get_record("contester_problems", ["id" => $problem_id])) {
         return null;
@@ -1618,8 +1349,7 @@ function contester_get_problem($problem_id, $with_samples=false)
     return $problem;
 }
 
-function contester_get_problem_with_samples_to_print($problem_id)
-{
+function contester_get_problem_with_samples_to_print($problem_id) {
     $problem = contester_get_problem($problem_id, true);
     if (!$problem) {
         return null;
@@ -1650,4 +1380,174 @@ function contester_get_problem_id_by_pid($pid) {
     global $DB;
     $res = $DB->get_record("contester_problemmap", ["id" => $pid]);
     return $res->problemid;
+}
+
+function contester_show_problems_to_delete($a) {
+    global $DB;
+    if (!$contester = $DB->get_record('contester', array('id' => $a))) {
+        print_error(get_string('nocontester'));
+        return false;
+    }
+
+    unset($problems);
+
+    $problems = $DB->get_records_sql("SELECT problems.name as name,
+                                             problemmap.id as id,
+                                             problems.id as pid,
+                                             problems.dbid as dbid
+                                      FROM   {contester_problems} as problems,
+                                             {contester_problemmap} as problemmap
+                                      WHERE  problemmap.problemid=problems.id
+                                      AND    problemmap.contesterid=?
+                                      ORDER BY problemmap.id", array($a));
+    echo '<p><b>'.get_string('availableproblems', 'contester').':</b></p>';
+    echo '<p>'.get_string('problemstodelete', 'contester').'</p>';
+    echo "<table>";
+    foreach ($problems as $problem) {
+        echo "<tr>";
+        echo "<td><input type=\"checkbox\" name=\"probsdel[]\" value=".$problem->pid."></td>";
+        echo "<td>".$problem->name."</td>";
+        echo "<td size=40%><nobr><a href=problem_details.php?a=".$a."&pid=".$problem->pid.">".
+              get_string('problemdetails', 'contester')." (".$problem->dbid.")</a></nobr></td>";
+    	echo "</td>";
+    	echo "</tr>";
+    }
+    echo '</table>';
+    return 0;
+}
+
+function contester_show_problems_to_add($a) {
+    global $DB;
+
+    if (!$problem = $DB->get_record('contester', array('id' => $a))) {
+        print_error(get_string('nocontester'));
+        return false;
+    }
+
+    unset($res);
+    $res = $DB->get_records_sql("SELECT   problems.id as pr_id,
+                                          problems.dbid as dbid,
+                                          problems.name as name
+                                 FROM     {contester_problems} as problems
+                                 ORDER BY problems.dbid");
+    unset($choices);
+    foreach ($res as $line) {
+    	$choices[$line->pr_id] = $line->dbid." ".$line->name;
+    }
+    echo '<p><b>'.get_string('addproblem', 'contester').':   </b></p>';
+    contester_choose_from_list($choices, 'probsadd[]', true, 20); //multiple + 20 rows
+
+    return 0;
+}
+
+/////////////////////////   TAGS   //////////////////////////////////////
+
+function contester_get_all_tags() {
+    global $DB;
+    unset($res);
+    $res = $DB->get_records_sql("SELECT    tags.id  as id,
+                                           tags.tag as tag,
+                                           COUNT(tagmap.tagid) as count
+                                 FROM      {contester_tags} tags
+                                 LEFT JOIN {contester_tagmap} tagmap
+                                 ON        tags.id=tagmap.tagid
+                                 GROUP BY  tags.id
+                                 ORDER BY  tags.tag");
+    return $res;
+}
+
+function contester_count_all_tags() {
+    global $DB;
+    return $DB->count_records("contester_tags");
+}
+
+function contester_show_tags_ref($instance, $sort, $ifall="") {
+    unset($tags);
+    $tags = contester_get_all_tags();
+    echo "<a href=problems_preview" . $ifall . ".php?a=$instance&sort=" .
+          $sort . "&tag=0>" . get_string("alltags", "contester") . ' (' .
+          contester_count_all_problems() . ')' . "</a> ";
+    foreach ($tags as $item) {
+    	echo "<nobr><a href=problems_preview" . $ifall .
+              ".php?a=$instance&sort=" . $sort . "&tag=" . $item->id .
+              ">" . $item->tag . ' (' . $item->count . ')' . "</a></nobr> ";
+    }
+}
+
+function contester_get_problem_tags($problem_id) {
+    global $DB;
+    unset($tags);
+    $tags = $DB->get_records_sql("SELECT    tags.tag as tag,
+                                            tags.id as id,
+                                            tagmap.id as mid
+                                  FROM      {contester_tagmap} as tagmap
+                                  LEFT JOIN {contester_tags} as tags
+                                  ON        tagmap.tagid = tags.id
+                                  WHERE     tagmap.problemid = ?
+                                  ORDER BY  tags.tag",
+                                 [$problem_id]);
+    return $tags;
+}
+
+function contester_get_not_problem_tags($problem_id) {
+    global $DB;
+    unset($tags);
+    $tags = $DB->get_records_sql("SELECT    tags.tag as tag,
+                                            tags.id as id
+                                  FROM      {contester_tags} as tags
+                                  LEFT JOIN {contester_tagmap} as tagmap
+                                  ON        tagmap.tagid = tags.id
+                                  WHERE     0 = (SELECT COUNT(tagmap.id)
+                                                 FROM   {contester_tagmap} as tagmap
+                                                 WHERE  tagmap.problemid = ?
+                                                 AND    tagmap.tagid = tags.id
+                                                 GROUP BY tags.tag
+    						 ORDER BY tags.tag",
+                                  [$problem_id]);
+    return $tags;
+}
+
+function contester_show_problem_tags($problem_id) {
+    unset($tags);
+    $tags = contester_get_problem_tags($problem_id);
+    foreach ($tags as $item) {
+    	echo $item->tag." ";
+    }
+}
+
+function contester_print_link_to_problem_tags_details($instance, $pid) {
+    $ptd_url = new moodle_url('problem_tags_details.php', ['a' => $instance,
+                                                           'pid' => $pid]);
+    echo "<a href=" . $ptd_url . ">" .
+          get_string('tagsdetails', 'contester') . "</a>";
+}
+
+function contester_show_problem_tags_to_delete($pid) {
+    global $DB;
+    if (!$problem = $DB->get_record('contester_problems', array('id' => $pid))) {
+        print_error(get_string('noproblem'));
+        return false;
+    }
+    unset($tags);
+    $tags = contester_get_problem_tags($pid);
+    foreach ($tags as $item) {
+        echo "<nobr><input type=\"checkbox\" name=\"tagsdel[]\" value=".
+              $item->mid.">".$item->tag."</nobr>&nbsp;";
+    }
+    return 0;
+}
+
+function contester_show_problem_tags_to_add($pid) {
+    global $DB;
+
+    if (!$problem = $DB->get_record('contester_problems', array('id' => $pid))) {
+        print_error(get_string('noproblem'));
+        return false;
+    }
+    unset($tags);
+    $tags = contester_get_not_problem_tags($pid);
+    foreach ($tags as $item) {
+        echo "<nobr><input type=\"checkbox\" name=\"tagsadd[]\" value=".$item->id.">".$item->tag."</nobr>&nbsp;";
+    }
+    return 0;
 }
