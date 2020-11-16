@@ -1232,7 +1232,7 @@ function contester_show_problem_details($problem_id) {
 }
 
 function contester_print_link_to_upload($instance) {
-    $up_url = new moodle_url('upload_problem_form.php', ['a' => $instance])
+    $up_url = new moodle_url('upload_problem_form.php', ['a' => $instance]);
     echo "<p><a href=" . $up_url . ">" .
           get_string('uploadtask', 'contester') . "</a></p>";
 }
