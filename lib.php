@@ -1501,7 +1501,7 @@ function contester_get_not_problem_tags($problem_id) {
                                                  FROM   {contester_tagmap} as tagmap
                                                  WHERE  tagmap.problemid = ?
                                                  AND    tagmap.tagid = tags.id)
-                                  GROUP BY tags.tag
+                                  GROUP BY tags.tag, tags.id
                                   ORDER BY tags.tag",
                                  [$problem_id]);
     return $tags;
