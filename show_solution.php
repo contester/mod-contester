@@ -34,7 +34,7 @@
             $userid = $USER->id;
     	}
         $user = $DB->get_field_sql("SELECT user.id
-                                    FROM   {user} as user,
+                                    FROM   {user} user,
                                            {contester_submits} submits
                                     WHERE  submits.id=?
                                            AND
