@@ -33,12 +33,12 @@
             }
             $userid = $USER->id;
     	}
-        $user = $DB->get_field_sql("SELECT user.id
-                                    FROM   {user} user,
+        $user = $DB->get_field_sql("SELECT u.id
+                                    FROM   {user} u,
                                            {contester_submits} submits
                                     WHERE  submits.id=?
                                            AND
-                                           user.id=submits.student",
+                                           u.id=submits.student",
                                    array($sid));
         if ($userid != $user) print_error('accessdenied', 'contester');
     }
