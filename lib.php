@@ -1323,7 +1323,7 @@ function contester_parse_task($text, $dbid) {
         $text = substr_replace($text, "", 0, strpos($text, "\\exmp") + 6);
         $example = null;
         $example->problem_id = $problem_id;
-        $example->number = $num++;
+        $example->orderno = $num++;
         $example->input = substr($text, 0, strpos($text, "}"));
         $text = substr_replace($text, "", 0, strpos($text, "}") + 2);
         $example->output = substr($text, 0, strpos($text, "}"));
