@@ -85,7 +85,7 @@
 
 	$DB->update_record('contester', $contester);
 
-	redirect("view.php?a=$contester->id", get_string('updatesuccess', 'contester'), 2);
+	redirect("problems_details.php?a=$contester->id", get_string('updatesuccess', 'contester'), 2);
 
 /// Finish the page
     contester_print_end();

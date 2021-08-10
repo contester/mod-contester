@@ -1,7 +1,6 @@
 <?PHP  // $Id: view.php,v 1.2 2006/04/29 22:19:41 skodak Exp $
 
-/// This page prints a particular instance of contester
-/// (Replace contester with the name of your module)
+/// This page: add and remove problems and change contest settings
 
     require_once("../../config.php");
     require_once("lib.php");
@@ -15,11 +14,9 @@
         if (! $cm = $DB->get_record("course_modules", array("id" => $id))) {
             print_error("Course Module ID was incorrect");
         }
-
         if (! $course = $DB->get_record("course", array("id" => $cm->course))) {
             print_error("Course is misconfigured");
         }
-
         if (! $contester = $DB->get_record("contester", array("id" => $cm->instance))) {
             print_error("Course module is incorrect");
         }
@@ -58,34 +55,31 @@
     echo $OUTPUT->header();
 
 /// Print the main part of the page
+    contester_print_begin($contester->id, $contester->name);
 
-	echo '<form action=save_problems.php method="POST">';
-	echo '<center>';
-	contester_show_problems_to_delete($a);
+    echo '<form action=save_problems.php method="POST">';
+    echo '<center>';
+    contester_show_problems_to_delete($a);
+    echo '<br>';
+    contester_show_problems_to_add($a);
 
-	echo '<br>';
+    $res = $DB->get_record('contester', array('id' => $a));
 
-	contester_show_problems_to_add($a);
+    echo "<p>";
 
-	$res = $DB->get_record('contester', array('id' => $a));
+    $out = "<nobr><input type=\"checkbox\" name=\"freeview\" value=\"1\" ";
+    if ($res->freeview)
+        $out .= "checked";
+    $out .= ">".get_string('viewable', 'contester');
+    echo $out;
+    echo "</br>";
 
-	echo "<p>";
-
-	$out = "<nobr><input type=\"checkbox\" name=\"freeview\" value=\"1\" ";
-	if ($res->freeview)
-		$out .= "checked";
-	$out .= ">".get_string('viewable', 'contester');
- 	echo $out;
-
- 	echo "</br>";
-
- 	$out = "<nobr><input type=\"checkbox\" name=\"viewown\" value=\"1\" ";
-	if ($res->viewown)
-		$out .= "checked";
-	$out .= ">".get_string('viewown', 'contester');
- 	echo $out;
-
- 	echo "</p>";
+    $out = "<nobr><input type=\"checkbox\" name=\"viewown\" value=\"1\" ";
+    if ($res->viewown)
+        $out .= "checked";
+    $out .= ">".get_string('viewown', 'contester');
+    echo $out;
+    echo "</p>";
 
 /// iomethod mode
     echo "<p>";
@@ -107,24 +101,26 @@
     echo "</p>";
 
 
- 	contester_print_link_to_problems_preview($a);
+    contester_print_link_to_problems_preview($a);
 
- 	if ($is_admin) {
- 		echo '<p>';
- 		contester_print_link_to_upload($a);
- 		echo '</p>';
- 	}
+    if ($is_admin) {
+        echo '<p>';
+        contester_print_link_to_upload($a);
+        echo '</p>';
+    }
 
-	echo '<br>';
+    echo '<br>';
 
-	echo '</center>';
+    echo '</center>';
 
-	echo '<center><input type=submit value="'.get_string('save', 'contester').'"</center>';
-	echo '<input type=hidden name="a" value="'.$contester->id.'">';
-	echo '</form>';
+    echo '<center><input type=submit value="'.get_string('save', 'contester').'"</center>';
+    echo '<input type=hidden name="a" value="'.$contester->id.'">';
+    echo '</form>';
+
+    contester_print_end();
+
 
 /// Finish the page
-    contester_print_end();
-    echo $OUTPUT->footer()
+    echo $OUTPUT->footer();
 
 ?>
