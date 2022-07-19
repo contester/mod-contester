@@ -159,7 +159,7 @@
         $cnt = 0;
         foreach ($prs as $pr) {
             if ($is_admin || $is_teacher || $st->id == $userid) {
-                $tmp = contester_get_last_or_last_correct_submit_reference($contester->id, $st->id, $pr->id, $datefrom_uts, $dateto_uts);
+                $tmp = contester_get_best_submit_reference($contester->id, $st->id, $pr->id, $datefrom_uts, $dateto_uts);
             }
             else {
                 $tmp = contester_get_result_without_reference($contester->id, $st->id, $pr->id, $datefrom_uts, $dateto_uts);
