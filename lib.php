@@ -870,9 +870,13 @@ function contester_get_last_submits($contesterid, $cnt = 1,
     return $result;
 }
 
-function contester_get_last_or_last_correct_submit($contesterid, $user,
-                                                   $problem,
-                                                   $datefrom_uts, $dateto_uts) {
+/**
+* Returns "best" (last correct or incorrect with the highest points)
+* submit info: correct or not flag, text results, sid
+*/
+function contester_get_best_submit($contesterid, $user,
+                                   $problem,
+                                   $datefrom_uts, $dateto_uts) {
     $submits = contester_get_last_submits($contesterid, -1, $user, $problem,
                                           $datefrom_uts, $dateto_uts);
     $points = -1;
@@ -881,7 +885,9 @@ function contester_get_last_or_last_correct_submit($contesterid, $user,
     $correct = false;
     foreach($submits as $submit) {
         // another correct
-        if (($correct) && ($submit->taken == $submit->passed)) {
+	// "> 0" is against not compiled submits
+        if (($correct) &&            
+            ($submit->taken == $submit->passed && $submit->taken > 0)) {
             if ($mincorrectresult > $submit->points) {
                 $mincorrectresult = $submit->points;
                 $sid = $submit->id;
@@ -890,9 +896,11 @@ function contester_get_last_or_last_correct_submit($contesterid, $user,
                 $points = $submit->points;
             }
         }
-        // correct or better
+        // first correct or just better
         if ((!$correct) && ($points <= $submit->points)) {
-            if ($submit->taken == $submit->passed) {
+            // "> 0" is against not compiled submits
+            if ($submit->taken == $submit->passed && $submit->taken > 0) {
+                if ($submit->taken == $submit->passed) {
                 $correct = true;
                 $mincorrectresult = $submit->points;
             }
@@ -921,12 +929,12 @@ function contester_get_last_or_last_correct_submit($contesterid, $user,
     return $result;
 }
 
-function contester_get_last_or_last_correct_submit_reference($contesterid,
-                                                             $user, $problem,
-                                                             $datefrom_uts, $dateto_uts) {
-    $result = contester_get_last_or_last_correct_submit($contesterid, $user,
-                                                        $problem,
-                                                        $datefrom_uts, $dateto_uts);
+function contester_get_best_correct_submit_reference($contesterid,
+                                                     $user, $problem,
+                                                     $datefrom_uts, $dateto_uts) {
+    $result = contester_get_best_correct_submit($contesterid, $user,
+                                                $problem,
+                                                $datefrom_uts, $dateto_uts);
     if ($result->text) {
         $solution_url = new moodle_url('show_solution.php', ['a' => $contesterid, 'sid' => $result->sid]);
         $res = '<a href="'.$solution_url.'">'.$result->text.'</a>';
@@ -941,9 +949,9 @@ function contester_get_last_or_last_correct_submit_reference($contesterid,
 
 function contester_get_result_without_reference($contesterid, $user, $problem,
                                                 $datefrom_uts, $dateto_uts) {
-    return contester_get_last_or_last_correct_submit($contesterid, $user,
-                                                     $problem,
-                                                     $datefrom_uts, $dateto_uts)->text;
+    return contester_get_best_correct_submit($contesterid, $user,
+                                             $problem,
+                                             $datefrom_uts, $dateto_uts)->text;
 }
 
 function contester_get_user_points($contesterid, $user) {
@@ -952,9 +960,9 @@ function contester_get_user_points($contesterid, $user) {
     $result = 0;
     foreach($problems as $line) {
         if ($line['problemid'] && $line['problemid'] != 0) {
-            $result += contester_get_last_or_last_correct_submit($contesterid,
-                                                                 $user,
-                                                                 $line['problemid']);
+            $result += contester_get_best_correct_submit($contesterid,
+                                                         $user,
+                                                         $line['problemid']);
         }
     }
     $problems->close();
