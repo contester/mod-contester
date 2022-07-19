@@ -886,7 +886,7 @@ function contester_get_best_submit($contesterid, $user,
     foreach($submits as $submit) {
         // another correct
 	// "> 0" is against not compiled submits
-        if (($correct) &&            
+        if (($correct) &&
             ($submit->taken == $submit->passed && $submit->taken > 0)) {
             if ($mincorrectresult > $submit->points) {
                 $mincorrectresult = $submit->points;
@@ -900,7 +900,6 @@ function contester_get_best_submit($contesterid, $user,
         if ((!$correct) && ($points <= $submit->points)) {
             // "> 0" is against not compiled submits
             if ($submit->taken == $submit->passed && $submit->taken > 0) {
-                if ($submit->taken == $submit->passed) {
                 $correct = true;
                 $mincorrectresult = $submit->points;
             }
