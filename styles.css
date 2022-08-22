@@ -1,28 +1,30 @@
 #problemname{
-	font-size : x-large;
-	text-align : center;
-	font-weight : bold;
-	display : block;
+	font-size: x-large;
+	text-align: center;
+	font-weight: bold;
+	display: block;
 }
 #contestname{
-	font-size : large;
-	font-weight : bold;
+	font-size: large;
+	font-weight: bold;
 }
 .textheader{
 	font-size: large;
 	text-align: left;
 	font-weight: bold;
 	display: block;
-	padding-top:   16px;
+	padding-top: 16px;
 	padding-bottom: 8px;
 }
 .textmedium{
 	font-size: medium;
+	font-weight: bold;
+	font-style: italic;
 }
 #tags{
 	text-align: left;
 	display: block;
-	padding-left:  10px;
+	padding-left: 10px;
 	padding-right: 10px;
 	font-size: medium;
 }
@@ -35,29 +37,3 @@
 	font-weight: bold;
 	padding-right: 10px;
 }
-
-/*
-#description{
-	text-align: left;
-	display: block;
-	padding-top: 20px;
-	font-size: medium;
-}
-#sample{
-	text-align: left;
-	display: block;
-	font-size: medium;
-	display: block;
-}
-#symbol{
-	text-transform: uppercase;
-	display: inline;
-	font-weight: bold;
-	font-style: italic;
-}
-#inoutformat{
-	font-size: medium;
-	text-align: left;
-	display: block;
-}
-*/
