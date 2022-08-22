@@ -1,8 +1,9 @@
 #problemname{
-	font-size: x-large;
-	text-align: center;
-	font-weight: bold;
-	display: block;
+        font-size: x-large;
+        text-align: center;
+        font-weight: bold;
+        display: block;
+        padding-top: 16px;
 }
 #contestname{
 	font-size: large;
@@ -18,7 +19,6 @@
 }
 .textmedium{
 	font-size: medium;
-	font-weight: bold;
 	font-style: italic;
 }
 #tags{
