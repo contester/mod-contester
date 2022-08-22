@@ -8,10 +8,13 @@
 	font-size : large;
 	font-weight : bold;
 }
-#inoutformat{
-	font-size: medium;
+.textheader{
+	font-size: large;
 	text-align: left;
+	font-weight: bold;
 	display: block;
+	padding-top:   16px;
+	padding-bottom: 8px;
 }
 #tags{
 	text-align: left;
@@ -31,14 +34,6 @@
 }
 
 /*
-.textheader{
-	font-size: large;
-	text-align: left;
-	font-weight: bold;
-	display: block;
-	padding-top:   16px;
-	padding-bottom: 8px;
-}
 #description{
 	text-align: left;
 	display: block;
@@ -56,5 +51,10 @@
 	display: inline;
 	font-weight: bold;
 	font-style: italic;
+}
+#inoutformat{
+	font-size: medium;
+	text-align: left;
+	display: block;
 }
 */
