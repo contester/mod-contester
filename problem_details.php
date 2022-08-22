@@ -39,6 +39,8 @@
 
 /// Print the main part of the page
 
+    contester_print_begin($contester->id);
+
     echo '<form action=save_problem.php method="POST">';
     contester_show_problem_details($pid);
     echo '<input type=submit value="'.get_string('save', 'contester').'">';
