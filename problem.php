@@ -48,7 +48,7 @@
     if ($iomethodmode == 1 or $iomethodmode == 2) {
         echo '<br />' . get_string('mode_console', 'contester');
     }
-    echo "</p>"
+    echo "</p>";
 
     echo "<table width = 70%>";
 
