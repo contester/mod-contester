@@ -41,14 +41,13 @@
     contester_print_begin($contester->id);
 
     $iomethodmode = $DB->get_field('contester', 'iomethodmode', array('id' => $contester->id));
-    echo "<p><div class=textmedium>" . get_string('iomethod', 'contester') . "</div>";
+    echo "<div class=textmedium>" . get_string('iomethod', 'contester') . "</div>";
     if ($iomethodmode == 0 or $iomethodmode == 2) {
-        echo '<br />' . get_string('mode_file', 'contester');
+        echo get_string('mode_file', 'contester') . '<br />';
     }
     if ($iomethodmode == 1 or $iomethodmode == 2) {
-        echo '<br />' . get_string('mode_console', 'contester');
+        echo get_string('mode_console', 'contester') . '<br />';
     }
-    echo "</p>";
 
     echo "<table width = 70%>";
 
@@ -75,7 +74,7 @@
     echo "<a href=$solutions_url>".get_string("solutionlist", "contester")."</a>";
     echo '</tr></td>';
 
-    echo '<tr><td>';
+    echo '<tr><td><span id=textheader>'.get_string('tags', 'contester').':</span>';
     echo '<span id=tags>';
     contester_show_problem_tags($problem->id);
     echo '</span></td></tr>';
