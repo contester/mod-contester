@@ -8,6 +8,11 @@
 	font-size : large;
 	font-weight : bold;
 }
+#inoutformat{
+	font-size: medium;
+	text-align: left;
+	display: block;
+}
 #tags{
 	text-align: left;
 	display: block;
@@ -52,10 +57,4 @@
 	font-weight: bold;
 	font-style: italic;
 }
-#inoutformat{
-	font-size: medium;
-	text-align: left;
-	display: block;
-}
-
 */
