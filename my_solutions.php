@@ -111,16 +111,16 @@
                                             submits.problem = problems.dbid
                                      ORDER BY submits.submitted_uts DESC', [$userid]);
         foreach($tmp as $row) {
-            $contester = $DB->get_records_sql('SELECT submits.contester as a,	                                    
-    		                                      contester.name as contester_name
-                                               FROM   {contester_submits} as submits,
-                                                      {contester} as contester
-                                               WHERE
-                                                      submits.contester = contester.id AND
-					              submits.id = ?', [$row->submit_id]);
-            if ($contester) {
-                $row->a = $contester[0]->a;
-                $row->contester_name = $contester[0]->contester_name;
+            $cont = $DB->get_records_sql('SELECT submits.contester as a,	                                    
+    		                                 contester.name as contester_name
+                                          FROM   {contester_submits} as submits,
+                                                 {contester} as contester
+                                          WHERE
+                                                 submits.contester = contester.id AND
+                                                 submits.id = ?', [$row->submit_id]);
+            if ($cont) {
+                $row->a = $cont[0]->a;
+                $row->contester_name = $cont[0]->contester_name;
 
                 $problemmap = $DB->get_records_sql('SELECT problemmap.id as pid
                                                     FROM   {contester_problems} as problems,
@@ -139,14 +139,14 @@
             if (!isset ($row->a)) {
                 $problem = $row->problem_name;
                 $status = "[deleted contest]";
-                $testing = '<a href=show_solution.php?a='.$a.'&sid='.$row->submit_id.'>'."[deleted contest]".'</a>';
-                $solution = '<a href=view.php?a='.$a.'>'.$row->contester_name.'</a>';
+                $points = '<a href=show_solution.php?a='.$a.'&sid='.$row->submit_id.'>'."[deleted contest]".'</a>';
+                $contester = "[deleted contest]";
 	    }
             else if (!isset ($row->pid)) {
                 $problem = $row->problem_name;
                 $status = "[deleted problem]";
-                $testing = '<a href=show_solution.php?a='.$row->a.'&sid='.$row->submit_id.'>'."[deleted problem]".'</a>';
-                $solution = '<a href=view.php?a='.$row->a.'>'.$row->contester_name.'</a>';
+                $points = '<a href=show_solution.php?a='.$row->a.'&sid='.$row->submit_id.'>'."[deleted problem]".'</a>';
+                $contester = '<a href=view.php?a='.$row->a.'>'.$row->contester_name.'</a>';
 	    }
             else {
                 $url_problem = new moodle_url('problem.php', ['a' => $row->a, 'pid' => $row->pid]);
@@ -154,16 +154,16 @@
     
                 $tmpsubmitinfo = contester_get_special_submit_info($row->submit_id, false, false); //do not return problem name & language info
                 $status = $tmpsubmitinfo->status;
-                $testing = '<a href=show_solution.php?a='.$row->a.'&sid='.$row->submit_id.'>'.$tmpsubmitinfo->points.'</a>';
-                $solution = '<a href=view.php?a='.$row->a.'>'.$row->contester_name.'</a>';
+                $points = '<a href=show_solution.php?a='.$row->a.'&sid='.$row->submit_id.'>'.$tmpsubmitinfo->points.'</a>';
+                $contester = '<a href=view.php?a='.$row->a.'>'.$row->contester_name.'</a>';
 	    }
 
             $table->data []= array($problem,
                                    $row->language_name,
                                    userdate($row->submitted_uts, get_string('strftimedatetime')),
                                    $status,
-                                   $testing,
-                                   $solution);
+                                   $points,
+                                   $contester);
 
 	}
     }
