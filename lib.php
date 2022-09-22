@@ -74,7 +74,6 @@ function contester_supports($feature) {
 function contester_add_instance(stdClass $contester, mod_contester_mod_form $mform = null) {
     global $DB;
     $contester->timecreated = time();
-    // You may have to add extra stuff in here.
     $contester->intro = "";
     $contester->id = $DB->insert_record('contester', $contester);
     contester_grade_item_update($contester);
@@ -95,6 +94,7 @@ function contester_add_instance(stdClass $contester, mod_contester_mod_form $mfo
 function contester_update_instance(stdClass $contester, mod_contester_mod_form $mform = null) {
     global $DB;
     $contester->timemodified = time();
+    $contester->intro = "";
     $contester->id = $contester->instance;
 
     $result = $DB->update_record('contester', $contester);
