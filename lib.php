@@ -108,7 +108,7 @@ function contester_update_instance(stdClass $contester, mod_contester_mod_form $
  *
  * Given an ID of an instance of this module,
  * this function will permanently delete the instance
- * and any data that depends on it.
+ * BUT NOT SUBMITS.
  *
  * @param int $id Id of the module instance
  * @return boolean Success/Failure
@@ -122,26 +122,15 @@ function contester_delete_instance($id) {
     contester_grade_item_delete($contester);
 
     $result = true;
-    if (! $DB->delete_records("contester", array("id"=>$contester->id))) {   //$DB->delete_records('contester', array('id' => $contester->id));
+    if (! $DB->delete_records("contester", array("id"=>$contester->id))) {
         $result = false;
     }
-    if (! $DB->delete_records("contester_problemmap", array("contesterid"=> $contester->id)))
-    {
+    if (! $DB->delete_records("contester_problemmap", array("contesterid"=> $contester->id))) {
     	$result = false;
     }
-    // Эти два запроса тут для красоты, а надо бы переделать весь этот метод под транзакцию,
-    // чтобы он тащил всё из базы и корректно удалял.
-    "DELETE FROM contester_results
-     WHERE testingid IN (SELECT DISTINCT id FROM contester_testings
-                         WHERE submitid IN (SELECT DISTINCT id FROM contester_submits WHERE contester = {$contester->id}))";
-    "DELETE FROM contester_testings
-     WHERE submitid IN (SELECT DISTINCT id FROM contester_submits
-                        WHERE contester = {$contester->id})";
+	
+    // мы определённо не хотим удалять сабмиты при удалении контеста, сабмиты вообще сильнее привязаны к задаче, чем к контесту...
 
-    if (! $DB->delete_records("contester_submits", array("contester"=>$contester->id)))
-    {
-    	$result = false;
-    }
     return $result;
 }
 
