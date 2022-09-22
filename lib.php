@@ -95,6 +95,7 @@ function contester_update_instance(stdClass $contester, mod_contester_mod_form $
     global $DB;
     $contester->timemodified = time();
     $contester->intro = "";
+    $contester->introformat = 0;
     $contester->id = $contester->instance;
 
     $result = $DB->update_record('contester', $contester);
