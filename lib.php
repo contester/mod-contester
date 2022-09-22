@@ -96,37 +96,6 @@ function contester_update_instance(stdClass $contester, mod_contester_mod_form $
     global $DB;
     $contester->timemodified = time();
     $contester->id = $contester->instance;
-    // You may have to add extra stuff in here.
-
-    if (!isset ($contester->freeview)) $contester->freeview = 0;
-    if (!isset ($contester->viewown)) $contester->viewown = 0;
-    if (isset($contester->add_problem) && (trim($contester->add_problem) != '0'))
-    {
-    	$map_inst = null;
-		foreach ($contester->add_problem as $k=>$v) {
-			$map_inst->problemid = $v;
-			$map_inst->contesterid = $contester->id;
-			$DB->insert_record('contester_problemmap', $map_inst, false);
-		}
-    	unset($map_inst);
-    }
-
-    if (!isset($contester->intro))
-    	$contester->intro = "Test";
-    if (!isset($contester->introformat))
-    	$contester->introformat = 0;
-    if (!isset($contester->description)) $contester->description = '';
-    $res = $DB->get_records('contester_problemmap', array('contesterid' => $contester->id), 'id', 'id');
-
-    foreach ($res as $line)
-    {
-    	$id = "pid".$line->id;
-	// Как тут вообще хоть что-то работает?
-    	if (isset($contester->$id)) {
-    		if ($contester->$id == "checked")
-    			$DB->delete_records('contester_problemmap', 'id', $line->id);
-    	}
-    }
 
     $result = $DB->update_record('contester', $contester);
     contester_grade_item_update($contester);
