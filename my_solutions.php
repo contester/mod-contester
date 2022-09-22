@@ -111,7 +111,7 @@
                                             submits.problem = problems.dbid
                                      ORDER BY submits.submitted_uts DESC', [$userid]);
         foreach($tmp as $row) {
-            $cont = $DB->get_records_sql('SELECT submits.contester as a,	                                    
+            $cont = $DB->get_records_sql('SELECT submits.contester as a,
     		                                 contester.name as contester_name
                                           FROM   {contester_submits} as submits,
                                                  {contester} as contester
@@ -119,8 +119,8 @@
                                                  submits.contester = contester.id AND
                                                  submits.id = ?', [$row->submit_id]);
             if ($cont) {
-                $row->a = $cont[0]->a;
-                $row->contester_name = $cont[0]->contester_name;
+                $row->a = current($cont)->a;
+                $row->contester_name = current($cont)->contester_name;
 
                 $problemmap = $DB->get_records_sql('SELECT problemmap.id as pid
                                                     FROM   {contester_problems} as problems,
@@ -132,7 +132,7 @@
                                                            problemmap.problemid = problems.id AND
                                                            submits.id = ?', [$row->submit_id]);
                 if ($problemmap) {
-                    $row->pid = $problemmap[0]->pid;
+                    $row->pid = current($problemmap)->pid;
                 }
 	    }
 
